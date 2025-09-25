@@ -25,6 +25,7 @@ PLOT_SIZE=${PLOT_SIZE:-1000}
 echo -e "${BOLD_GREEN}Going to create the configuration directory of a Hotmoka node using the Mokamint proof of space consensus engine, with the following parameters:${NC}"
 echo
 echo -e " ${BLUE}MOKAMINT_PUBLIC_SERVICE_URI${NC}=${RED}$MOKAMINT_PUBLIC_SERVICE_URI${NC}"
+echo -e "     ${BLUE}PUBLIC_KEY_MINER_BASE58${NC}=${RED}\"$PUBLIC_KEY_MINER_BASE58\"${NC}"
 echo -e "                   ${BLUE}PLOT_SIZE${NC}=${RED}$PLOT_SIZE${NC}"
 echo
 
@@ -34,7 +35,7 @@ echo -e "${RED}done${NC}"
 
 echo -n "Cloning the Mokamint configuration file from ${MOKAMINT_PUBLIC_SERVICE_URI}... "
 # we need the chain id of the Mokamint network in order to create the plot later
-# and we need the signature algorithms for creating the keys of the node and of the miner
+# and we need the signature algorithms for creating the keys of the node
 CONFIG=$(mokamint-node config show --uri $MOKAMINT_PUBLIC_SERVICE_URI --json)
 # we require the configuration a second time, since it must be saved in TOML, not in JSON
 mokamint-node config show --uri $MOKAMINT_PUBLIC_SERVICE_URI > hotmoka_mokamint/mokamint_config.toml
@@ -55,13 +56,6 @@ PUBLIC_KEY_NODE_BASE58=$(cat node_key_creation.json | python3 -c "import sys, js
 rm node_key_creation.json
 chmod og-rwx hotmoka_mokamint/node.pem
 echo -e "${RED}done:${NC} the public key is ${BOLD_GREEN}${PUBLIC_KEY_NODE_BASE58}${NC} (${SIGNATURE_FOR_BLOCKS}, base58)"
-
-echo -n "Creating the miner.pem key pair for signing the deadlines: "
-moka keys create --output-dir=hotmoka_mokamint --name=miner.pem --password --signature ${SIGNATURE_FOR_DEADLINES} --json --redirection miner_key_creation.json
-PUBLIC_KEY_MINER_BASE58=$(cat miner_key_creation.json | python3 -c "import sys, json; print(json.load(sys.stdin)['publicKeyBase58'])")
-rm miner_key_creation.json
-chmod og-rwx hotmoka_mokamint/miner.pem
-echo -e "${RED}done:${NC} the public key is ${BOLD_GREEN}${PUBLIC_KEY_MINER_BASE58}${NC} (${SIGNATURE_FOR_DEADLINES}, base58)"
 
 echo "Creating a plot file for the miner, containing ${PLOT_SIZE} nonces, for the chain id \"${CHAIN_ID}\", for a node with public key ${PUBLIC_KEY_NODE_BASE58} (${SIGNATURE_FOR_BLOCKS}, base58), for a miner with public key ${PUBLIC_KEY_MINER_BASE58} (${SIGNATURE_FOR_DEADLINES}, base58)..."
 mokamint-plotter create hotmoka_mokamint/plot.plot 0 $PLOT_SIZE "$CHAIN_ID" $PUBLIC_KEY_NODE_BASE58 $PUBLIC_KEY_MINER_BASE58 --signature-of-node ${SIGNATURE_FOR_BLOCKS} --signature-of-plot ${SIGNATURE_FOR_DEADLINES}

@@ -17,10 +17,8 @@ moka-print-logs nodes mokamint init \
 	/modules/explicit_or_automatic/io-takamaka-code-1.8.0.jar \
 	hotmoka_mokamint/plot.plot \
 	hotmoka_mokamint/node.pem \
-	hotmoka_mokamint/miner.pem \
 	--yes \
 	--password-of-mokamint-node \
-	--password-of-plot \
 	--mokamint-config=hotmoka_mokamint/mokamint_config.toml \
 	--consensus-config=hotmoka_mokamint/consensus_config.toml \
 	--local-config=hotmoka_mokamint/local_config.toml \

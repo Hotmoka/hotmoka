@@ -45,10 +45,7 @@ import io.mokamint.node.local.LocalNodeConfigBuilders;
 import io.mokamint.node.local.api.LocalNodeConfig;
 import io.mokamint.node.service.PublicNodeServices;
 import io.mokamint.node.service.RestrictedNodeServices;
-import io.mokamint.plotter.PlotAndKeyPairs;
 import io.mokamint.plotter.Plots;
-import io.mokamint.plotter.api.PlotAndKeyPair;
-import io.mokamint.plotter.api.WrongKeyException;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
 import picocli.CommandLine.Parameters;
@@ -64,9 +61,6 @@ public class Resume extends AbstractNodeResume {
 
 	@Parameters(description = "the path of the key pair of the Mokamint node, used to sign the blocks that it creates")
 	private Path keysOfMokamintNode;
-
-	@Parameters(description = "the path of the key pair of the plot file, used to sign the deadlines that the miner creates with that plot file")
-	private Path keysOfPlot;
 
 	@Option(names = "--mokamint-config", paramLabel = "<path>", description = "the configuration of the underlying Mokamint engine, in TOML format", converter = MokamintLocalNodeConfigOptionConverter.class)
 	private LocalNodeConfig mokamintConfig;
@@ -86,19 +80,15 @@ public class Resume extends AbstractNodeResume {
 	@Option(names = "--password-of-mokamint-node", description = "the password of the key pair of the Mokamint node", interactive = true, defaultValue = "")
     private char[] passwordOfKeysOfMokamintNode;
 
-	@Option(names = "--password-of-plot", description = "the password of the key pair of the plot file", interactive = true, defaultValue = "")
-    private char[] passwordOfKeysOfPlot;
-
 	@Override
 	protected void execute() throws CommandException {
 		try {
 			LocalNodeConfig mokamintConfig = mkMokamintConfig();
 			MokamintNodeConfig localNodeConfig = mkLocalConfig();
 			KeyPair keysOfNode = mkKeysOfMokamintNode(mokamintConfig);
-			KeyPair keysOfPlot = mkKeysOfPlot(mokamintConfig);
 
 			try (var node = MokamintNodes.resume(localNodeConfig, mokamintConfig, keysOfNode); var plot = Plots.load(this.plot)) {
-				try (var miner = LocalMiners.of("Local miner", "A local miner working for a Mokamint Hotmoka node", (_signature, _publicKey) -> Optional.empty(), new PlotAndKeyPair[] { PlotAndKeyPairs.of(plot, keysOfPlot) })) {
+				try (var miner = LocalMiners.of("Local miner", "A local miner working for a Mokamint Hotmoka node", (_signature, _publicKey) -> Optional.empty(), plot)) {
 					var engine = node.getMokamintEngine().get();
 					engine.add(miner).orElseThrow(() -> new CommandException("Could not add a miner to the Mokamint node"));
 
@@ -129,9 +119,6 @@ public class Resume extends AbstractNodeResume {
 					}
 				}
 			}
-			catch (WrongKeyException e) {
-				throw new CommandException("The key pair does not contain the correct keys for the plot file");
-			}
 			catch (NoSuchAlgorithmException e) {
 				throw new CommandException("The plot file refers to a non-available cryptographic algorithm", e);
 			}
@@ -151,7 +138,6 @@ public class Resume extends AbstractNodeResume {
 		}
 		finally {
 			Arrays.fill(passwordOfKeysOfMokamintNode, ' ');
-			Arrays.fill(passwordOfKeysOfPlot, ' ');
 		}
 	}
 
@@ -193,7 +179,7 @@ public class Resume extends AbstractNodeResume {
 	}
 
 	private KeyPair mkKeysOfMokamintNode(LocalNodeConfig mokamintConfig) throws CommandException {
-		String passwordOfKeysOfMokamintNodeAsString = new String(passwordOfKeysOfMokamintNode);
+		var passwordOfKeysOfMokamintNodeAsString = new String(passwordOfKeysOfMokamintNode);
 
 		try {
 			return Entropies.load(keysOfMokamintNode).keys(passwordOfKeysOfMokamintNodeAsString, mokamintConfig.getSignatureForBlocks());
@@ -204,21 +190,6 @@ public class Resume extends AbstractNodeResume {
 		finally {
 			passwordOfKeysOfMokamintNodeAsString = null;
 			Arrays.fill(passwordOfKeysOfMokamintNode, ' ');
-		}
-	}
-
-	private KeyPair mkKeysOfPlot(LocalNodeConfig mokamintConfig) throws CommandException {
-		String passwordOfKeysOfPlotAsString = new String(passwordOfKeysOfPlot);
-
-		try {
-			return Entropies.load(keysOfPlot).keys(passwordOfKeysOfPlotAsString, mokamintConfig.getSignatureForDeadlines());
-		}
-		catch (IOException e) {
-			throw new CommandException("Cannot access file \"" + keysOfPlot + "\"!", e);
-		}
-		finally {
-			passwordOfKeysOfPlotAsString = null;
-			Arrays.fill(passwordOfKeysOfPlot, ' ');
 		}
 	}
 

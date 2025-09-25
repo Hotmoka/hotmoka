@@ -38,7 +38,7 @@ Note: submodules whose artifact must be deployed on Maven Central must activate 
     <io.hotmoka.closeables.version>1.5.0</io.hotmoka.closeables.version>
     <it.univr.bcel.version>1.2.1</it.univr.bcel.version>
     <bcel.version>6.7.0</bcel.version>
-    <mokamint.version>1.5.1</mokamint.version>
+    <mokamint.version>1.6.0</mokamint.version>
   </properties>
 
   <groupId>io.hotmoka</groupId>

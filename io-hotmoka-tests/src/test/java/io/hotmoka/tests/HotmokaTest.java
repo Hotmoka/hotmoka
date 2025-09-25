@@ -119,10 +119,8 @@ import io.mokamint.node.local.api.LocalNode;
 import io.mokamint.node.service.PublicNodeServices;
 import io.mokamint.node.service.RestrictedNodeServices;
 import io.mokamint.nonce.Prologs;
-import io.mokamint.plotter.PlotAndKeyPairs;
 import io.mokamint.plotter.Plots;
 import io.mokamint.plotter.api.Plot;
-import io.mokamint.plotter.api.PlotAndKeyPair;
 import io.takamaka.code.constants.Constants;
 
 @ExtendWith(HotmokaTest.NodeHandler.class)
@@ -396,7 +394,7 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 		var prolog = Prologs.of(mokamintConfig.getChainId(), mokamintConfig.getSignatureForBlocks(), nodeKeys.getPublic(), mokamintConfig.getSignatureForDeadlines(), plotKeys.getPublic(), new byte[0]);
 		var plot = Plots.create(hotmokaChainPath.resolve("test.plot"), prolog, 1000, 4000, mokamintConfig.getHashingForDeadlines(), __ -> {});
 		plots.add(plot);
-		var miner = LocalMiners.of("Hotmoka testing", "Hotmoka testing mining endpoint", (_signature, _publicKey) -> Optional.empty(), new PlotAndKeyPair[] { PlotAndKeyPairs.of(plot, plotKeys) });
+		var miner = LocalMiners.of("Hotmoka testing", "Hotmoka testing mining endpoint", (_signature, _publicKey) -> Optional.empty(), plot);
 		miners.add(miner);
 		var node = MokamintNodes.init(config, mokamintConfig, nodeKeys);
 		var engine = node.getMokamintEngine().get();
@@ -478,7 +476,7 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 			var plot = Plots.create(hotmokaChainPath.resolve("test.plot"), prolog, 1000, PLOT_LENGTH * nodeNum, mokamintConfig.getHashingForDeadlines(), __ -> {});
 			plots.add(plot);
 
-			var miner = LocalMiners.of("Hotmoka testing", "Hotmoka testing mining endpoint", (_signature, _publicKey) -> Optional.empty(), new PlotAndKeyPair[] { PlotAndKeyPairs.of(plot, plotKeys) });
+			var miner = LocalMiners.of("Hotmoka testing", "Hotmoka testing mining endpoint", (_signature, _publicKey) -> Optional.empty(), plot);
 			miners.add(miner);
 
 			MokamintNode<LocalNode> node = nodeNum == 1 ? MokamintNodes.init(config, mokamintConfig, nodeKeys) : MokamintNodes.start(config, mokamintConfig, nodeKeys); // we create a brand new genesis block, but only in node 1

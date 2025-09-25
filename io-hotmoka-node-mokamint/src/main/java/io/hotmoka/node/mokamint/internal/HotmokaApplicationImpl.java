@@ -150,9 +150,9 @@ public class HotmokaApplicationImpl<E extends PublicNode> extends AbstractApplic
 	}
 
 	@Override
-	public boolean checkPrologExtra(byte[] extra) throws ClosedApplicationException {
+	public boolean checkDeadline(Deadline deadline) throws ClosedApplicationException {
 		try (var scope = mkScope()) {
-			return extra.length == 0; // no extra used by this application
+			return !deadline.getProlog().hasExtra() && !deadline.hasExtra(); // no extra used by this application
 		}
 	}
 

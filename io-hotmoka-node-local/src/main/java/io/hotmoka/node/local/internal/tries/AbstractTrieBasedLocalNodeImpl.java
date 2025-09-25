@@ -356,7 +356,7 @@ public abstract class AbstractTrieBasedLocalNodeImpl<N extends AbstractTrieBased
 		try {
 			while (!Thread.currentThread().isInterrupted()) {
 				Set<StateIdAndTime> toGC = env.computeInReadonlyTransaction(txn -> getStores(STORES_TO_GC, txn));
-				LOGGER.info("#toGC: " + toGC.size() + " with users " + storeUsers);
+				LOGGER.fine("#toGC: " + toGC.size() + " with users " + storeUsers);
 				for (var stateIdAndTime: toGC) {
 					StateId stateId = stateIdAndTime.stateId;
 					// if nobody is using the store identified by stateId, then
