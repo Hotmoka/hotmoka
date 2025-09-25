@@ -319,7 +319,7 @@ Receiver and payer have different roles but are treated identically in Hotmoka:
 they are objects stored in state at their respective state locations, known as
 their _storage references_. For instance the payer in
 Figure 1 might be allocated at the storage
-reference `ad7d2f8cb83a503d27b7314307d09598b7ccbc2717e6098d42b588364098aeac#0`. A storage reference has two parts, separated
+reference `81b560833f64378eba9b5f107f1ac26313468567e3135df61c87091a6a8d1736#0`. A storage reference has two parts, separated
 by a `#` sign. The first part are 64 hexadecimal digits (ie, 32 bytes)
 that identify the
 transaction that created the object; the second part is a progressive number
@@ -560,7 +560,7 @@ about a Hotmoka node at an address, as you can see below:
 ```shell
 $ moka nodes manifest show --uri ws://panarea.hotmoka.io:8001
   takamakaCode: 0d0f8f8232e4931a7f2f2e0fae7c5f63c6c31d35b1fcd22494e7c3a21fb8d2af
-  manifest: 70711f1c5cea1dda2ad6c0542e74ef414dbff156916abba3591c1c847404ba57#0
+  manifest: 5aa66b315323008e3f33b51fd74bf3f4ab2b85471fad48a1938e56dbe6e4c344#0
     chainId: octopus
     maxErrorLength: 300
     signature: ed25519
@@ -569,10 +569,10 @@ $ moka nodes manifest show --uri ws://panarea.hotmoka.io:8001
       balance: 99999999999999999999...
       maxFaucet: 10000000000000000
       ...
-    gasStation: 70711f1c5cea1dda2ad6c0542e74ef414dbff156916abba3591c1c847404ba57#e
+    gasStation: 5aa66b315323008e3f33b51fd74bf3f4ab2b85471fad48a1938e56dbe6e4c344#e
       gasPrice: 1
       ...
-    validators: 70711f1c5cea1dda2ad6c0542e74ef414dbff156916abba3591c1c847404ba57#1
+    validators: 5aa66b315323008e3f33b51fd74bf3f4ab2b85471fad48a1938e56dbe6e4c344#1
       currentSupply: 1000000000000000...
       ...
 ```
@@ -605,7 +605,7 @@ another Java object, called `validators`, that keeps information about the valid
 and how much will exist eventually).
 
 As we said in the previous section, Java objects in the Hotmoka node are identified by their
-_storage reference_, such as `70711f1c5cea1dda2ad6c0542e74ef414dbff156916abba3591c1c847404ba57#e`.
+_storage reference_, such as `5aa66b315323008e3f33b51fd74bf3f4ab2b85471fad48a1938e56dbe6e4c344#e`.
 You can think at a storage reference as a machine-independent pointer inside the
 memory, or state, of the node.
 
@@ -652,18 +652,18 @@ $ moka keys create --name=account1.pem --password
 Enter value for --password
   (the password that will be needed later to use the key pair): chocolate
 The new key pair has been written into "account1.pem":
-* public key: 48AZ9rm5YDf1EUF438ZYJbq33Gp32eWzNsVmH2Jov2YF (ed25519, base58)
-* public key: Lmjt+YhQ6veDEWmzpW6Mp6+rb+bYw0HHbF6X6ueVGUA= (ed25519, base64)
-* Tendermint-like address: 28F393B95024CCF027387CC65223D7ECCDF67B4A
+* public key: JAe9FwCoyGrYSLe1Xai43FanHVRUCkgSB8SRgigw9rnb (ed25519, base58)
+* public key: /w7m7Dh5VxFjEhbh/lyJXYyINJrsnBhUD73u5eklY/g= (ed25519, base64)
+* Tendermint-like address: 4D9D9313FE23691C05571A0FA8EA1D5F5D958DC6
 
 $ moka accounts create faucet 50000000000000 account1.pem --password
     --uri ws://panarea.hotmoka.io:8001
 Enter value for --password
   (the password of the key pair): chocolate
-Adding transaction ad7d2f8cb83a503d27b7314307d09598b7ccbc2717e6098d42b588364098aeac... done.
-A new account ad7d2f8cb83a503d27b7314307d09598b7ccbc2717e6098d42b588364098aeac#0 has been created.
+Adding transaction 81b560833f64378eba9b5f107f1ac26313468567e3135df61c87091a6a8d1736... done.
+A new account 81b560833f64378eba9b5f107f1ac26313468567e3135df61c87091a6a8d1736#0 has been created.
 Its key pair has been saved
-  into the file "ad7d2f8cb83a503d27b7314307d09598b7ccbc2717e6098d42b588364098aeac#0.pem".
+  into the file "81b560833f64378eba9b5f107f1ac26313468567e3135df61c87091a6a8d1736#0.pem".
 
 Gas consumption:
  * total: 6720
@@ -676,7 +676,7 @@ Gas consumption:
 ```
 
 An object has been created in the node, identified by its
-*storage reference*, that in this case is `ad7d2f8cb83a503d27b7314307d09598b7ccbc2717e6098d42b588364098aeac#0`.
+*storage reference*, that in this case is `81b560833f64378eba9b5f107f1ac26313468567e3135df61c87091a6a8d1736#0`.
 
 > Note that this reference will be different in your machine, as well as the 36 words passphrase.
 > Change these accordingly in the subsequent examples.
@@ -693,17 +693,17 @@ Note that the password is not written anywhere: if you lose it, there is
 no way to recover that password.
 
 Let us check that our account really exists at its address,
-by querying the node about the state of the object allocated at `ad7d2f8cb83a503d27b7314307d09598b7ccbc2717e6098d42b588364098aeac#0`:
+by querying the node about the state of the object allocated at `81b560833f64378eba9b5f107f1ac26313468567e3135df61c87091a6a8d1736#0`:
 
 ```shell
-$ moka objects show ad7d2f8cb83a503d27b7314307d09598b7ccbc2717e6098d42b588364098aeac#0
+$ moka objects show 81b560833f64378eba9b5f107f1ac26313468567e3135df61c87091a6a8d1736#0
     --uri ws://panarea.hotmoka.io:8001
 class io.takamaka.code.lang.ExternallyOwnedAccountED25519
   (from jar installed at 0d0f8f8232e4931a7f2f2e0fae7c5f63c6c31d35b1fcd22494e7c3a21fb8d2af)
   io.takamaka.code.lang.Contract.balance:java.math.BigInteger = 50000000000000
   io.takamaka.code.lang.ExternallyOwnedAccount.nonce:java.math.BigInteger = 0
   io.takamaka.code.lang.ExternallyOwnedAccount.publicKey:java.lang.String
-    = "Lmjt+YhQ6veDEWmzpW6Mp6+rb+bYw0HHbF6X6ueVGUA="
+    = "/w7m7Dh5VxFjEhbh/lyJXYyINJrsnBhUD73u5eklY/g="
 ```
 
 Note that the balance and the public key of the account are
@@ -739,9 +739,9 @@ if you want to recharge your account with 200000 extra coins, you can type:
 
 ```shell
 $ moka accounts send faucet 200000
-    ad7d2f8cb83a503d27b7314307d09598b7ccbc2717e6098d42b588364098aeac#0
+    81b560833f64378eba9b5f107f1ac26313468567e3135df61c87091a6a8d1736#0
     --uri ws://panarea.hotmoka.io:8001
-Adding transaction 87c28e2fe5108c5a4d04be6c42d5324c8024c27d5ebc5b6d245e6ee95b61cd55... done.
+Adding transaction 2728ca151233aaf164ba20db2ea16ccfacb18695062cf0a20b6c8331cae7b50d... done.
 ```
 You can then use the `moka objects show` command to verify that the balance of
 your account has been actually increased with 200000 extra coins.
@@ -782,7 +782,7 @@ has been added to your accounts (see Figure 11).
 
 ## Importing Accounts
 
-We have created `ad7d2f8cb83a503d27b7314307d09598b7ccbc2717e6098d42b588364098aeac#0` with `moka` and
+We have created `81b560833f64378eba9b5f107f1ac26313468567e3135df61c87091a6a8d1736#0` with `moka` and
 `701e20be588db820744df467826d67b9fe451406d7f75da6ef8aeb6805a7365f#0` with Mokito. We might want to _import_ the former in Mokito and the latter
 in `moka`, so that we can operate on both accounts with both tools. In order to import
 `701e20be588db820744df467826d67b9fe451406d7f75da6ef8aeb6805a7365f#0` in `moka`, we can use the `moka keys import` command and insert its 36 words
@@ -814,44 +814,44 @@ Vice versa, in order to import into Mokito the account that was created with `mo
 first export the 36 words of that account:
 
 ```shell
-$ moka keys export ad7d2f8cb83a503d27b7314307d09598b7ccbc2717e6098d42b588364098aeac#0
+$ moka keys export 81b560833f64378eba9b5f107f1ac26313468567e3135df61c87091a6a8d1736#0
 The following BIP39 words represent the key pair of the account:
- 1: hub
- 2: benefit
- 3: panel
- 4: jazz
- 5: carbon
- 6: frog
- 7: hole
- 8: sheriff
- 9: alter
-10: bonus
-11: reveal
-12: shed
-13: style
-14: oak
-15: cream
-16: also
-17: expand
-18: truck
-19: universe
-20: glad
-21: corn
-22: tribe
-23: filter
-24: black
-25: smile
-26: thrive
-27: shine
-28: slot
-29: occur
-30: pattern
-31: stomach
-32: almost
-33: dog
-34: shell
-35: private
-36: later
+ 1: bulb
+ 2: bird
+ 3: stomach
+ 4: output
+ 5: sugar
+ 6: level
+ 7: glare
+ 8: swallow
+ 9: index
+10: chat
+11: elite
+12: crush
+13: brave
+14: raccoon
+15: artefact
+16: uncle
+17: daring
+18: into
+19: plug
+20: sail
+21: among
+22: miracle
+23: another
+24: give
+25: educate
+26: clinic
+27: web
+28: chase
+29: term
+30: atom
+31: bring
+32: cash
+33: hedgehog
+34: hamster
+35: snow
+36: just
 ```
 
 Then go to the accounts page of Mokito and show its
@@ -909,35 +909,35 @@ $ moka keys create --name=anonymous.pem --password
 Enter value for --password
   (the password that will be needed later to use the key pair): kiwis
 The new key pair has been written into "anonymous.pem":
-* public key: HvCqdFfwiNNqvTyD2cS7rTzE3FUTENWzk7RcaxEipg29 (ed25519, base58)
-* public key: +1wozUbXuIfsklMDVsYI+7O7mw2+aba/aIkTzsfKBAY= (ed25519, base64)
-* Tendermint-like address: 56F28B163F0485F860CE0468710DA12533C76AFD
+* public key: Gs5z9ikVVKpc2d9o96KYE51fMPmtKApDuTUWF9wHsdoD (ed25519, base58)
+* public key: 67P7Nq2LYH+Fmt37D2DokWpvEGiiGErwZrWXhthKqBg= (ed25519, base64)
+* Tendermint-like address: 85C8A1A2F5E24A1BA830E731C8DBAEBAAD678E9A
 ```
 Note that there is no `--uri` part in the `moka keys create` command, since this operation
 runs completely off-line: no object gets created in the state of any Hotmoka node for now.
 Anonymous pastes the new key into an anonymous email message to us:
 
 ```
-Please pay 10000 coins to the key HvCqdFfwiNNqvTyD2cS7rTzE3FUTENWzk7RcaxEipg29.
+Please pay 10000 coins to the key Gs5z9ikVVKpc2d9o96KYE51fMPmtKApDuTUWF9wHsdoD.
 ```
 
 Once we receive that email, we use (for instance) our previous account to send 10000 coins to that key:
 
 ```shell
-$ moka accounts send ad7d2f8cb83a503d27b7314307d09598b7ccbc2717e6098d42b588364098aeac#0
-    10000 HvCqdFfwiNNqvTyD2cS7rTzE3FUTENWzk7RcaxEipg29
+$ moka accounts send 81b560833f64378eba9b5f107f1ac26313468567e3135df61c87091a6a8d1736#0
+    10000 Gs5z9ikVVKpc2d9o96KYE51fMPmtKApDuTUWF9wHsdoD
     --password-of-payer
     --uri ws://panarea.hotmoka.io:8001
 Enter value for --password-of-sender (the password of the sender): chocolate
-Adding transaction a226cb5a6f9ceb61ecff9d7db04eb3c9a4661141f507df9afcaf739147ff604e... done.
+Adding transaction 50668aab3f39d4dda21e83e173f91fc27961be724b8d52f4287d8c89d2c8e51a... done.
 The payment went to
-  account a226cb5a6f9ceb61ecff9d7db04eb3c9a4661141f507df9afcaf739147ff604e#0.
+  account 50668aab3f39d4dda21e83e173f91fc27961be724b8d52f4287d8c89d2c8e51a#0.
 The owner of the destination key pair can bind it now to its address with:
   moka keys bind file_containing_the_destination_key_pair
     --password --uri uri_of_this_Hotmoka_node
 or with:
   moka keys bind file_containing_the_destination_key_pair
-    --password --reference a226cb5a6f9ceb61ecff9d7db04eb3c9a4661141f507df9afcaf739147ff604e#0
+    --password --reference 50668aab3f39d4dda21e83e173f91fc27961be724b8d52f4287d8c89d2c8e51a#0
 
 Gas consumption:
  * total: 7281
@@ -962,14 +962,14 @@ Cannot bind: nobody has paid anonymously to the key anonymous.pem up to now.
 
 $ moka keys bind anonymous.pem --password --uri ws://panarea.hotmoka.io:8001
 Enter value for --password (the password of the key pair): kiwis
-The key pair of a226cb5a6f9ceb61ecff9d7db04eb3c9a4661141f507df9afcaf739147ff604e#0
-  has been saved as "a226cb5a6f9ceb61ecff9d7db04eb3c9a4661141f507df9afcaf739147ff604e#0.pem".
+The key pair of 50668aab3f39d4dda21e83e173f91fc27961be724b8d52f4287d8c89d2c8e51a#0
+  has been saved as "50668aab3f39d4dda21e83e173f91fc27961be724b8d52f4287d8c89d2c8e51a#0.pem".
 ```
 Once `moka keys bind` succeeds, Anonymous can enjoy his brand new account, that he
 can control with the `kiwis` password.
 
 So how does that work? The answer is that the `moka accounts send` command
-creates the account `a226cb5a6f9ceb61ecff9d7db04eb3c9a4661141f507df9afcaf739147ff604e#0` with the public key of
+creates the account `50668aab3f39d4dda21e83e173f91fc27961be724b8d52f4287d8c89d2c8e51a#0` with the public key of
 Anonymous inside it, so that Anonymous will be able to control that account.
 But there is more: that command
 will also associate the public key of the account to the account itself,
@@ -984,7 +984,7 @@ accounts ledger, to see if somebody has already bound an account to that public 
 > This is a security measure in order
 > to avoid payment disruptions due to the association of dummy accounts to some keys
 > or to repeated payments to the same key.
-> In any case, the public key of _C_ can only be `+1wozUbXuIfsklMDVsYI+7O7mw2+aba/aIkTzsfKBAY=`, since the accounts ledger
+> In any case, the public key of _C_ can only be `67P7Nq2LYH+Fmt37D2DokWpvEGiiGErwZrWXhthKqBg=`, since the accounts ledger
 > enforces that constraint when it gets populated with accounts:
 > if somebody associates a key _K_ to an account _C_, then the public key
 > contained inside _C_ must be _K_.
@@ -1253,14 +1253,14 @@ there already, so that
 
 ```shell
 $ cd hotmoka_tutorial
-$ moka jars install ad7d2f8cb83a503d27b7314307d09598b7ccbc2717e6098d42b588364098aeac#0
+$ moka jars install 81b560833f64378eba9b5f107f1ac26313468567e3135df61c87091a6a8d1736#0
     io-hotmoka-tutorial-examples-family/target/io-hotmoka-tutorial-examples-family-1.11.3.jar
     --password-of-payer
     --uri ws://panarea.hotmoka.io:8001
 
 Enter value for --password-of-payer (the password of the key pair of the payer account): chocolate
-Adding transaction 3d0b1f43e5ce299e1ab5dd08941856d76be2ee032e9bd5ac218dbaf805de5f51... done.
-The jar has been installed at 3d0b1f43e5ce299e1ab5dd08941856d76be2ee032e9bd5ac218dbaf805de5f51.
+Adding transaction 8c70f82b0a382cc32269ebbe5c788f1ec95cbe2d3e60560c9300e89f0ad08206... done.
+The jar has been installed at 8c70f82b0a382cc32269ebbe5c788f1ec95cbe2d3e60560c9300e89f0ad08206.
 
 Gas consumption:
  * total: 9330
@@ -1565,9 +1565,9 @@ the class to run and the parameters to pass to its `main` method:
 $ mvn compile exec:java -Dexec.mainClass="io.hotmoka.tutorial.examples.runs.Family"
      -Dexec.args="ws://panarea.hotmoka.io:8001
                   hotmoka_tutorial
-                  ad7d2f8cb83a503d27b7314307d09598b7ccbc2717e6098d42b588364098aeac#0
+                  81b560833f64378eba9b5f107f1ac26313468567e3135df61c87091a6a8d1736#0
                   chocolate"
-jar installed at: 5380e9f58c389645ad9cc89f6799f34d44ee8a7d48fe71058f3d8393510ba934
+jar installed at: b43c23d21a32f092603842acf08274afe39b27158bfa69b5b11b942f902b13f3
 ```
 The exact address will change in your machine. In any case, note that this reference to the jar is functionally equivalent to that
 obtained before with the `moka jars install` command: they point to equivalent jars.
@@ -1579,22 +1579,22 @@ __[See `io-hotmoka-tutorial-examples-family_storage` in `https://github.com/Hotm
 __[See `io-hotmoka-tutorial-examples-runs` in `https://github.com/Hotmoka/hotmoka`]__
 
 The jar of our program is in the store of the node now: the `moka jars install` command
-has installed it at `3d0b1f43e5ce299e1ab5dd08941856d76be2ee032e9bd5ac218dbaf805de5f51` and our code at `5380e9f58c389645ad9cc89f6799f34d44ee8a7d48fe71058f3d8393510ba934`.
+has installed it at `8c70f82b0a382cc32269ebbe5c788f1ec95cbe2d3e60560c9300e89f0ad08206` and our code at `b43c23d21a32f092603842acf08274afe39b27158bfa69b5b11b942f902b13f3`.
 We can use either of them, interchangeably, as class path for the execution of a transaction that
 tries to run the constructor of `Person` and add a brand
 new `Person` object into the store of the node. We can perform this through the `moka` tool:
 
 ```shell
 $ cd hotmoka_tutorial # if you are not already there
-$ moka objects create ad7d2f8cb83a503d27b7314307d09598b7ccbc2717e6098d42b588364098aeac#0
+$ moka objects create 81b560833f64378eba9b5f107f1ac26313468567e3135df61c87091a6a8d1736#0
     io.hotmoka.tutorial.examples.family.Person Einstein 14 4 1879 null null
-    --classpath 3d0b1f43e5ce299e1ab5dd08941856d76be2ee032e9bd5ac218dbaf805de5f51
+    --classpath 8c70f82b0a382cc32269ebbe5c788f1ec95cbe2d3e60560c9300e89f0ad08206
     --uri ws://panarea.hotmoka.io:8001 --password-of-payer
 Enter value for --password-of-payer (the password of the key pair of the payer account): chocolate
 Do you really want to call constructor
   public ...Person(java.lang.String,int,int,int,...Person,...Person)
 spending up to 200000 gas units at the price of 1 pana per unit (that is, up to 200000 panas) [Y/N] Y
-Adding transaction 210dc18b9858335270f8221d02d25ebda81099702fa370b30d2e2e89b8888d1a... failed.
+Adding transaction bf60d61aadb652c22f606d4fa2ecc8082d1b1af0bd093d5d866178712fbbe936... failed.
 The transaction failed with message io.hotmoka.node.api.SerializationException:
   An object of class ...Person cannot be serialized into a storage value
   since it does not implement io.takamaka.code.lang.Storage
@@ -1667,24 +1667,24 @@ complete without exception:
 $ cd io-takamaka-code-examples-family
 $ mvn clean install
 $ cd ..
-$ moka jars install ad7d2f8cb83a503d27b7314307d09598b7ccbc2717e6098d42b588364098aeac#0
+$ moka jars install 81b560833f64378eba9b5f107f1ac26313468567e3135df61c87091a6a8d1736#0
     io-hotmoka-tutorial-examples-family/target/io-hotmoka-tutorial-examples-family-1.11.3.jar
     --password-of-payer
     --uri ws://panarea.hotmoka.io:8001
 ...
 has been installed at
-  f04117838b6e1b77f7357e964746c1382574636c83c6f65083caf82cd2c86981
+  39f1049049bdc34d8be41945a3fbaa9e5c104f254ac5eba959f59bf9c5118c62
 ...
-$ moka objects create ad7d2f8cb83a503d27b7314307d09598b7ccbc2717e6098d42b588364098aeac#0
+$ moka objects create 81b560833f64378eba9b5f107f1ac26313468567e3135df61c87091a6a8d1736#0
     io.hotmoka.tutorial.examples.family.Person Einstein 14 4 1879 null null
-    --classpath f04117838b6e1b77f7357e964746c1382574636c83c6f65083caf82cd2c86981
+    --classpath 39f1049049bdc34d8be41945a3fbaa9e5c104f254ac5eba959f59bf9c5118c62
     --uri ws://panarea.hotmoka.io:8001 --password-of-payer
 Enter value for --password-of-payer (the password of the key pair of the payer account): chocolate
 Do you really want to call constructor
   public ...Person(java.lang.String,int,int,int,...Person,...Person)
 spending up to 200000 gas units at the price of 1 pana per unit (that is, up to 200000 panas) [Y/N] Y
-Adding transaction fe2f64196796ff1e858116ae5c370d5f73f5e1803d7c689b06ca1fc89d6702cd... done.
-A new object fe2f64196796ff1e858116ae5c370d5f73f5e1803d7c689b06ca1fc89d6702cd#0 has been created.
+Adding transaction 8b9a9bf359702b1af603b1387e951cf899e6e49f147782f223d2fc951ccc112e... done.
+A new object 8b9a9bf359702b1af603b1387e951cf899e6e49f147782f223d2fc951ccc112e#0 has been created.
 
 Gas consumption:
  * total: 5210
@@ -1698,17 +1698,17 @@ Gas consumption:
 
 The new object has been allocated at a storage reference that can be used
 to refer to it, also in the future:
-`fe2f64196796ff1e858116ae5c370d5f73f5e1803d7c689b06ca1fc89d6702cd#0`.
+`8b9a9bf359702b1af603b1387e951cf899e6e49f147782f223d2fc951ccc112e#0`.
 You can verify that it is actually there and that its fields are correctly initialized,
 by using the `moka objects show` command:
 
 ```shell
 $ cd hotmoka_tutorial
-$ moka objects show fe2f64196796ff1e858116ae5c370d5f73f5e1803d7c689b06ca1fc89d6702cd#0
+$ moka objects show 8b9a9bf359702b1af603b1387e951cf899e6e49f147782f223d2fc951ccc112e#0
     --uri ws://panarea.hotmoka.io:8001
 
 class io.hotmoka.tutorial.examples.family.Person
-    (from jar installed at f04117838b6e1b77f7357e964746c1382574636c83c6f65083caf82cd2c86981)
+    (from jar installed at 39f1049049bdc34d8be41945a3fbaa9e5c104f254ac5eba959f59bf9c5118c62)
   day:int = 14
   month:int = 4
   name:java.lang.String = "Einstein"
@@ -1897,10 +1897,10 @@ $ mvn compile exec:java
      -Dexec.mainClass="io.hotmoka.tutorial.examples.runs.FamilyStorage"
      -Dexec.args="ws://panarea.hotmoka.io:8001
                   hotmoka_tutorial
-                  ad7d2f8cb83a503d27b7314307d09598b7ccbc2717e6098d42b588364098aeac#0
+                  81b560833f64378eba9b5f107f1ac26313468567e3135df61c87091a6a8d1736#0
                   chocolate"
 new object allocated
-  at 1c1fcfc95bfa1e994ceeb7488568fd432c48c8501eae8667c85560f936b4d962#0
+  at a739e57f91ff4920c513d3fb6a324c42d8b37bb40f8f8bbdc4e28cd40c8f7bda#0
 ```
 The exact address will change at any run.
 
@@ -1924,17 +1924,17 @@ specifying our `Person` object as *receiver*.
 > (non-`static`) method.
 
 ```shell
-$ moka objects call ad7d2f8cb83a503d27b7314307d09598b7ccbc2717e6098d42b588364098aeac#0
+$ moka objects call 81b560833f64378eba9b5f107f1ac26313468567e3135df61c87091a6a8d1736#0
     io.hotmoka.tutorial.examples.family.Person toString --password-of-payer
-    --receiver=fe2f64196796ff1e858116ae5c370d5f73f5e1803d7c689b06ca1fc89d6702cd#0
+    --receiver=8b9a9bf359702b1af603b1387e951cf899e6e49f147782f223d2fc951ccc112e#0
     --uri=ws://panarea.hotmoka.io:8001
 Enter value for --password-of-payer (the password of the key pair of the payer account): chocolate 
 Do you really want to call method public java.lang.String ...Person.toString()
   spending up to 200000 gas units at the price of 1 pana per unit (that is, up to 200000 panas) [Y/N] Y
-Adding transaction 45ca34a2f660404d7c9f2b28b05946b24bc03e90d712f4e84a8fbe1b90f0f8c9... rejected!
+Adding transaction 39b265a11d8636903e4d03de96269e87bec8d42be0a1bcc2c4273e53ba5f17e6... rejected!
   [io.hotmoka.node.api.TransactionRejectedException:
     Class io.hotmoka.tutorial.examples.family.Person of the parameter
-    fe2f64196796ff1e858116ae5c370d5f73f5e1803d7c689b06ca1fc89d6702cd#0 is not exported:
+    8b9a9bf359702b1af603b1387e951cf899e6e49f147782f223d2fc951ccc112e#0 is not exported:
     add @Exported to io.hotmoka.tutorial.examples.family.Person]
 ```
 
@@ -1982,36 +1982,36 @@ Package the project `io-hotmoka-tutorial-examples-family` and try again to call 
 $ cd io-hotmoka-tutorial-examples-family
 $ mvn clean install
 $ cd ..
-$ moka jars install ad7d2f8cb83a503d27b7314307d09598b7ccbc2717e6098d42b588364098aeac#0
+$ moka jars install 81b560833f64378eba9b5f107f1ac26313468567e3135df61c87091a6a8d1736#0
     io-hotmoka-tutorial-examples-family/target/io-hotmoka-tutorial-examples-family-1.11.3.jar
     --password-of-payer
     --uri ws://panarea.hotmoka.io:8001
 ...
 jar installed at
-  2236a17fd91f342b42739bf796fb303ebf6dee02c9056f3fc7abf73b2485247b
+  e77633714b2c9136d184721a8581d1c3f7cb048aaf763240180e23d9487cacfd
 ...
-$ moka objects create ad7d2f8cb83a503d27b7314307d09598b7ccbc2717e6098d42b588364098aeac#0
+$ moka objects create 81b560833f64378eba9b5f107f1ac26313468567e3135df61c87091a6a8d1736#0
     io.hotmoka.tutorial.examples.family.Person
     Einstein 14 4 1879 null null
-    --classpath 2236a17fd91f342b42739bf796fb303ebf6dee02c9056f3fc7abf73b2485247b
+    --classpath e77633714b2c9136d184721a8581d1c3f7cb048aaf763240180e23d9487cacfd
     --uri ws://panarea.hotmoka.io:8001 --password-of-payer
 Enter value for --password-of-payer (the password of the key pair of the payer account): chocolate
 Do you really want to call constructor
   public ...Person(java.lang.String,int,int,int,...Person,...Person)
 spending up to 200000 gas units at the price of 1 pana per unit (that is, up to 200000 panas) [Y/N] Y
-Adding transaction d9c263c1e5ad752e648cabaef55d5c2a8f5c52f3521be69852e0dc32c349d7ec... done.
-A new object d9c263c1e5ad752e648cabaef55d5c2a8f5c52f3521be69852e0dc32c349d7ec#0 has been created.
+Adding transaction 2a40398bd4453f08e91eb9a501f1623229b2f309fbd4e3866d00d9360e61333c... done.
+A new object 2a40398bd4453f08e91eb9a501f1623229b2f309fbd4e3866d00d9360e61333c#0 has been created.
 ...
-$ moka objects call ad7d2f8cb83a503d27b7314307d09598b7ccbc2717e6098d42b588364098aeac#0
+$ moka objects call 81b560833f64378eba9b5f107f1ac26313468567e3135df61c87091a6a8d1736#0
     io.hotmoka.tutorial.examples.family.Person
     toString
     --password-of-payer
-    --receiver=d9c263c1e5ad752e648cabaef55d5c2a8f5c52f3521be69852e0dc32c349d7ec#0
+    --receiver=2a40398bd4453f08e91eb9a501f1623229b2f309fbd4e3866d00d9360e61333c#0
     --uri=ws://panarea.hotmoka.io:8001
 Enter value for --password-of-payer (the password of the key pair of the payer account): chocolate
 Do you really want to call method public java.lang.String ...Person.toString() spending up to 200000 gas units
   at the price of 1 pana per unit (that is, up to 200000 panas) [Y/N] Y
-Adding transaction 7b7557bb8b34abcfe5bb24facfc2e1e41ccdcdc8318314aa8e26a2c46d0b599a... done.
+Adding transaction 59abaf457cd6f09fc2de8ca3e848a298215fdba3f13bc564566442fee8423851... done.
 The method returned:
 Einstein (14/4/1879)
 
@@ -2208,7 +2208,7 @@ $ mvn compile exec:java
     -Dexec.mainClass="io.hotmoka.tutorial.examples.runs.FamilyExported"
     -Dexec.args="ws://panarea.hotmoka.io:8001
         hotmoka_tutorial
-        ad7d2f8cb83a503d27b7314307d09598b7ccbc2717e6098d42b588364098aeac#0
+        81b560833f64378eba9b5f107f1ac26313468567e3135df61c87091a6a8d1736#0
         chocolate"
 Einstein (14/4/1879)
 ```
@@ -3200,7 +3200,7 @@ We can now start by installing that jar in the node:
 $ cd hotmoka_tutorial/io-hotmoka-tutorial-examples-ponzi   # if not already there
 $ mvn install
 $ cd ..
-$ moka jars install ad7d2f8cb83a503d27b7314307d09598b7ccbc2717e6098d42b588364098aeac#0
+$ moka jars install 81b560833f64378eba9b5f107f1ac26313468567e3135df61c87091a6a8d1736#0
     io-hotmoka-tutorial-examples-ponzi/target/io-hotmoka-tutorial-examples-ponzi-1.11.3.jar
     --password-of-payer
     --uri ws://panarea.hotmoka.io:8001
@@ -3208,8 +3208,8 @@ $ moka jars install ad7d2f8cb83a503d27b7314307d09598b7ccbc2717e6098d42b588364098
 Enter value for --password-of-payer (the password of the key pair of the payer account): chocolate
 Do you really want to install the jar spending up to 953600 gas units
   at the price of 1 pana per unit (that is, up to 953600 panas) [Y/N] Y
-Adding transaction 00cd1ce70ac0c8cedfdbd023c560ac249ce2967d5014e4c69f87344365153483... done.
-The jar has been installed at 00cd1ce70ac0c8cedfdbd023c560ac249ce2967d5014e4c69f87344365153483.
+Adding transaction 7ae81397fa3bde58ec8011382f8e82756a20b3972fb4bc5b90985a6c181f2635... done.
+The jar has been installed at 7ae81397fa3bde58ec8011382f8e82756a20b3972fb4bc5b90985a6c181f2635.
 
 Gas consumption:
  * total: 11283
@@ -3231,25 +3231,25 @@ $ moka keys create --name=account3.pem --password
 Enter value for --password
   (the password that will be needed later to use the key pair): apple
 ...
-$ moka accounts create ad7d2f8cb83a503d27b7314307d09598b7ccbc2717e6098d42b588364098aeac#0
+$ moka accounts create 81b560833f64378eba9b5f107f1ac26313468567e3135df61c87091a6a8d1736#0
     50000000000 account2.pem --password --password-of-payer
     --uri=ws://panarea.hotmoka.io:8001
 Enter value for --password (the password of the key pair): orange 
 Enter value for --password-of-payer (the password of the payer): chocolate 
 Do you really want to create the new account spending up to 200000 gas units
   at the price of 1 pana per unit (that is, up to 200000 panas) [Y/N] Y
-Adding transaction fb5518501a73791d09db6c3d2e6e034d16b03066d832c595d3800712ea05647c... done.
-A new account fb5518501a73791d09db6c3d2e6e034d16b03066d832c595d3800712ea05647c#0 has been created.
+Adding transaction 0c8c963153fe6d6faf758d7207ad9b7a204ef314cc15b269db317797c58ae480... done.
+A new account 0c8c963153fe6d6faf758d7207ad9b7a204ef314cc15b269db317797c58ae480#0 has been created.
 ...
-$ moka accounts create ad7d2f8cb83a503d27b7314307d09598b7ccbc2717e6098d42b588364098aeac#0
+$ moka accounts create 81b560833f64378eba9b5f107f1ac26313468567e3135df61c87091a6a8d1736#0
     10000000 account3.pem --password --password-of-payer
     --uri=ws://panarea.hotmoka.io:8001
 Enter value for --password (the password of the key pair): apple 
 Enter value for --password-of-payer (the password of the payer): chocolate 
 Do you really want to create the new account spending up to 200000 gas units
   at the price of 1 pana per unit (that is, up to 200000 panas) [Y/N] Y
-Adding transaction f989d599ba90aef905d06ffcaf6f8d7d5e87700968e96435806a331f5e533556... done.
-A new account f989d599ba90aef905d06ffcaf6f8d7d5e87700968e96435806a331f5e533556#0 has been created.
+Adding transaction ef00bf4e08c801bdcf6825732da82d04b42368f4ebf9f326e03cd4012ccdbd0a... done.
+A new account ef00bf4e08c801bdcf6825732da82d04b42368f4ebf9f326e03cd4012ccdbd0a#0 has been created.
 ...
 ```
 
@@ -3257,33 +3257,33 @@ We let our first account create an instance of `GradualPonzi` in the node now
 and become the first investor of the contract:
 
 ```shell
-$ moka objects create ad7d2f8cb83a503d27b7314307d09598b7ccbc2717e6098d42b588364098aeac#0
+$ moka objects create 81b560833f64378eba9b5f107f1ac26313468567e3135df61c87091a6a8d1736#0
     io.hotmoka.tutorial.examples.ponzi.GradualPonzi
-    --classpath=00cd1ce70ac0c8cedfdbd023c560ac249ce2967d5014e4c69f87344365153483
+    --classpath=7ae81397fa3bde58ec8011382f8e82756a20b3972fb4bc5b90985a6c181f2635
     --password-of-payer
     --uri=ws://panarea.hotmoka.io:8001
 Enter value for --password-of-payer (the password of the key pair of the payer account): chocolate
 Do you really want to call constructor public ...GradualPonzi() spending up to 200000 gas units
   at the price of 1 pana per unit (that is, up to 200000 panas) [Y/N] Y
-Adding transaction 210dc18b9858335270f8221d02d25ebda81099702fa370b30d2e2e89b8888d1a... done.
-A new object 0a2ce70caf57427971456657a505061979616229be9188a980f1c8950c773fd8#0 has been created.
+Adding transaction bf60d61aadb652c22f606d4fa2ecc8082d1b1af0bd093d5d866178712fbbe936... done.
+A new object 3c255df8520b9bf37d9d83a1a977f917dda0a891e28e73b8a3823dbe91b1abee#0 has been created.
 ```
 
 We let the other two players invest, in sequence, in the `GradualPonzi` contract:
 
 ```shell
-$ moka objects call fb5518501a73791d09db6c3d2e6e034d16b03066d832c595d3800712ea05647c#0
+$ moka objects call 0c8c963153fe6d6faf758d7207ad9b7a204ef314cc15b269db317797c58ae480#0
     io.hotmoka.tutorial.examples.ponzi.GradualPonzi
     invest
     5000
-    --classpath=00cd1ce70ac0c8cedfdbd023c560ac249ce2967d5014e4c69f87344365153483
-    --receiver=0a2ce70caf57427971456657a505061979616229be9188a980f1c8950c773fd8#0
+    --classpath=7ae81397fa3bde58ec8011382f8e82756a20b3972fb4bc5b90985a6c181f2635
+    --receiver=3c255df8520b9bf37d9d83a1a977f917dda0a891e28e73b8a3823dbe91b1abee#0
     --password-of-payer
     --uri=ws://panarea.hotmoka.io:8001
 Enter value for --password-of-payer (the password of the key pair of the payer account): orange
 Do you really want to call method public void ...GradualPonzi.invest(java.math.BigInteger)
   spending up to 200000 gas units at the price of 1 pana per unit (that is, up to 200000 panas) [Y/N] Y
-Adding transaction fb5518501a73791d09db6c3d2e6e034d16b03066d832c595d3800712ea05647c_invest... done.
+Adding transaction 0c8c963153fe6d6faf758d7207ad9b7a204ef314cc15b269db317797c58ae480_invest... done.
 
 Gas consumption:
  * total: 7546
@@ -3294,18 +3294,18 @@ Gas consumption:
  * price per unit: 1 pana
  * total price: 7546 panas
 
-$ moka objects call f989d599ba90aef905d06ffcaf6f8d7d5e87700968e96435806a331f5e533556#0
+$ moka objects call ef00bf4e08c801bdcf6825732da82d04b42368f4ebf9f326e03cd4012ccdbd0a#0
     io.hotmoka.tutorial.examples.ponzi.GradualPonzi
     invest
     15000
-    --classpath=00cd1ce70ac0c8cedfdbd023c560ac249ce2967d5014e4c69f87344365153483
-    --receiver=0a2ce70caf57427971456657a505061979616229be9188a980f1c8950c773fd8#0
+    --classpath=7ae81397fa3bde58ec8011382f8e82756a20b3972fb4bc5b90985a6c181f2635
+    --receiver=3c255df8520b9bf37d9d83a1a977f917dda0a891e28e73b8a3823dbe91b1abee#0
     --password-of-payer
     --uri=ws://panarea.hotmoka.io:8001
 Enter value for --password-of-payer (the password of the key pair of the payer account): apple
 Do you really want to call method public void ...GradualPonzi.invest(java.math.BigInteger)
   spending up to 200000 gas units at the price of 1 pana per unit (that is, up to 200000 panas) [Y/N] Y
-Adding transaction f989d599ba90aef905d06ffcaf6f8d7d5e87700968e96435806a331f5e533556_invest... done.
+Adding transaction ef00bf4e08c801bdcf6825732da82d04b42368f4ebf9f326e03cd4012ccdbd0a_invest... done.
 
 Gas consumption: ...
 ```
@@ -3315,19 +3315,19 @@ with a too small investment, which leads to an exception,
 since the code of the contract requires a minimum investment:
 
 ```shell
-$ moka objects call ad7d2f8cb83a503d27b7314307d09598b7ccbc2717e6098d42b588364098aeac#0
+$ moka objects call 81b560833f64378eba9b5f107f1ac26313468567e3135df61c87091a6a8d1736#0
     io.hotmoka.tutorial.examples.ponzi.GradualPonzi
     invest
     500
-    --classpath=00cd1ce70ac0c8cedfdbd023c560ac249ce2967d5014e4c69f87344365153483
-    --receiver=0a2ce70caf57427971456657a505061979616229be9188a980f1c8950c773fd8#0
+    --classpath=7ae81397fa3bde58ec8011382f8e82756a20b3972fb4bc5b90985a6c181f2635
+    --receiver=3c255df8520b9bf37d9d83a1a977f917dda0a891e28e73b8a3823dbe91b1abee#0
     --password-of-payer
     --uri=ws://panarea.hotmoka.io:8001
 
 Enter value for --password-of-payer (the password of the key pair of the payer account): chocolate
 Do you really want to call method public void ...GradualPonzi.invest(java.math.BigInteger)
   spending up to 200000 gas units at the price of 1 pana per unit (that is, up to 200000 panas) [Y/N] Y
-Adding transaction ad7d2f8cb83a503d27b7314307d09598b7ccbc2717e6098d42b588364098aeac_invest... failed.
+Adding transaction 81b560833f64378eba9b5f107f1ac26313468567e3135df61c87091a6a8d1736_invest... failed.
 The transaction failed with message io.takamaka.code.lang.RequirementViolationException: you must invest at least 1000@GradualPonzi.java:49
 
 Gas consumption: ...
@@ -3348,28 +3348,28 @@ require(BigIntegerSupport.compareTo(amount, MINIMUM_INVESTMENT) >= 0,
 Finally, we can check the state of the contract:
 
 ```shell
-$ moka objects show 0a2ce70caf57427971456657a505061979616229be9188a980f1c8950c773fd8#0
+$ moka objects show 3c255df8520b9bf37d9d83a1a977f917dda0a891e28e73b8a3823dbe91b1abee#0
     --uri ws://panarea.hotmoka.io:8001
 class io.hotmoka.tutorial.examples.ponzi.GradualPonzi
-    (from jar installed at 00cd1ce70ac0c8cedfdbd023c560ac249ce2967d5014e4c69f87344365153483)
+    (from jar installed at 7ae81397fa3bde58ec8011382f8e82756a20b3972fb4bc5b90985a6c181f2635)
   MINIMUM_INVESTMENT:java.math.BigInteger = 1000
   investors:io.takamaka.code.util.StorageList
-    = 0a2ce70caf57427971456657a505061979616229be9188a980f1c8950c773fd8#1
+    = 3c255df8520b9bf37d9d83a1a977f917dda0a891e28e73b8a3823dbe91b1abee#1
   io.takamaka.code.lang.Contract.balance:java.math.BigInteger = 0
 ```
 You can see that the contract keeps no balance. Moreover, its `investors` field is bound to an
 object, whose state can be further investigated:
 
 ```shell
-$ moka objects show 0a2ce70caf57427971456657a505061979616229be9188a980f1c8950c773fd8#1
+$ moka objects show 3c255df8520b9bf37d9d83a1a977f917dda0a891e28e73b8a3823dbe91b1abee#1
     --uri ws://panarea.hotmoka.io:8001
 
 class io.takamaka.code.util.StorageLinkedList (from jar installed at
     0d0f8f8232e4931a7f2f2e0fae7c5f63c6c31d35b1fcd22494e7c3a21fb8d2af)
   first:io.takamaka.code.util.StorageLinkedList$Node
-    = 0a2ce70caf57427971456657a505061979616229be9188a980f1c8950c773fd8#2
+    = 3c255df8520b9bf37d9d83a1a977f917dda0a891e28e73b8a3823dbe91b1abee#2
   last:io.takamaka.code.util.StorageLinkedList$Node
-    = eb7cf45014ab39b45a32c0a38810e58cdd0a6bb6476065393454ed43a85278d0#0
+    = 8b7a5ba39a323e5a46aad694850602733c1a85c1ef5417194fffc22d5c5193dd#0
   size:int = 3
 ```
 As you can see, it is a `StorageLinkedList` of size three, since it contains our three accounts that interacted with the
@@ -3871,7 +3871,7 @@ compile it with Maven and store it in the Hotmoka node:
 $ cd hotmoka_tutorial/io-hotmoka-tutorial-examples-tictactoe   # if not already there
 $ mvn install
 $ cd ..
-$ moka jars install ad7d2f8cb83a503d27b7314307d09598b7ccbc2717e6098d42b588364098aeac#0
+$ moka jars install 81b560833f64378eba9b5f107f1ac26313468567e3135df61c87091a6a8d1736#0
     io-hotmoka-tutorial-examples-tictactoe/target/io-hotmoka-tutorial-examples-tictactoe-1.11.3.jar
     --password-of-payer
     --uri ws://panarea.hotmoka.io:8001
@@ -3879,8 +3879,8 @@ $ moka jars install ad7d2f8cb83a503d27b7314307d09598b7ccbc2717e6098d42b588364098
 Enter value for --password-of-payer (the password of the key pair of the payer account): chocolate
 Do you really want to install the jar spending up to 1268400 gas units
   at the price of 1 pana per unit (that is, up to 1268400 panas) [Y/N] Y
-Adding transaction 778c989454aed6824f2a5d6ab793034b8d0bd40c655e1c9bb276977695b056fa... done.
-The jar has been installed at 778c989454aed6824f2a5d6ab793034b8d0bd40c655e1c9bb276977695b056fa.
+Adding transaction fef07b334d9b9635d43856727b559aeb03401744e16a2362aab9c8aba4a46a2e... done.
+The jar has been installed at fef07b334d9b9635d43856727b559aeb03401744e16a2362aab9c8aba4a46a2e.
 
 Gas consumption:
  * total: 15815
@@ -3895,17 +3895,17 @@ Gas consumption:
 Then we create an instance of the contract in the node:
 
 ```shell
-$ moka objects create ad7d2f8cb83a503d27b7314307d09598b7ccbc2717e6098d42b588364098aeac#0
+$ moka objects create 81b560833f64378eba9b5f107f1ac26313468567e3135df61c87091a6a8d1736#0
     io.hotmoka-tutorial.examples.tictactoe.TicTacToe
-    --classpath=778c989454aed6824f2a5d6ab793034b8d0bd40c655e1c9bb276977695b056fa
+    --classpath=fef07b334d9b9635d43856727b559aeb03401744e16a2362aab9c8aba4a46a2e
     --password-of-payer
     --uri ws://panarea.hotmoka.io:8001
 
 Enter value for --password-of-payer (the password of the key pair of the payer account): chocolate
 Do you really want to call constructor public io.hotmoka.tutorial.examples.tictactoe.TicTacToe()
   spending up to 200000 gas units at the price of 1 pana per unit (that is, up to 200000 panas) [Y/N] Y
-Adding transaction 6b73bc0ee99f3fc904c2f58e31b29d1cf14b78a5c8e937a7ecad3ca2928c07aa... done.
-A new object 6b73bc0ee99f3fc904c2f58e31b29d1cf14b78a5c8e937a7ecad3ca2928c07aa#0 has been created.
+Adding transaction 0266ebb3d67fa9be646ffdb4dabe29d990a1750d25fea4ac7113c4f702c0ddfb... done.
+A new object 0266ebb3d67fa9be646ffdb4dabe29d990a1750d25fea4ac7113c4f702c0ddfb#0 has been created.
 
 Gas consumption:
  * total: 24320
@@ -3924,18 +3924,18 @@ We will print the `toString` of the contract after each move.
 The first player starts, by playing at (1,1), and bets 100:
 
 ```shell
-$ moka objects call ad7d2f8cb83a503d27b7314307d09598b7ccbc2717e6098d42b588364098aeac#0
+$ moka objects call 81b560833f64378eba9b5f107f1ac26313468567e3135df61c87091a6a8d1736#0
     io.hotmoka.tutorial.examples.tictactoe.TicTacToe
     play
     100 1 1
     --password-of-payer
     --uri ws://panarea.hotmoka.io:8001
-    --receiver=6b73bc0ee99f3fc904c2f58e31b29d1cf14b78a5c8e937a7ecad3ca2928c07aa#0
+    --receiver=0266ebb3d67fa9be646ffdb4dabe29d990a1750d25fea4ac7113c4f702c0ddfb#0
 
 Enter value for --password-of-payer (the password of the key pair of the payer account): chocolate 
 Do you really want to call method public void ...TicTacToe.play(long,int,int)
   spending up to 200000 gas units at the price of 1 pana per unit (that is, up to 200000 panas) [Y/N] Y
-Adding transaction 8caff8f61f3d022b623ed0900acf2ba2e2b7613fae2698fcc3b774a0f587fc1c... done.
+Adding transaction 9f5875dfbc5f96fe3f05ebd1b453da1cd1abba1ca18f5b0675d76bf54e27a96f... done.
 
 Gas consumption:
  * total: 9918
@@ -3946,12 +3946,12 @@ Gas consumption:
  * price per unit: 1 pana
  * total price: 9918 panas
 
-$ moka objects call ad7d2f8cb83a503d27b7314307d09598b7ccbc2717e6098d42b588364098aeac#0
+$ moka objects call 81b560833f64378eba9b5f107f1ac26313468567e3135df61c87091a6a8d1736#0
     io.hotmoka.tutorial.examples.tictactoe.TicTacToe toString
     --uri ws://panarea.hotmoka.io:8001
-    --receiver=6b73bc0ee99f3fc904c2f58e31b29d1cf14b78a5c8e937a7ecad3ca2928c07aa#0
+    --receiver=0266ebb3d67fa9be646ffdb4dabe29d990a1750d25fea4ac7113c4f702c0ddfb#0
 
-Running transaction d043c6bea7cdb81d3c32662baedbf0fc2f47478bb3ee3f8d3d04cfc709667d4c... done.
+Running transaction 345685d3038ecc56b3d285d6b9e236a840df9c07e6065755f44054c432c51d85... done.
 The method returned:
 X| | 
 -----
@@ -3966,26 +3966,26 @@ since that method is a `@View` method, hence `moka` runs a transaction to call i
 The second player plays now, at (2,1), betting 100:
 
 ```shell
-$ moka objects call fb5518501a73791d09db6c3d2e6e034d16b03066d832c595d3800712ea05647c#0
+$ moka objects call 0c8c963153fe6d6faf758d7207ad9b7a204ef314cc15b269db317797c58ae480#0
     io.hotmoka.tutorial.examples.tictactoe.TicTacToe 
     play
     100 2 1
     --password-of-payer
     --uri ws://panarea.hotmoka.io:8001
-    --receiver=6b73bc0ee99f3fc904c2f58e31b29d1cf14b78a5c8e937a7ecad3ca2928c07aa#0
+    --receiver=0266ebb3d67fa9be646ffdb4dabe29d990a1750d25fea4ac7113c4f702c0ddfb#0
 
 Enter value for --password-of-payer (the password of the key pair of the payer account): orange
 Do you really want to call method public void ...TicTacToe.play(long,int,int)
   spending up to 200000 gas units at the price of 1 pana per unit (that is, up to 200000 panas) [Y/N] Y
-Adding transaction 6e1b767f758c0b041ed3ea904886d02ea22bb2f5919f381c14dc403bf9f121c4... done.
+Adding transaction 34e312a4b5184053873cdee5472a6c5d8c2fab22bc5fc5b065f272b4024f08aa... done.
 ...
 
-$ moka objects call fb5518501a73791d09db6c3d2e6e034d16b03066d832c595d3800712ea05647c#0
+$ moka objects call 0c8c963153fe6d6faf758d7207ad9b7a204ef314cc15b269db317797c58ae480#0
     io.hotmoka.tutorial.examples.tictactoe.TicTacToe toString
     --uri ws://panarea.hotmoka.io:8001
-    --receiver=6b73bc0ee99f3fc904c2f58e31b29d1cf14b78a5c8e937a7ecad3ca2928c07aa#0
+    --receiver=0266ebb3d67fa9be646ffdb4dabe29d990a1750d25fea4ac7113c4f702c0ddfb#0
 
-Running transaction 98b56a9c594290daa272f30dd17549798a0cf0578a9b9cf507225d2574425d16... done.
+Running transaction 3e6f2e37fa56857ed2341ee0d11dd665bd4f3f62d7d132b782bab46e6f9e27b1... done.
 The method returned:
 X|O| 
 -----
@@ -3997,26 +3997,26 @@ X|O|
 The first player replies, playing at (1,2):
 
 ```shell
-$ moka objects call ad7d2f8cb83a503d27b7314307d09598b7ccbc2717e6098d42b588364098aeac#0
+$ moka objects call 81b560833f64378eba9b5f107f1ac26313468567e3135df61c87091a6a8d1736#0
     io.hotmoka.tutorial.examples.tictactoe.TicTacToe
     play
     0 1 2
     --password-of-payer
     --uri ws://panarea.hotmoka.io:8001
-    --receiver=6b73bc0ee99f3fc904c2f58e31b29d1cf14b78a5c8e937a7ecad3ca2928c07aa#0
+    --receiver=0266ebb3d67fa9be646ffdb4dabe29d990a1750d25fea4ac7113c4f702c0ddfb#0
 
 Enter value for --password-of-payer (the password of the key pair of the payer account): chocolate
 Do you really want to call method public void ...TicTacToe.play(long,int,int)
   spending up to 200000 gas units at the price of 1 pana per unit (that is, up to 200000 panas) [Y/N] Y
-Adding transaction c8341e31fc8156a3e7d90d4bc555f99cf1d5313a9c55be1ed13b890c24532d59... done.
+Adding transaction 66a303fa8038075259a32e8265fe5eae087d82aa3fc5d6cc563500b1b1750e0d... done.
 ...
 
-$ moka objects call ad7d2f8cb83a503d27b7314307d09598b7ccbc2717e6098d42b588364098aeac#0
+$ moka objects call 81b560833f64378eba9b5f107f1ac26313468567e3135df61c87091a6a8d1736#0
     io.hotmoka.tutorial.examples.tictactoe.TicTacToe toString
     --uri ws://panarea.hotmoka.io:8001
-    --receiver=6b73bc0ee99f3fc904c2f58e31b29d1cf14b78a5c8e937a7ecad3ca2928c07aa#0
+    --receiver=0266ebb3d67fa9be646ffdb4dabe29d990a1750d25fea4ac7113c4f702c0ddfb#0
 
-Running transaction d043c6bea7cdb81d3c32662baedbf0fc2f47478bb3ee3f8d3d04cfc709667d4c... done.
+Running transaction 345685d3038ecc56b3d285d6b9e236a840df9c07e6065755f44054c432c51d85... done.
 The method returned:
 X|O| 
 -----
@@ -4028,26 +4028,26 @@ X| |
 Then the second player plays at (2,2):
 
 ```shell
-$ moka objects call fb5518501a73791d09db6c3d2e6e034d16b03066d832c595d3800712ea05647c#0
+$ moka objects call 0c8c963153fe6d6faf758d7207ad9b7a204ef314cc15b269db317797c58ae480#0
     io.hotmoka.tutorial.examples.tictactoe.TicTacToe
     play
     100 2 2
     --password-of-payer
     --uri ws://panarea.hotmoka.io:8001
-    --receiver=6b73bc0ee99f3fc904c2f58e31b29d1cf14b78a5c8e937a7ecad3ca2928c07aa#0
+    --receiver=0266ebb3d67fa9be646ffdb4dabe29d990a1750d25fea4ac7113c4f702c0ddfb#0
 
 Enter value for --password-of-payer (the password of the key pair of the payer account): orange
 Do you really want to call method public void ...TicTacToe.play(long,int,int)
   spending up to 200000 gas units at the price of 1 pana per unit (that is, up to 200000 panas) [Y/N] Y
-Adding transaction d2b6f2772893e8813f1216c65b164dccd7643edf6d5816fc56b91ed4dc2a6f73... done.
+Adding transaction 706b5ee86a74243eaec80c35f85532259aac22b742eba388214e269c5b94a28d... done.
 ...
 
-$ moka objects call fb5518501a73791d09db6c3d2e6e034d16b03066d832c595d3800712ea05647c#0
+$ moka objects call 0c8c963153fe6d6faf758d7207ad9b7a204ef314cc15b269db317797c58ae480#0
     io.hotmoka.tutorial.examples.tictactoe.TicTacToe toString
     --uri ws://panarea.hotmoka.io:8001
-    --receiver=6b73bc0ee99f3fc904c2f58e31b29d1cf14b78a5c8e937a7ecad3ca2928c07aa#0
+    --receiver=0266ebb3d67fa9be646ffdb4dabe29d990a1750d25fea4ac7113c4f702c0ddfb#0
 
-Running transaction 98b56a9c594290daa272f30dd17549798a0cf0578a9b9cf507225d2574425d16... done.
+Running transaction 3e6f2e37fa56857ed2341ee0d11dd665bd4f3f62d7d132b782bab46e6f9e27b1... done.
 The method returned:
 X|O| 
 -----
@@ -4059,26 +4059,26 @@ X|O|
 The first player wins by playing at (1,3):
 
 ```shell
-$ moka objects call ad7d2f8cb83a503d27b7314307d09598b7ccbc2717e6098d42b588364098aeac#0
+$ moka objects call 81b560833f64378eba9b5f107f1ac26313468567e3135df61c87091a6a8d1736#0
     io.hotmoka.tutorial.examples.tictactoe.TicTacToe
     play
     0 1 3
     --password-of-payer
     --uri ws://panarea.hotmoka.io:8001
-    --receiver=6b73bc0ee99f3fc904c2f58e31b29d1cf14b78a5c8e937a7ecad3ca2928c07aa#0
+    --receiver=0266ebb3d67fa9be646ffdb4dabe29d990a1750d25fea4ac7113c4f702c0ddfb#0
 
 Enter value for --password-of-payer (the password of the key pair of the payer account): chocolate
 Do you really want to call method public void ...TicTacToe.play(long,int,int)
   spending up to 200000 gas units at the price of 1 pana per unit (that is, up to 200000 panas) [Y/N] Y
-Adding transaction 1d41dada27f156765cdae5f733819a2f49c48cacd369ee89825bf51a43bc98f5... done.
+Adding transaction 35878ecb14cddc097595fe123408f2b154107510ff91d8e80e6c11f672893629... done.
 ...
 
-$ moka objects call ad7d2f8cb83a503d27b7314307d09598b7ccbc2717e6098d42b588364098aeac#0
+$ moka objects call 81b560833f64378eba9b5f107f1ac26313468567e3135df61c87091a6a8d1736#0
     io.hotmoka.tutorial.examples.tictactoe.TicTacToe toString
     --uri ws://panarea.hotmoka.io:8001
-    --receiver=6b73bc0ee99f3fc904c2f58e31b29d1cf14b78a5c8e937a7ecad3ca2928c07aa#0
+    --receiver=0266ebb3d67fa9be646ffdb4dabe29d990a1750d25fea4ac7113c4f702c0ddfb#0
 
-Running transaction d043c6bea7cdb81d3c32662baedbf0fc2f47478bb3ee3f8d3d04cfc709667d4c... done.
+Running transaction 345685d3038ecc56b3d285d6b9e236a840df9c07e6065755f44054c432c51d85... done.
 The method returned:
 X|O| 
 -----
@@ -4089,21 +4089,21 @@ X| |
 We can verify that the game is over now:
 
 ```shell
-$ moka objects show 6b73bc0ee99f3fc904c2f58e31b29d1cf14b78a5c8e937a7ecad3ca2928c07aa#0
+$ moka objects show 0266ebb3d67fa9be646ffdb4dabe29d990a1750d25fea4ac7113c4f702c0ddfb#0
     --uri ws://panarea.hotmoka.io:8001
 
 class io.hotmoka.tutorial.examples.tictactoe.TicTacToe
-    (from jar installed at 778c989454aed6824f2a5d6ab793034b8d0bd40c655e1c9bb276977695b056fa)
+    (from jar installed at fef07b334d9b9635d43856727b559aeb03401744e16a2362aab9c8aba4a46a2e)
   CIRCLE:...TicTacToe$Tile = ...
   CROSS:...TicTacToe$Tile = ...
   EMPTY:...TicTacToe$Tile = ...
   board:io.takamaka.code.util.StorageTreeArray = ...
   circlePlayer:io.takamaka.code.lang.PayableContract
-    = fb5518501a73791d09db6c3d2e6e034d16b03066d832c595d3800712ea05647c#0
+    = 0c8c963153fe6d6faf758d7207ad9b7a204ef314cc15b269db317797c58ae480#0
   crossPlayer:io.takamaka.code.lang.PayableContract
-    = ad7d2f8cb83a503d27b7314307d09598b7ccbc2717e6098d42b588364098aeac#0
+    = 81b560833f64378eba9b5f107f1ac26313468567e3135df61c87091a6a8d1736#0
   creator:io.takamaka.code.lang.PayableContract
-    = ad7d2f8cb83a503d27b7314307d09598b7ccbc2717e6098d42b588364098aeac#0
+    = 81b560833f64378eba9b5f107f1ac26313468567e3135df61c87091a6a8d1736#0
   gameOver:boolean = true
   turn:...TicTacToe$Tile = ...
   io.takamaka.code.lang.Contract.balance:java.math.BigInteger = 0
@@ -4115,18 +4115,18 @@ in this specific run).
 If the second player attempts to play now, the transaction will be rejected, since the game is over:
 
 ```shell
-$ moka objects call fb5518501a73791d09db6c3d2e6e034d16b03066d832c595d3800712ea05647c#0
+$ moka objects call 0c8c963153fe6d6faf758d7207ad9b7a204ef314cc15b269db317797c58ae480#0
     io.hotmoka.tutorial.examples.tictactoe.TicTacToe
     play
     0 2 3
     --password-of-payer
     --uri ws://panarea.hotmoka.io:8001
-    --receiver=6b73bc0ee99f3fc904c2f58e31b29d1cf14b78a5c8e937a7ecad3ca2928c07aa#0
+    --receiver=0266ebb3d67fa9be646ffdb4dabe29d990a1750d25fea4ac7113c4f702c0ddfb#0
 
 Enter value for --password-of-payer (the password of the key pair of the payer account): orange
 Do you really want to call method public void ...TicTacToe.play(long,int,int)
   spending up to 200000 gas units at the price of 1 pana per unit (that is, up to 200000 panas) [Y/N] Y
-Adding transaction 53a1b51a25ea5f2a02a26d4751959290bc9ad2efca38fb8cce8e5cc0fabc2d28... failed.
+Adding transaction 73044ab2fe8a33b2c02e71f7a2d7fadfb0ea4107c04ff42fffbe8f4cdb05f14c... failed.
 The transaction failed with message io.takamaka.code.lang.RequirementViolationException:
   the game is over@TicTacToe.java:84
 
@@ -4767,8 +4767,8 @@ Enter value for --password
 $ moka accounts create faucet 50000000000000 account4.pem --password
     --uri ws://panarea.hotmoka.io:8002
 Enter value for --password (the password of the key pair): banana
-Adding transaction 754430328d168d657b65e8ec5bf0bdbfb84542cc413e29cedf98c67e96eb6f55... done.
-A new account 754430328d168d657b65e8ec5bf0bdbfb84542cc413e29cedf98c67e96eb6f55#0 has been created.
+Adding transaction 4151c1cce8e107b28d1d4a3c7f3a40a29568dd241af6d6147a51d58f203bd2b1... done.
+A new account 4151c1cce8e107b28d1d4a3c7f3a40a29568dd241af6d6147a51d58f203bd2b1#0 has been created.
 ...
 $ moka keys create --name=account5.pem --password
 Enter value for --password
@@ -4777,8 +4777,8 @@ Enter value for --password
 $ moka accounts create faucet 50000000000000 account5.pem --password
     --uri ws://panarea.hotmoka.io:8002
 Enter value for --password (the password of the key pair): mango
-Adding transaction 2f52a6d266793896dbff89d1f193507adba6d681fc83e49936212279c84144a7... done.
-A new account 2f52a6d266793896dbff89d1f193507adba6d681fc83e49936212279c84144a7#0 has been created.
+Adding transaction c2021e0b3de3abfff3a529d24a2d8aec25e48dc3c3750c1475f84da3ab2f368a... done.
+A new account c2021e0b3de3abfff3a529d24a2d8aec25e48dc3c3750c1475f84da3ab2f368a#0 has been created.
 ...
 $ moka keys create --name=account6.pem --password
 Enter value for --password
@@ -4787,8 +4787,8 @@ Enter value for --password
 $ moka accounts create faucet 50000000000000 account6.pem --password
     --uri ws://panarea.hotmoka.io:8002
 Enter value for --password (the password of the key pair): strawberry
-Adding transaction 8a593b86d77239050a8aca4301e8ac6af19691d993f0333f0510a908ad89a18e... done.
-A new account 8a593b86d77239050a8aca4301e8ac6af19691d993f0333f0510a908ad89a18e#0 has been created.
+Adding transaction 9eac9f9c1647fffaf5cf9c0b3f830bf0c67f383f43d360592580e39e40c63a6f... done.
+A new account 9eac9f9c1647fffaf5cf9c0b3f830bf0c67f383f43d360592580e39e40c63a6f#0 has been created.
 ...
 ```
 
@@ -5290,8 +5290,8 @@ actually computes the right winner, since they will always print the identical s
 object (different at each run, in general), such as:
 
 ```
-expected winner: 2f52a6d266793896dbff89d1f193507adba6d681fc83e49936212279c84144a7#0
-actual winner: 2f52a6d266793896dbff89d1f193507adba6d681fc83e49936212279c84144a7#0
+expected winner: c2021e0b3de3abfff3a529d24a2d8aec25e48dc3c3750c1475f84da3ab2f368a#0
+actual winner: c2021e0b3de3abfff3a529d24a2d8aec25e48dc3c3750c1475f84da3ab2f368a#0
 ```
 
 We can run class `Auction` now (please note that the execution of this test will take a few minutes):
@@ -5300,9 +5300,9 @@ We can run class `Auction` now (please note that the execution of this test will
 mvn compile exec:java -Dexec.mainClass="io.hotmoka.tutorial.examples.runs.Auction"
   -Dexec.args="ws://panarea.hotmoka.io:8002
    hotmoka_tutorial
-   754430328d168d657b65e8ec5bf0bdbfb84542cc413e29cedf98c67e96eb6f55#0 banana
-   2f52a6d266793896dbff89d1f193507adba6d681fc83e49936212279c84144a7#0 mango
-   8a593b86d77239050a8aca4301e8ac6af19691d993f0333f0510a908ad89a18e#0 strawberry"
+   4151c1cce8e107b28d1d4a3c7f3a40a29568dd241af6d6147a51d58f203bd2b1#0 banana
+   c2021e0b3de3abfff3a529d24a2d8aec25e48dc3c3750c1475f84da3ab2f368a#0 mango
+   9eac9f9c1647fffaf5cf9c0b3f830bf0c67f383f43d360592580e39e40c63a6f#0 strawberry"
 ```
 
 Its execution should print something like this on the console:
@@ -5320,7 +5320,7 @@ Placing bid 7/10
 Placing bid 8/10
 Placing bid 9/10
 Placing bid 10/10
-Waiting until the end of the bidding time (38250ms still missing)
+Waiting until the end of the bidding time (38107ms still missing)
 Revealing bid 1/10
 Revealing bid 2/10
 Revealing bid 3/10
@@ -5331,9 +5331,9 @@ Revealing bid 7/10
 Revealing bid 8/10
 Revealing bid 9/10
 Revealing bid 10/10
-Waiting until the end of the revealing time (55612ms still missing)
-expected winner: 8a593b86d77239050a8aca4301e8ac6af19691d993f0333f0510a908ad89a18e#0
-actual winner: 8a593b86d77239050a8aca4301e8ac6af19691d993f0333f0510a908ad89a18e#0
+Waiting until the end of the revealing time (54609ms still missing)
+expected winner: c2021e0b3de3abfff3a529d24a2d8aec25e48dc3c3750c1475f84da3ab2f368a#0
+actual winner: c2021e0b3de3abfff3a529d24a2d8aec25e48dc3c3750c1475f84da3ab2f368a#0
 ```
 
 ### Listening to Events
@@ -5396,9 +5396,9 @@ The event handler, in this case, simply prints on the console the class of the e
 mvn compile exec:java -Dexec.mainClass="io.hotmoka.tutorial.examples.runs.Events"
   -Dexec.args="ws://panarea.hotmoka.io:8002
    hotmoka_tutorial
-   754430328d168d657b65e8ec5bf0bdbfb84542cc413e29cedf98c67e96eb6f55#0 banana
-   2f52a6d266793896dbff89d1f193507adba6d681fc83e49936212279c84144a7#0 mango
-   8a593b86d77239050a8aca4301e8ac6af19691d993f0333f0510a908ad89a18e#0 strawberry"
+   4151c1cce8e107b28d1d4a3c7f3a40a29568dd241af6d6147a51d58f203bd2b1#0 banana
+   c2021e0b3de3abfff3a529d24a2d8aec25e48dc3c3750c1475f84da3ab2f368a#0 mango
+   9eac9f9c1647fffaf5cf9c0b3f830bf0c67f383f43d360592580e39e40c63a6f#0 strawberry"
 ```
 You should see something like this on the console:
 
@@ -5415,25 +5415,25 @@ Placing bid 7/10
 Placing bid 8/10
 Placing bid 9/10
 Placing bid 10/10
-Waiting until the end of the bidding time (33477ms still missing)
+Waiting until the end of the bidding time (33120ms still missing)
 Revealing bid 1/10
 Revealing bid 2/10
+Seen event of class io.hotmoka.tutorial.examples.auction.BidIncrease created 
+  by contract 8d98dbe9c9a352b952dcf269c902e13623420a333203d17647e841fcff8d8f7a#0
 Revealing bid 3/10
 Revealing bid 4/10
 Revealing bid 5/10
 Revealing bid 6/10
-Seen event of class io.hotmoka.tutorial.examples.auction.BidIncrease created 
-  by contract 3b745bed8da72a8b7b60c689e4a1b891ade7b7a71778bb78f2a121d055a49393#0
 Revealing bid 7/10
 Revealing bid 8/10
 Revealing bid 9/10
 Revealing bid 10/10
-Waiting until the end of the revealing time (50592ms still missing)
-expected winner: 8a593b86d77239050a8aca4301e8ac6af19691d993f0333f0510a908ad89a18e#0
-actual winner: 8a593b86d77239050a8aca4301e8ac6af19691d993f0333f0510a908ad89a18e#0
-Waiting until all events are flushed (15258ms still missing)
+Waiting until the end of the revealing time (49850ms still missing)
+expected winner: 9eac9f9c1647fffaf5cf9c0b3f830bf0c67f383f43d360592580e39e40c63a6f#0
+actual winner: 9eac9f9c1647fffaf5cf9c0b3f830bf0c67f383f43d360592580e39e40c63a6f#0
+Waiting until all events are flushed (24117ms still missing)
 Seen event of class io.hotmoka.tutorial.examples.auction.AuctionEnd created 
-  by contract 3b745bed8da72a8b7b60c689e4a1b891ade7b7a71778bb78f2a121d055a49393#0
+  by contract 8d98dbe9c9a352b952dcf269c902e13623420a333203d17647e841fcff8d8f7a#0
 ```
 
 > The `subscribeToEvents()` method returns a `Subscription` object that should be
@@ -5670,7 +5670,7 @@ Then you can install that jar in the node, by letting our first account pay:
 
 ```shell
 $ cd ..
-$ moka jars install ad7d2f8cb83a503d27b7314307d09598b7ccbc2717e6098d42b588364098aeac#0
+$ moka jars install 81b560833f64378eba9b5f107f1ac26313468567e3135df61c87091a6a8d1736#0
     io-hotmoka-tutorial-examples-erc20/target/io-hotmoka-tutorial-examples-erc20-1.11.3.jar
     --password-of-payer
     --uri ws://panarea.hotmoka.io:8001
@@ -5678,8 +5678,8 @@ $ moka jars install ad7d2f8cb83a503d27b7314307d09598b7ccbc2717e6098d42b588364098
 Enter value for --password-of-payer (the password of the key pair of the payer account): chocolate
 Do you really want to install the jar spending up to 830600 gas units
   at the price of 1 pana per unit (that is, up to 830600 panas) [Y/N] Y
-Adding transaction 70acb8d2cce944f2eca58e864e5154f681d2a8b246fc7cbdbda3ccbe19ba4833... done.
-The jar has been installed at 70acb8d2cce944f2eca58e864e5154f681d2a8b246fc7cbdbda3ccbe19ba4833.
+Adding transaction 54b83a83901f8a00ea7ede49af9ac4ebfc43b35a8a0e31a9f4911408313b7178... done.
+The jar has been installed at 54b83a83901f8a00ea7ede49af9ac4ebfc43b35a8a0e31a9f4911408313b7178.
 
 Gas consumption:
  * total: 9844
@@ -5694,16 +5694,16 @@ Gas consumption:
 Finally, you can create an instance of the token class, by always letting our first account pay for that:
 
 ```shell
-$ moka objects create ad7d2f8cb83a503d27b7314307d09598b7ccbc2717e6098d42b588364098aeac#0
+$ moka objects create 81b560833f64378eba9b5f107f1ac26313468567e3135df61c87091a6a8d1736#0
    io.hotmoka.tutorial.examples.erc20.CryptoBuddy
-   --classpath 70acb8d2cce944f2eca58e864e5154f681d2a8b246fc7cbdbda3ccbe19ba4833
+   --classpath 54b83a83901f8a00ea7ede49af9ac4ebfc43b35a8a0e31a9f4911408313b7178
    --uri ws://panarea.hotmoka.io:8001 --password-of-payer
 
 Enter value for --password-of-payer (the password of the key pair of the payer account): chocolate
 Do you really want to call constructor public ...CryptoBuddy() spending up to 200000 gas units
   at the price of 1 pana per unit (that is, up to 200000 panas) [Y/N] Y
-Adding transaction 651de993c50066e0a22056f33ac251622e1868849a1538f4ce24e804876c7cc9... done.
-A new object 651de993c50066e0a22056f33ac251622e1868849a1538f4ce24e804876c7cc9#0 has been created.
+Adding transaction afc8a712ea5fcb23eea9973373db6e021de9b37932361544aa9258b1c60a2754... done.
+A new object afc8a712ea5fcb23eea9973373db6e021de9b37932361544aa9258b1c60a2754#0 has been created.
 
 Gas consumption:
  * total: 9955
@@ -5716,7 +5716,7 @@ Gas consumption:
 ```
 
 The new ledger instance is installed in the storage of the node now, at the address
-`651de993c50066e0a22056f33ac251622e1868849a1538f4ce24e804876c7cc9#0`. It is possible to start interacting with that ledger instance, by transferring
+`afc8a712ea5fcb23eea9973373db6e021de9b37932361544aa9258b1c60a2754#0`. It is possible to start interacting with that ledger instance, by transferring
 tokens between accounts. For instance, this can be done with the `moka objects call` command,
 that allows one to invoke the `transfer` or `transferFrom` methods of the ledger.
 It is possible to show the state of the ledger with the `moka objects show` command, although specific
@@ -7048,7 +7048,7 @@ The new key pair has been written into "account7.pem":
 $ moka accounts create faucet 1000000000000 account7.pem --password
     --uri ws://panarea.hotmoka.io:8001
 Enter value for --password (the password of the key pair specified through --keys): game
-Adding transaction e6e566142a57c0bba939da76135520f1a82bf1f542f8daec54d8f067933bc11d... done.
+Adding transaction eaa3d6580ac2bd9cd0f35af011409570a79cde7d7e645908119b861824f4c57d... done.
 A new account @account7 has been created.
 Its key pair has been saved into the file
   "@account7.pem".
@@ -7073,7 +7073,7 @@ class io.takamaka.code.lang.ExternallyOwnedAccountED25519
   io.takamaka.code.lang.Contract.balance:java.math.BigInteger = 1000000000000
   io.takamaka.code.lang.ExternallyOwnedAccount.nonce:java.math.BigInteger = 0
   io.takamaka.code.lang.ExternallyOwnedAccount.publicKey:java.lang.String
-    = 2oO6PkzlQvAmMoIfNLjAr3kUVLfHx7lqDf6u80MLtRI=
+    = 2LSoeixy02uwX2aQFowwCn7Q840pauixI0CAf3me01c=
 ```
 
 As you can see, an account has been created, that uses the default `ed25519`
@@ -7090,10 +7090,10 @@ $ moka accounts create faucet 1000000000000 account8.pem --password
     --uri ws://panarea.hotmoka.io:8001
     --signature sha256dsa
 Enter value for --password (the password of the key pair specified through --keys): play
-Adding transaction 31c2794a62c3107bafdb24ee42e3b3b8eba6c38e7dbe34b9cbfc316bb5f2a91d... done.
-A new account 31c2794a62c3107bafdb24ee42e3b3b8eba6c38e7dbe34b9cbfc316bb5f2a91d#0 has been created.
+Adding transaction 8ac613e0395d20768ba4b5d9050edbad26f0877ad5eb1d196c01b75b16e95f1a... done.
+A new account 8ac613e0395d20768ba4b5d9050edbad26f0877ad5eb1d196c01b75b16e95f1a#0 has been created.
 Its key pair has been saved into the file
-  "31c2794a62c3107bafdb24ee42e3b3b8eba6c38e7dbe34b9cbfc316bb5f2a91d#0.pem".
+  "8ac613e0395d20768ba4b5d9050edbad26f0877ad5eb1d196c01b75b16e95f1a#0.pem".
 
 Gas consumption:
  * total: 8912
@@ -7109,14 +7109,14 @@ sha256dsa algorithm is much longer than that for the ed25519 algorithm.
 You can verify this with the `moka objects show` command:
 
 ```shell
-$ moka objects show 31c2794a62c3107bafdb24ee42e3b3b8eba6c38e7dbe34b9cbfc316bb5f2a91d#0
+$ moka objects show 8ac613e0395d20768ba4b5d9050edbad26f0877ad5eb1d196c01b75b16e95f1a#0
     --uri ws://panarea.hotmoka.io:8001
 class io.takamaka.code.lang.ExternallyOwnedAccountSHA256DSA
     (from jar installed at 0d0f8f8232e4931a7f2f2e0fae7c5f63c6c31d35b1fcd22494e7c3a21fb8d2af)
   io.takamaka.code.lang.Contract.balance:java.math.BigInteger = 1000000000000
   io.takamaka.code.lang.ExternallyOwnedAccount.nonce:java.math.BigInteger = 0
   io.takamaka.code.lang.ExternallyOwnedAccount.publicKey:java.lang.String
-    = MIIDRzCCAjkGByqGSM44BAEwggIsAoIBAQCVR1z12T5ZbD/NHZAq3QL0J/XzxyEDE...
+    = MIIDRjCCAjkGByqGSM44BAEwggIsAoIBAQCVR1z12T5ZbD/NHZAq3QL0J/XzxyEDE...
 ...
 ```
 
@@ -7133,10 +7133,10 @@ $ moka accounts create faucet 1000000000000 account9.pem --password
     --uri ws://panarea.hotmoka.io:8001
     --signature qtesla1
 Enter value for --password (the password of the key pair specified through --keys): quantum1
-Adding transaction 6bb6f83812c4e5818230f460561a11830534dbfd37d0c0c02d2fa419323c0445... done.
-A new account 6bb6f83812c4e5818230f460561a11830534dbfd37d0c0c02d2fa419323c0445#0 has been created.
+Adding transaction 8c7460fb8ee69d875a7f234e5737114abb681de91068ab2cea0cc400e43ee27b... done.
+A new account 8c7460fb8ee69d875a7f234e5737114abb681de91068ab2cea0cc400e43ee27b#0 has been created.
 Its key pair has been saved into the file
-  "6bb6f83812c4e5818230f460561a11830534dbfd37d0c0c02d2fa419323c0445#0.pem".
+  "8c7460fb8ee69d875a7f234e5737114abb681de91068ab2cea0cc400e43ee27b#0.pem".
 
 Gas consumption:
  * total: 46415
@@ -7158,7 +7158,7 @@ $ moka keys create --name account10.pem --password --signature qtesla3
 Enter value for --password (the password that will be needed later to use the key pair): quantum3
 The new key pair has been written into "account10.pem":
 ...
-$ moka accounts create 6bb6f83812c4e5818230f460561a11830534dbfd37d0c0c02d2fa419323c0445#0
+$ moka accounts create 8c7460fb8ee69d875a7f234e5737114abb681de91068ab2cea0cc400e43ee27b#0
     100000 account10.pem
     --password --uri ws://panarea.hotmoka.io:8001
     --signature=qtesla3 --password-of-payer
@@ -7166,10 +7166,10 @@ Enter value for --password (the password of the key pair): quantum3
 Enter value for --password-of-payer (the password of the payer): quantum1
 Do you really want to create the new account spending up to 6300000 gas units
   at the price of 1 pana per unit (that is, up to 6300000 panas) [Y/N] Y
-Adding transaction ad7d2f8cb83a503d27b7314307d09598b7ccbc2717e6098d42b588364098aeac0... done.
-A new account ad7d2f8cb83a503d27b7314307d09598b7ccbc2717e6098d42b588364098aeac#00 has been created.
+Adding transaction 81b560833f64378eba9b5f107f1ac26313468567e3135df61c87091a6a8d17360... done.
+A new account 81b560833f64378eba9b5f107f1ac26313468567e3135df61c87091a6a8d1736#00 has been created.
 Its key pair has been saved into the file
-  "ad7d2f8cb83a503d27b7314307d09598b7ccbc2717e6098d42b588364098aeac#00.pem".
+  "81b560833f64378eba9b5f107f1ac26313468567e3135df61c87091a6a8d1736#00.pem".
 
 Gas consumption:
  * total: 111003
@@ -7191,14 +7191,14 @@ the `io-hotmoka-tutorial-examples-family-1.11.3.jar` code in the node:
 
 ```shell
 $ cd hotmoka_tutorial
-$ moka jars install 6bb6f83812c4e5818230f460561a11830534dbfd37d0c0c02d2fa419323c0445#0
+$ moka jars install 8c7460fb8ee69d875a7f234e5737114abb681de91068ab2cea0cc400e43ee27b#0
     io-hotmoka-tutorial-examples-family/target/io-hotmoka-tutorial-examples-family-1.11.3.jar
     --password-of-payer --uri=ws://panarea.hotmoka.io:8001
 Enter value for --password-of-payer (the password of the key pair of the payer account): quantum1
 Do you really want to install the jar spending up to 1011600 gas units
   at the price of 1 pana per unit (that is, up to 1011600 panas) [Y/N] Y
-Adding transaction 58b79e5536d3d5a0d3927c8cb3dc4311bf7a02e2d79b92a271a7f204e0534579... done.
-The jar has been installed at 58b79e5536d3d5a0d3927c8cb3dc4311bf7a02e2d79b92a271a7f204e0534579.
+Adding transaction 465b789881894a16036c7f26eafff89ed4a13dc7adb0333539af45404983fdb4... done.
+The jar has been installed at 465b789881894a16036c7f26eafff89ed4a13dc7adb0333539af45404983fdb4.
 
 Gas consumption:
  * total: 11858
