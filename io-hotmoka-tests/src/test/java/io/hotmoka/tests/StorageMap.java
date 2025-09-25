@@ -155,7 +155,7 @@ class StorageMap extends HotmokaTest {
 	}
 
 	@Test @DisplayName("mkEmptyExportedStorageMap() put 10 storage keys then size is 10")
-	void put100RandomThenSize() throws Exception {
+	void put10RandomThenSize() throws Exception {
 		var map = addStaticNonVoidMethodCallTransaction(key, account0, _500_000, BigInteger.ONE, classpath, MK_EMPTY_EXPORTED_STORAGE_MAP)
 				.asReturnedReference(MK_EMPTY_EXPORTED_STORAGE_MAP, UnexpectedValueException::new);
 
@@ -177,7 +177,7 @@ class StorageMap extends HotmokaTest {
 	}
 
 	@Test @DisplayName("mkEmptyExportedStorageMap() put 10 times the same key then size is 1")
-	void put100TimesSameKeyThenSize() throws Exception {
+	void put10TimesSameKeyThenSize() throws Exception {
 		var map = addStaticNonVoidMethodCallTransaction(key, account0, _500_000, BigInteger.ONE, classpath, MK_EMPTY_EXPORTED_STORAGE_MAP)
 				.asReturnedReference(MK_EMPTY_EXPORTED_STORAGE_MAP, UnexpectedValueException::new);
 		KeyPair keys = signature().getKeyPair();
@@ -195,7 +195,7 @@ class StorageMap extends HotmokaTest {
 	}
 
 	@Test @DisplayName("mkEmptyExportedStorageMap() put 10 times equal string keys then size is 1")
-	void put100TimesEqualStringThenSize() throws Exception {
+	void put10TimesEqualStringThenSize() throws Exception {
 		var map = addStaticNonVoidMethodCallTransaction(key, account0, _500_000, BigInteger.ONE, classpath, MK_EMPTY_EXPORTED_STORAGE_MAP)
 				.asReturnedReference(MK_EMPTY_EXPORTED_STORAGE_MAP, UnexpectedValueException::new);
 
@@ -230,7 +230,7 @@ class StorageMap extends HotmokaTest {
 	}
 
 	@Test @DisplayName("mkEmptyExportedStorageMap() put 10 storage keys then remove the last then size is 9")
-	void put100RandomThenRemoveLastThenSize() throws Exception {
+	void put10RandomThenRemoveLastThenSize() throws Exception {
 		var map = addStaticNonVoidMethodCallTransaction(key, account0, _500_000, BigInteger.ONE, classpath, MK_EMPTY_EXPORTED_STORAGE_MAP)
 				.asReturnedReference(MK_EMPTY_EXPORTED_STORAGE_MAP, UnexpectedValueException::new);
 
@@ -253,11 +253,11 @@ class StorageMap extends HotmokaTest {
 
 		int size = runInstanceNonVoidMethodCallTransaction(account0, _500_000, classpath, STORAGE_MAP_SIZE, map).asReturnedInt(STORAGE_MAP_SIZE, UnexpectedValueException::new);
 
-		assertEquals(9, size);
+		assertEquals(9, size); // TODO: this has failed a couple of times with size == 8...
 	}
 
 	@Test @DisplayName("mkEmptyExportedStorageMap() put 10 storage keys and checks contains after each put")
-	void put100RandomEachTimeCheckContains() throws Exception {
+	void put10RandomEachTimeCheckContains() throws Exception {
 		var map = addStaticNonVoidMethodCallTransaction(key, account0, _500_000, BigInteger.ONE, classpath, MK_EMPTY_EXPORTED_STORAGE_MAP)
 				.asReturnedReference(MK_EMPTY_EXPORTED_STORAGE_MAP, UnexpectedValueException::new);
 

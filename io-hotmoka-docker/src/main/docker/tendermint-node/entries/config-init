@@ -22,7 +22,7 @@ ALLOWS_UNSIGNED_FAUCET=${ALLOWS_UNSIGNED_FAUCET:-false}
 CHAIN_ID=${CHAIN_ID:-""}
 INITIAL_SUPPLY=${INITIAL_SUPPLY:-1000000000000000000000000000000000}
 FINAL_SUPPLY=${FINAL_SUPPLY:-10000000000000000000000000000000000}
-PUBLIC_KEY_OF_GAMETE=${PUBLIC_KEY_OF_GAMETE:-""}
+PUBLIC_KEY_GAMETE_BASE64=${PUBLIC_KEY_GAMETE_BASE64:-""}
 TARGET_BLOCK_CREATION_TIME=${TARGET_BLOCK_CREATION_TIME:-10000}
 TOTAL_VALIDATION_POWER=${TOTAL_VALIDATION_POWER:-1000000}
 
@@ -32,7 +32,7 @@ echo -e "      ${BLUE}ALLOWS_UNSIGNED_FAUCET${NC}=${RED}$ALLOWS_UNSIGNED_FAUCET$
 echo -e "                    ${BLUE}CHAIN_ID${NC}=${RED}\"$CHAIN_ID\"${NC}"
 echo -e "              ${BLUE}INITIAL_SUPPLY${NC}=${RED}\"$INITIAL_SUPPLY\"${NC}"
 echo -e "                ${BLUE}FINAL_SUPPLY${NC}=${RED}\"$FINAL_SUPPLY\"${NC}"
-echo -e "        ${BLUE}PUBLIC_KEY_OF_GAMETE${NC}=${RED}\"$PUBLIC_KEY_OF_GAMETE\"${NC}"
+echo -e "    ${BLUE}PUBLIC_KEY_GAMETE_BASE64${NC}=${RED}\"$PUBLIC_KEY_GAMETE_BASE64\"${NC}"
 echo -e "  ${BLUE}TARGET_BLOCK_CREATION_TIME${NC}=${RED}$TARGET_BLOCK_CREATION_TIME${NC}"
 echo -e "      ${BLUE}TOTAL_VALIDATION_POWER${NC}=${RED}$TOTAL_VALIDATION_POWER${NC}"
 echo
@@ -58,7 +58,7 @@ echo "allows_unsigned_faucet = ${ALLOWS_UNSIGNED_FAUCET}" > hotmoka_tendermint/c
 echo "chain_id = \"${CHAIN_ID}\"" >> hotmoka_tendermint/consensus_config.toml
 echo "initial_supply = \"${INITIAL_SUPPLY}\"" >> hotmoka_tendermint/consensus_config.toml
 echo "final_supply = \"${FINAL_SUPPLY}\"" >> hotmoka_tendermint/consensus_config.toml
-echo "public_key_of_gamete = \"${PUBLIC_KEY_OF_GAMETE}\"" >> hotmoka_tendermint/consensus_config.toml
+echo "public_key_of_gamete = \"${PUBLIC_KEY_GAMETE_BASE64}\"" >> hotmoka_tendermint/consensus_config.toml
 echo -e "${RED}done${NC}"
 
 echo -n "Creating the Tendermint configuration files... "
