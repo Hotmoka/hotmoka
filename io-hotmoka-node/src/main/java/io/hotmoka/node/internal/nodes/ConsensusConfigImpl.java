@@ -439,7 +439,7 @@ public abstract class ConsensusConfigImpl<C extends ConsensusConfig<C,B>, B exte
 		private BigInteger targetGasAtReward = BigInteger.valueOf(1_000_000L);
 		private long oblivion = 250_000L;
 		private long verificationVersion = 0L;
-		private BigInteger initialSupply = new BigInteger("1000000000000000000000000000000000000000000000000");
+		private BigInteger initialSupply = new BigInteger("10000000000000000000000000000");
 		private BigInteger finalSupply = initialSupply.multiply(BigInteger.valueOf(2L)); // BigInteger.TWO crashes the Android client
 		private BigInteger heightAtFinalSupply = BigInteger.valueOf(42048000L); // if a block is created every 15 seconds, this is 20 years
 		private PublicKey publicKeyOfGamete;
