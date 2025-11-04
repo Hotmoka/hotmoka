@@ -112,28 +112,6 @@ public class Moka extends AbstractCLI {
 	}
 
 	/**
-	 * Runs the {@code moka keys bind} command with the given arguments.
-	 * 
-	 * @param args the arguments
-	 * @return what the moka tool has written into the standard output
-	 * @throws IOException if the construction of the return value failed
-	 */
-	public static String keysBind(String args) throws IOException {
-		return run("keys bind " + args);
-	}
-
-	/**
-	 * Runs the {@code moka keys create} command with the given arguments.
-	 * 
-	 * @param args the arguments
-	 * @return what the moka tool has written into the standard output
-	 * @throws IOException if the construction of the return value failed
-	 */
-	public static String keysCreate(String args) throws IOException {
-		return run("keys create " + args);
-	}
-
-	/**
 	 * Runs the {@code moka accounts export} command with the given arguments.
 	 * 
 	 * @param args the arguments
@@ -156,6 +134,28 @@ public class Moka extends AbstractCLI {
 	}
 
 	/**
+	 * Runs the {@code moka keys bind} command with the given arguments.
+	 * 
+	 * @param args the arguments
+	 * @return what the moka tool has written into the standard output
+	 * @throws IOException if the construction of the return value failed
+	 */
+	public static String keysBind(String args) throws IOException {
+		return run("keys bind " + args);
+	}
+
+	/**
+	 * Runs the {@code moka keys create} command with the given arguments.
+	 * 
+	 * @param args the arguments
+	 * @return what the moka tool has written into the standard output
+	 * @throws IOException if the construction of the return value failed
+	 */
+	public static String keysCreate(String args) throws IOException {
+		return run("keys create " + args);
+	}
+
+	/**
 	 * Runs the {@code moka keys show} command with the given arguments.
 	 * 
 	 * @param args the arguments
@@ -164,6 +164,17 @@ public class Moka extends AbstractCLI {
 	 */
 	public static String keysShow(String args) throws IOException {
 		return run("keys show " + args);
+	}
+
+	/**
+	 * Runs the {@code moka keys export} command with the given arguments.
+	 * 
+	 * @param args the arguments
+	 * @return what the moka tool has written into the standard output
+	 * @throws IOException if the construction of the return value failed
+	 */
+	public static String keysExport(String args) throws IOException {
+		return run("keys export " + args);
 	}
 
 	/**

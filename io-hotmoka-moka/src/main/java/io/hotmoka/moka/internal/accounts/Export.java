@@ -91,7 +91,7 @@ public class Export extends AbstractMokaCommand {
 		public String toString() {
 			var sb = new StringBuilder();
 
-			sb.append("The following BIP39 words represent the key pair of the account:\n");
+			sb.append("The following BIP39 words represent the account:\n");
         	for (int pos = 0; pos < bip39Words.length; pos++)
         		sb.append(String.format("%2d: %s\n", pos + 1, bip39Words[pos]));
 

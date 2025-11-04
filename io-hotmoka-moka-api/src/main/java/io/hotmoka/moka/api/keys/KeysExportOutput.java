@@ -14,23 +14,22 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.moka.internal;
+package io.hotmoka.moka.api.keys;
 
-import io.hotmoka.moka.internal.keys.Bind;
-import io.hotmoka.moka.internal.keys.Create;
-import io.hotmoka.moka.internal.keys.Export;
-import io.hotmoka.moka.internal.keys.Show;
-import picocli.CommandLine.Command;
-import picocli.CommandLine.HelpCommand;
+import java.util.stream.Stream;
 
-@Command(name = "keys",
-	header = "Manage cryptographic key pairs.",
-	subcommands = {
-		HelpCommand.class,
-		Bind.class,
-		Create.class,
-		Export.class,
-		Show.class
-	})
-public class Keys {
+import io.hotmoka.annotations.Immutable;
+
+/**
+ * The output of the {@code moka keys export} command.
+ */
+@Immutable
+public interface KeysExportOutput {
+
+	/**
+	 * Yields the BIP39 words in the output of the command.
+	 * 
+	 * @return the BIP39 words in the output of the command
+	 */
+	Stream<String> getBip39Words();
 }

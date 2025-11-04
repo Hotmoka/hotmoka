@@ -54,7 +54,7 @@ import picocli.CommandLine.Option;
 import picocli.CommandLine.Parameters;
 
 @Command(name = "bind",
-	header = "Bind a key pair to a reference, thus creating an account's key pair file.",
+	header = "Bind a key pair to a reference, creating an account's key pair file.",
 	showDefaultValues = true)
 public class Bind extends AbstractMokaRpcCommand {
 
