@@ -798,12 +798,12 @@ has been added to your accounts (see Figure @fig:mokito_added_elvis).
 We have created `@account1` with `moka` and
 `@account_mokito` with Mokito. We might want to _import_ the former in Mokito and the latter
 in `moka`, so that we can operate on both accounts with both tools. In order to import
-`@account_mokito` in `moka`, we can use the `moka keys import` command and insert its 36 words
+`@account_mokito` in `moka`, we can use the `moka accounts import` command and insert its 36 words
 passphrase:
 
 
 ```shell
-$ moka keys import around route kit grit ceiling electric negative
+$ moka accounts import around route kit grit ceiling electric negative
     nice pact dad forum real acid aware west balance return admit
     beach trip join cute page divert eagle parent remove upgrade
     surprise jelly close home aisle defy obey method
@@ -830,7 +830,7 @@ Vice versa, in order to import into Mokito the account that was created with `mo
 first export the 36 words of that account:
 
 ```shell
-$ moka keys export @account1
+$ moka accounts export @account1
 The following BIP39 words represent the key pair of the account:
 @36words_of_account1
 ```
