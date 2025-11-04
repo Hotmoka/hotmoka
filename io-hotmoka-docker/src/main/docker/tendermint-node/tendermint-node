@@ -3,7 +3,7 @@
 # or
 #   docker buildx build --platform linux/amd64 -t hotmoka/tendermint-node:latest -f src/main/docker/tendermint-node/tendermint-node .
 
-FROM openjdk:21-jdk-slim
+FROM eclipse-temurin:21
 LABEL "maintainer"="fausto.spoto@hotmoka.io"
 
 USER root
