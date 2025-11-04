@@ -18,18 +18,18 @@ package io.hotmoka.moka.internal.json;
 
 import java.util.stream.Stream;
 
-import io.hotmoka.moka.api.keys.KeysExportOutput;
-import io.hotmoka.moka.internal.keys.Export;
+import io.hotmoka.moka.api.accounts.AccountsExportOutput;
+import io.hotmoka.moka.internal.accounts.Export;
 import io.hotmoka.websockets.beans.api.InconsistentJsonException;
 import io.hotmoka.websockets.beans.api.JsonRepresentation;
 
 /**
  * The JSON representation of the output of the {@code moka keys export} command.
  */
-public abstract class KeysExportOutputJson implements JsonRepresentation<KeysExportOutput> {
+public abstract class AccountsExportOutputJson implements JsonRepresentation<AccountsExportOutput> {
 	private final String[] bip39Words;
 
-	protected KeysExportOutputJson(KeysExportOutput output) {
+	protected AccountsExportOutputJson(AccountsExportOutput output) {
 		this.bip39Words = output.getBip39Words().toArray(String[]::new);
 	}
 
@@ -38,7 +38,7 @@ public abstract class KeysExportOutputJson implements JsonRepresentation<KeysExp
 	}
 
 	@Override
-	public KeysExportOutput unmap() throws InconsistentJsonException {
+	public AccountsExportOutput unmap() throws InconsistentJsonException {
 		return new Export.Output(this);
 	}
 }

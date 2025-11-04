@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.moka.internal.keys;
+package io.hotmoka.moka.internal.accounts;
 
 import java.io.IOException;
 import java.nio.file.Path;
@@ -22,11 +22,11 @@ import java.util.stream.Stream;
 
 import io.hotmoka.cli.CommandException;
 import io.hotmoka.crypto.api.BIP39Mnemonic;
-import io.hotmoka.moka.KeysExportOutputs;
-import io.hotmoka.moka.api.keys.KeysExportOutput;
+import io.hotmoka.moka.AccountsExportOutputs;
+import io.hotmoka.moka.api.accounts.AccountsExportOutput;
 import io.hotmoka.moka.internal.AbstractMokaCommand;
 import io.hotmoka.moka.internal.converters.StorageReferenceWithZeroProgressiveOptionConverter;
-import io.hotmoka.moka.internal.json.KeysExportOutputJson;
+import io.hotmoka.moka.internal.json.AccountsExportOutputJson;
 import io.hotmoka.node.Accounts;
 import io.hotmoka.node.api.Account;
 import io.hotmoka.node.api.values.StorageReference;
@@ -57,13 +57,13 @@ public class Export extends AbstractMokaCommand {
         	throw new CommandException("Cannot read the key pair of the account: it was expected to be in file \"" + dir.resolve(reference.toString()) + ".pem\"", e);
         }
 
-        report(new Output(account.bip39Words()), KeysExportOutputs.Encoder::new);
+        report(new Output(account.bip39Words()), AccountsExportOutputs.Encoder::new);
 	}
 
 	/**
 	 * The output of this command.
 	 */
-	public static class Output implements KeysExportOutput {
+	public static class Output implements AccountsExportOutput {
 		private final String[] bip39Words;
 
 		private Output(BIP39Mnemonic bip39Words) {
@@ -76,7 +76,7 @@ public class Export extends AbstractMokaCommand {
 		 * @param json the JSON representation
 		 * @throws InconsistentJsonException if {@code json} is inconsistent
 		 */
-		public Output(KeysExportOutputJson json) throws InconsistentJsonException {
+		public Output(AccountsExportOutputJson json) throws InconsistentJsonException {
 			this.bip39Words = json.getBip39Words().toArray(String[]::new);
 			if (bip39Words.length != 36)
 				throw new InconsistentJsonException("Hotmoka accounts are represented by 36 BIP39 words, but " + bip39Words.length + " words have been provided instead");

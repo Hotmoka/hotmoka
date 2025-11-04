@@ -16,18 +16,18 @@ limitations under the License.
 
 package io.hotmoka.moka;
 
-import io.hotmoka.moka.api.keys.KeysImportOutput;
-import io.hotmoka.moka.internal.json.KeysImportOutputJson;
+import io.hotmoka.moka.api.accounts.AccountsImportOutput;
+import io.hotmoka.moka.internal.json.AccountsImportOutputJson;
 import io.hotmoka.websockets.beans.MappedDecoder;
 import io.hotmoka.websockets.beans.MappedEncoder;
 import jakarta.websocket.DecodeException;
 
 /**
- * Providers of outputs for the {@code moka keys import} command.
+ * Providers of outputs for the {@code moka accounts import} command.
  */
-public abstract class KeysImportOutputs {
+public abstract class AccountsImportOutputs {
 
-	private KeysImportOutputs() {}
+	private AccountsImportOutputs() {}
 
 	/**
 	 * Yields the output of the command from its JSON representation.
@@ -36,21 +36,21 @@ public abstract class KeysImportOutputs {
 	 * @return the output of the command
 	 * @throws DecodeException if {@code json} cannot be decoded into the output
 	 */
-	public static KeysImportOutput from(String json) throws DecodeException {
+	public static AccountsImportOutput from(String json) throws DecodeException {
 		return new Decoder().decode(json);
 	}
 
 	/**
 	 * JSON representation.
 	 */
-	public static class Json extends KeysImportOutputJson {
+	public static class Json extends AccountsImportOutputJson {
 	
 		/**
 		 * Creates the JSON representation for the given output.
 		 * 
 		 * @param output the output
 		 */
-		public Json(KeysImportOutput output) {
+		public Json(AccountsImportOutput output) {
 			super(output);
 		}
 	}
@@ -58,7 +58,7 @@ public abstract class KeysImportOutputs {
 	/**
 	 * JSON encoder.
 	 */
-	public static class Encoder extends MappedEncoder<KeysImportOutput, Json> {
+	public static class Encoder extends MappedEncoder<AccountsImportOutput, Json> {
 
 		/**
 		 * Creates a new encoder.
@@ -71,7 +71,7 @@ public abstract class KeysImportOutputs {
 	/**
 	 * JSON decoder.
 	 */
-	public static class Decoder extends MappedDecoder<KeysImportOutput, Json> {
+	public static class Decoder extends MappedDecoder<AccountsImportOutput, Json> {
 
 		/**
 		 * Creates a new decoder.

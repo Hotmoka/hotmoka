@@ -17,6 +17,8 @@ limitations under the License.
 package io.hotmoka.moka.internal;
 
 import io.hotmoka.moka.internal.accounts.Create;
+import io.hotmoka.moka.internal.accounts.Export;
+import io.hotmoka.moka.internal.accounts.Import;
 import io.hotmoka.moka.internal.accounts.Rotate;
 import io.hotmoka.moka.internal.accounts.Send;
 import io.hotmoka.moka.internal.accounts.Show;
@@ -28,6 +30,8 @@ import picocli.CommandLine.HelpCommand;
 	subcommands = {
 		HelpCommand.class,
 		Create.class,
+		Export.class,
+		Import.class,
 		Rotate.class,
 		Send.class,
 		Show.class

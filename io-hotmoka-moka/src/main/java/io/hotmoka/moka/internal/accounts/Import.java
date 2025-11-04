@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.moka.internal.keys;
+package io.hotmoka.moka.internal.accounts;
 
 import java.io.IOException;
 import java.nio.file.InvalidPathException;
@@ -27,10 +27,10 @@ import io.hotmoka.cli.CommandException;
 import io.hotmoka.crypto.BIP39Dictionaries;
 import io.hotmoka.crypto.BIP39Mnemonics;
 import io.hotmoka.exceptions.Objects;
-import io.hotmoka.moka.KeysImportOutputs;
-import io.hotmoka.moka.api.keys.KeysImportOutput;
+import io.hotmoka.moka.AccountsImportOutputs;
+import io.hotmoka.moka.api.accounts.AccountsImportOutput;
 import io.hotmoka.moka.internal.AbstractMokaCommand;
-import io.hotmoka.moka.internal.json.KeysImportOutputJson;
+import io.hotmoka.moka.internal.json.AccountsImportOutputJson;
 import io.hotmoka.node.Accounts;
 import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.websockets.beans.api.InconsistentJsonException;
@@ -68,13 +68,13 @@ public class Import extends AbstractMokaCommand {
 			throw new CommandException("Could not write the key pair file of the account into " + file + ".pem", e);
 		}
 
-		report(new Output(file, account.getReference()), KeysImportOutputs.Encoder::new);
+		report(new Output(file, account.getReference()), AccountsImportOutputs.Encoder::new);
 	}
 
 	/**
 	 * The output of this command.
 	 */
-	public static class Output implements KeysImportOutput {
+	public static class Output implements AccountsImportOutput {
 		private final Path file;
 		private final StorageReference account;
 
@@ -89,7 +89,7 @@ public class Import extends AbstractMokaCommand {
 		 * @param json the JSON representation
 		 * @throws InconsistentJsonException if {@code json} is inconsistent
 		 */
-		public Output(KeysImportOutputJson json) throws InconsistentJsonException {
+		public Output(AccountsImportOutputJson json) throws InconsistentJsonException {
 			try {
 				this.file = Paths.get(Objects.requireNonNull(json.getFile(), "file cannot be null", InconsistentJsonException::new));
 			}

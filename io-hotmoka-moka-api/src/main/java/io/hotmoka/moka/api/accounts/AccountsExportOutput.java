@@ -14,30 +14,22 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.moka.api.keys;
+package io.hotmoka.moka.api.accounts;
 
-import java.nio.file.Path;
+import java.util.stream.Stream;
 
 import io.hotmoka.annotations.Immutable;
-import io.hotmoka.node.api.values.StorageReference;
 
 /**
- * The output of the {@code moka keys import} command.
+ * The output of the {@code moka accounts export} command.
  */
 @Immutable
-public interface KeysImportOutput {
+public interface AccountsExportOutput {
 
 	/**
-	 * Yields the path where the file of the import account has been saved.
+	 * Yields the BIP39 words in the output of the command.
 	 * 
-	 * @return the path where the file of the import account has been saved
+	 * @return the BIP39 words in the output of the command
 	 */
-	Path getFile();
-
-	/**
-	 * Yields the reference of the account that has been imported.
-	 * 
-	 * @return the reference of the account that has been imported
-	 */
-	StorageReference getAccount();
+	Stream<String> getBip39Words();
 }

@@ -39,7 +39,7 @@ import io.hotmoka.moka.AccountsSendOutputs;
 import io.hotmoka.moka.JarsInstallOutputs;
 import io.hotmoka.moka.KeysBindOutputs;
 import io.hotmoka.moka.KeysCreateOutputs;
-import io.hotmoka.moka.KeysExportOutputs;
+import io.hotmoka.moka.AccountsExportOutputs;
 import io.hotmoka.moka.Moka;
 import io.hotmoka.moka.NodesManifestAddressOutputs;
 import io.hotmoka.moka.NodesTakamakaAddressOutputs;
@@ -178,7 +178,7 @@ public class UpdateForNewNode {
 			var output10 = AccountsSendOutputs.from(Moka.accountsSend("faucet 200000 " + account1 + " --uri=" + mokamintURI + " --json --timeout=" + TIMEOUT));
 			report("sed -i 's/@transaction_recharge_account1/" + output10.getTransaction() + "/g' target/Tutorial.md");
 
-			var output11 = KeysExportOutputs.from(Moka.keysExport(account1 + " --dir=" + dir + " --json"));
+			var output11 = AccountsExportOutputs.from(Moka.accountsExport(account1 + " --dir=" + dir + " --json"));
 			var ai = new AtomicInteger(1);
 			String words = output11.getBip39Words().map(s -> String.format("%2d: %s", ai.getAndIncrement(), s)).collect(Collectors.joining("\\n"));
 			report("sed -i 's/@36words_of_account1/" + words + "/g' target/Tutorial.md");

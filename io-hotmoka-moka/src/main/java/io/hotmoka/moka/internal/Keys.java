@@ -18,8 +18,6 @@ package io.hotmoka.moka.internal;
 
 import io.hotmoka.moka.internal.keys.Bind;
 import io.hotmoka.moka.internal.keys.Create;
-import io.hotmoka.moka.internal.keys.Export;
-import io.hotmoka.moka.internal.keys.Import;
 import io.hotmoka.moka.internal.keys.Show;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.HelpCommand;
@@ -30,8 +28,6 @@ import picocli.CommandLine.HelpCommand;
 		HelpCommand.class,
 		Bind.class,
 		Create.class,
-		Export.class,
-		Import.class,
 		Show.class
 	})
 public class Keys {

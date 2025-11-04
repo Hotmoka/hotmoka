@@ -134,25 +134,25 @@ public class Moka extends AbstractCLI {
 	}
 
 	/**
-	 * Runs the {@code moka keys export} command with the given arguments.
+	 * Runs the {@code moka accounts export} command with the given arguments.
 	 * 
 	 * @param args the arguments
 	 * @return what the moka tool has written into the standard output
 	 * @throws IOException if the construction of the return value failed
 	 */
-	public static String keysExport(String args) throws IOException {
-		return run("keys export " + args);
+	public static String accountsExport(String args) throws IOException {
+		return run("accounts export " + args);
 	}
 
 	/**
-	 * Runs the {@code moka keys import} command with the given arguments.
+	 * Runs the {@code moka accounts import} command with the given arguments.
 	 * 
 	 * @param args the arguments
 	 * @return what the moka tool has written into the standard output
 	 * @throws IOException if the construction of the return value failed
 	 */
-	public static String keysImport(String args) throws IOException {
-		return run("keys import " + args);
+	public static String accountsImport(String args) throws IOException {
+		return run("accounts import " + args);
 	}
 
 	/**
