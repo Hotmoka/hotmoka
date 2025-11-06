@@ -178,6 +178,17 @@ public class Moka extends AbstractCLI {
 	}
 
 	/**
+	 * Runs the {@code moka keys import} command with the given arguments.
+	 * 
+	 * @param args the arguments
+	 * @return what the moka tool has written into the standard output
+	 * @throws IOException if the construction of the return value failed
+	 */
+	public static String keysImport(String args) throws IOException {
+		return run("keys import " + args);
+	}
+
+	/**
 	 * Runs the {@code moka jars verify} command with the given arguments.
 	 * 
 	 * @param args the arguments

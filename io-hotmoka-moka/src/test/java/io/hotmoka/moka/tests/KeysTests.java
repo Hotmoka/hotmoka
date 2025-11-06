@@ -18,8 +18,10 @@ package io.hotmoka.moka.tests;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -32,6 +34,8 @@ import io.hotmoka.crypto.HashingAlgorithms;
 import io.hotmoka.crypto.Hex;
 import io.hotmoka.crypto.SignatureAlgorithms;
 import io.hotmoka.moka.KeysCreateOutputs;
+import io.hotmoka.moka.KeysExportOutputs;
+import io.hotmoka.moka.KeysImportOutputs;
 import io.hotmoka.moka.KeysShowOutputs;
 import io.hotmoka.moka.Moka;
 
@@ -98,5 +102,25 @@ public class KeysTests extends AbstractMokaTest {
 		assertEquals(expectedTendermintAddress, actual.getTendermintAddress());
 		assertEquals(expectedPrivateKeyBase58, actual.getPrivateKeyBase58().get());
 		assertEquals(expectedPrivateKeyBase64, actual.getPrivateKeyBase64().get());
+	}
+
+	@Test
+	@DisplayName("[moka keys export/import] information about a key pair is correctly exported and imported")
+	public void exportImportKeyPairWorksCorrectly(@TempDir Path dir) throws Exception {
+		var signature = SignatureAlgorithms.sha256dsa();
+		var password = "mypassword";
+		var filename = "keys.pem";
+		Moka.keysCreate("--output-dir=" + dir + " --name=" + filename + " --signature=" + signature + " --password=" + password);
+		var expectedEntropy = Entropies.load(dir.resolve(filename));
+		var keysExportOutput = KeysExportOutputs.from(Moka.keysExport(dir.resolve(filename) + " --json"));
+		String spaceSeparatedWords = keysExportOutput.getBip39Words().collect(Collectors.joining(" "));
+		// we re-import the key file into a difference directory, so that it does not override the original file
+		Path copy = dir.resolve("copy");
+		Files.createDirectories(copy);
+		var keysImportOutput = KeysImportOutputs.from(Moka.keysImport(spaceSeparatedWords + " --output-dir=" + copy + " --password=" + password + " --signature=" + signature + " --json"));
+		var actualEntropy = Entropies.load(copy.resolve(keysImportOutput.getFile()));
+
+		// their entropies must match
+		assertEquals(expectedEntropy, actualEntropy);
 	}
 }

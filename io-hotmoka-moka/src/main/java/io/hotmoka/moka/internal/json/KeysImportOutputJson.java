@@ -16,34 +16,27 @@ limitations under the License.
 
 package io.hotmoka.moka.internal.json;
 
-import io.hotmoka.moka.api.accounts.AccountsImportOutput;
-import io.hotmoka.moka.internal.accounts.Import;
-import io.hotmoka.node.StorageValues;
+import io.hotmoka.moka.api.keys.KeysImportOutput;
+import io.hotmoka.moka.internal.keys.Import;
 import io.hotmoka.websockets.beans.api.InconsistentJsonException;
 import io.hotmoka.websockets.beans.api.JsonRepresentation;
 
 /**
- * The JSON representation of the output of the {@code moka accounts import} command.
+ * The JSON representation of the output of the {@code moka keys import} command.
  */
-public abstract class AccountsImportOutputJson implements JsonRepresentation<AccountsImportOutput> {
+public abstract class KeysImportOutputJson implements JsonRepresentation<KeysImportOutput> {
 	private final String file;
-	private final StorageValues.Json account;
 
-	protected AccountsImportOutputJson(AccountsImportOutput output) {
+	protected KeysImportOutputJson(KeysImportOutput output) {
 		this.file = output.getFile().toString();
-		this.account = new StorageValues.Json(output.getAccount());
 	}
 
 	public String getFile() {
 		return file;
 	}
 
-	public StorageValues.Json getAccount() {
-		return account;
-	}
-
 	@Override
-	public AccountsImportOutput unmap() throws InconsistentJsonException {
+	public KeysImportOutput unmap() throws InconsistentJsonException {
 		return new Import.Output(this);
 	}
 }

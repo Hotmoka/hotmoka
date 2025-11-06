@@ -299,7 +299,7 @@ public class AccountsTests extends AbstractMokaTestWithNode {
 
 
 	@Test
-	@DisplayName("[moka keys export/import] information about a key pair file of an account is correctly exported and imported")
+	@DisplayName("[moka accounts export/import] information about a key pair file of an account is correctly exported and imported")
 	public void exportImportKeyPairOfAccountWorksCorrectly(@TempDir Path dir) throws Exception {
 		var signature = SignatureAlgorithms.sha256dsa();
 		var password = "mypassword";

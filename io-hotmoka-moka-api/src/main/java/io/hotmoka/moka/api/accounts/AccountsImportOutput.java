@@ -28,9 +28,9 @@ import io.hotmoka.node.api.values.StorageReference;
 public interface AccountsImportOutput {
 
 	/**
-	 * Yields the path where the file of the import account has been saved.
+	 * Yields the path where the file of the imported account has been saved.
 	 * 
-	 * @return the path where the file of the import account has been saved
+	 * @return the path where the file of the imported account has been saved
 	 */
 	Path getFile();
 

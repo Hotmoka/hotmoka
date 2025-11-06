@@ -14,25 +14,22 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.moka.internal;
+package io.hotmoka.moka.api.keys;
 
-import io.hotmoka.moka.internal.keys.Bind;
-import io.hotmoka.moka.internal.keys.Create;
-import io.hotmoka.moka.internal.keys.Export;
-import io.hotmoka.moka.internal.keys.Import;
-import io.hotmoka.moka.internal.keys.Show;
-import picocli.CommandLine.Command;
-import picocli.CommandLine.HelpCommand;
+import java.nio.file.Path;
 
-@Command(name = "keys",
-	header = "Manage cryptographic key pairs.",
-	subcommands = {
-		HelpCommand.class,
-		Bind.class,
-		Create.class,
-		Export.class,
-		Import.class,
-		Show.class
-	})
-public class Keys {
+import io.hotmoka.annotations.Immutable;
+
+/**
+ * The output of the {@code moka keys import} command.
+ */
+@Immutable
+public interface KeysImportOutput {
+
+	/**
+	 * Yields the path where the file of the imported keys has been saved.
+	 * 
+	 * @return the path where the file of the imported keys has been saved
+	 */
+	Path getFile();
 }
