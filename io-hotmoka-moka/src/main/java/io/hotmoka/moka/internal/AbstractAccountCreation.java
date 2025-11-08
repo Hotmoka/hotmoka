@@ -378,7 +378,7 @@ public abstract class AbstractAccountCreation<O extends AbstractAccountCreation.
 	/**
 	 * The output of this command.
 	 */
-	public static abstract class AbstractAccountCreationOutput extends AbstractGasCostCommandOutput implements AccountCreationOutput {
+	public abstract static class AbstractAccountCreationOutput extends AbstractGasCostCommandOutput implements AccountCreationOutput {
 
 		/**
 		 * The reference of the created account, if any.

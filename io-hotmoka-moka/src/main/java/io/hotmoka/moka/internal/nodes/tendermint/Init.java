@@ -18,6 +18,7 @@ package io.hotmoka.moka.internal.nodes.tendermint;
 
 import java.io.File;
 import java.io.IOException;
+import java.math.BigInteger;
 import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -206,6 +207,7 @@ public class Init extends AbstractNodeInit {
 		var takamakaCode = node.getTakamakaCode();
 		var manifest = node.getManifest();
 		var result = new TreeSet<ValidatorDescription>();
+		var _100_000 = BigInteger.valueOf(100_000L);
 	
 		try {
 			var validators = node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
