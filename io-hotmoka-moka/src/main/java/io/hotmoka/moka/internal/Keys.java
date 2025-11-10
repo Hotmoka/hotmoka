@@ -16,11 +16,11 @@ limitations under the License.
 
 package io.hotmoka.moka.internal;
 
+import io.hotmoka.crypto.cli.keys.Create;
+import io.hotmoka.crypto.cli.keys.Export;
+import io.hotmoka.crypto.cli.keys.Import;
+import io.hotmoka.crypto.cli.keys.Show;
 import io.hotmoka.moka.internal.keys.Bind;
-import io.hotmoka.moka.internal.keys.Create;
-import io.hotmoka.moka.internal.keys.Export;
-import io.hotmoka.moka.internal.keys.Import;
-import io.hotmoka.moka.internal.keys.Show;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.HelpCommand;
 

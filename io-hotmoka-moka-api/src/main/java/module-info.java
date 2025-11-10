@@ -15,7 +15,7 @@ limitations under the License.
 */
 
 /**
- * This module defines the API of the command-line tool for running basic commands against a Hotmoka node.
+ * This module defines the API of the command-line tool for Hotmoka nodes.
  */
 module io.hotmoka.moka.api {
 	exports io.hotmoka.moka.api;
@@ -35,4 +35,5 @@ module io.hotmoka.moka.api {
 
 	requires transitive io.hotmoka.node.api;
 	requires io.hotmoka.annotations;
+	requires transitive io.hotmoka.crypto.api;
 }

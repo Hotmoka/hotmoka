@@ -69,8 +69,6 @@ public abstract class AbstractMokaRpcCommand extends AbstractRpcCommandWithJsonO
 
 	protected final static BigInteger _500_000 = BigInteger.valueOf(500_000L);
 
-	protected AbstractMokaRpcCommand() {}
-
 	/**
 	 * Yields the URI of the public API of the remote service.
 	 * 

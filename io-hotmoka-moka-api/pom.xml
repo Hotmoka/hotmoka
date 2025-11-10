@@ -6,7 +6,7 @@
   <packaging>jar</packaging>
   <name>io-hotmoka-moka-api</name>
   <version>${hotmoka.version}</version>
-  <description>This module defines the API of the command-line tool for running basic commands against a Hotmoka node.</description>
+  <description>This module defines the API of the command-line tool for Hotmoka nodes.</description>
 
   <parent>
     <groupId>io.hotmoka</groupId>

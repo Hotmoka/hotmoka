@@ -25,9 +25,9 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import io.hotmoka.crypto.SignatureAlgorithms;
+import io.hotmoka.crypto.cli.keys.KeysCreateOutputs;
 import io.hotmoka.moka.AccountsCreateOutputs;
 import io.hotmoka.moka.JarsInstallOutputs;
-import io.hotmoka.moka.KeysCreateOutputs;
 import io.hotmoka.moka.Moka;
 import io.hotmoka.moka.ObjectsCallOutputs;
 import io.hotmoka.moka.ObjectsCreateOutputs;

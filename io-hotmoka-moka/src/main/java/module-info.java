@@ -15,7 +15,7 @@ limitations under the License.
 */
 
 /**
- * This module implements a command-line tool for running basic commands against a Hotmoka node.
+ * This module implements the command-line tool for Hotmoka nodes.
  */
 module io.hotmoka.moka {
 	exports io.hotmoka.moka;
@@ -41,10 +41,6 @@ module io.hotmoka.moka {
     // for parsing JSON through gson
     opens io.hotmoka.moka.internal.json to com.google.gson;
 
-    requires com.google.gson;
-    // this makes sun.misc.Unsafe accessible, so that Gson can instantiate classes without the no-args constructor
- 	requires jdk.unsupported;
-
  	requires transitive io.hotmoka.moka.api;
  	requires io.hotmoka.constants;
     requires io.hotmoka.helpers;
@@ -58,6 +54,7 @@ module io.hotmoka.moka {
 	requires io.hotmoka.whitelisting.api;
 	requires io.hotmoka.cli;
 	requires io.hotmoka.crypto;
+	requires io.hotmoka.crypto.cli;
 	requires io.hotmoka.exceptions;
 	requires io.hotmoka.annotations;
 	requires io.takamaka.code.constants;
@@ -66,8 +63,12 @@ module io.hotmoka.moka {
 	requires io.mokamint.plotter;
 	requires io.mokamint.miner.local;
 	requires io.mokamint.node.service;
+	requires io.mokamint.node.cli;
 	requires io.hotmoka.websockets.beans;
 	requires io.hotmoka.websockets.client.api;
 	requires info.picocli;
+	requires com.google.gson;
+    // this makes sun.misc.Unsafe accessible, so that Gson can instantiate classes without the no-args constructor
+ 	requires jdk.unsupported;
 	requires java.logging;
 }

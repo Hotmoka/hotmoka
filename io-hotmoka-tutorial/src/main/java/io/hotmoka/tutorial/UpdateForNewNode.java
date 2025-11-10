@@ -34,12 +34,12 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.LogManager;
 import java.util.stream.Collectors;
 
+import io.hotmoka.crypto.cli.keys.KeysCreateOutputs;
 import io.hotmoka.moka.AccountsCreateOutputs;
+import io.hotmoka.moka.AccountsExportOutputs;
 import io.hotmoka.moka.AccountsSendOutputs;
 import io.hotmoka.moka.JarsInstallOutputs;
 import io.hotmoka.moka.KeysBindOutputs;
-import io.hotmoka.moka.KeysCreateOutputs;
-import io.hotmoka.moka.AccountsExportOutputs;
 import io.hotmoka.moka.Moka;
 import io.hotmoka.moka.NodesManifestAddressOutputs;
 import io.hotmoka.moka.NodesTakamakaAddressOutputs;
