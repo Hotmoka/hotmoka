@@ -50,13 +50,7 @@ public class PublicKeyOrKeyPair {
 		}
 		catch (Base58ConversionException e) {
 			key = null;
-
-			try {
-				keys = Paths.get(s);
-			}
-			catch (InvalidPathException ee) {
-				throw new IllegalArgumentException(ee);
-			}
+			keys = Paths.get(s);
 		}
 
 		this.key = key;
