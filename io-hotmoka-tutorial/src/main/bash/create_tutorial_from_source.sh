@@ -89,7 +89,7 @@ sed -i 's/1018 \& lipari/$10^{18}$ \& lipari/g' target/ProgrammingHotmoka.tex
 sed -i 's/1021 \& moka/$10^{21}$ \& moka/g' target/ProgrammingHotmoka.tex
 sed -i 's/\\chapterfont{\\clearpage}//g' target/ProgrammingHotmoka.tex
 sed -i 's/\\chapter{Table of Contents}/\\begin{comment}\\chapter{Table of Contents}/g' target/ProgrammingHotmoka.tex
-sed -i 's/\\hypertarget{introduction}/\\end{comment}\n\n\\hypertarget{introduction}/g' target/ProgrammingHotmoka.tex
+sed -i 's/\\chapter{Introduction}/\\end{comment}\n\n\\chapter{Introduction}/g' target/ProgrammingHotmoka.tex
 
 # place \input{cover_page.tex} after \begin{document}
 sed -i 's/\\begin{document}/\\begin{document}\\input{..\/src\/main\/latex\/cover_page.tex}/g' target/ProgrammingHotmoka.tex
