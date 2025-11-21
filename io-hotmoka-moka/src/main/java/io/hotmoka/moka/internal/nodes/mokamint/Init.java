@@ -78,9 +78,6 @@ public class Init extends AbstractNodeInit {
 	@Option(names = "--local-config", paramLabel = "<path>", description = "the local configuration of the Hotmoka node, in TOML format", converter = MokamintNodeConfigOptionConverter.class)
 	private MokamintNodeConfig localConfig;
 
-	@Option(names = "--consensus-config", paramLabel = "<path>", description = "the consensus configuration of the Hotmoka network, in TOML format", converter = ConsensusConfigOptionConverter.class)
-	private ConsensusConfig<?, ?> consensusConfig;
-
 	@Option(names = { "--mokamint-port", "--mokamint-port-public" }, description = "the network port where the public Mokamint service must be published", defaultValue="8030")
 	private int mokamintPort;
 
@@ -92,6 +89,9 @@ public class Init extends AbstractNodeInit {
 
 	@Option(names = "--password-of-mokamint-node", description = "the password of the key pair of the Mokamint node", interactive = true, defaultValue = "")
     private char[] passwordOfKeysOfMokamintNode;
+
+	@Option(names = "--consensus-config", paramLabel = "<path>", description = "the consensus configuration of the Hotmoka network, in TOML format", converter = ConsensusConfigOptionConverter.class)
+	private ConsensusConfig<?, ?> consensusConfig;
 
 	@Override
 	protected void execute() throws CommandException {
@@ -127,7 +127,6 @@ public class Init extends AbstractNodeInit {
 					try (var initialized = MokamintInitializedNodes.of(node, consensus, getTakamakaCode()); var service = NodeServices.of(node, getPort())) {
 						var output = new Output(initialized.gamete(), URI.create("ws://localhost:" + getPort()), mokamintNodePublicURI, URI.create("ws://localhost:" + mokamintPortRestricted));
 						report(output, NodesMokamintInitOutputs.Encoder::new);
-						waitForEnterKey();
 					}
 					catch (FailedDeploymentException e) {
 						throw new CommandException("Cannot deploy the service at port " + getPort());
