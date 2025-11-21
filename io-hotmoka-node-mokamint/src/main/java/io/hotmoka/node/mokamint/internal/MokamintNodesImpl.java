@@ -16,6 +16,7 @@ limitations under the License.
 
 package io.hotmoka.node.mokamint.internal;
 
+import java.nio.file.Files;
 import java.security.KeyPair;
 import java.util.concurrent.TimeoutException;
 
@@ -78,10 +79,11 @@ public abstract class MokamintNodesImpl {
 	}
 
 	/**
-	 * Creates and starts a node, with a brand new store, of a blockchain based on Mokamint.
-	 * It spawns a local Mokamint engine with an application for handling its transactions.
-	 * It does not create a genesis block. Instead, it synchronizes, waits for whispered blocks
-	 * and then starts mining on top of them.
+	 * Creates and starts a Mokamint node that uses an already existing store. The consensus
+	 * parameters are recovered from the manifest in the store, hence the store must
+	 * be that of an already initialized blockchain. It spawns a local Mokamint engine
+	 * and connects it to an application for handling its transactions. It erases
+	 * an already existing directory holding a previously created blockchain.
 	 * 
 	 * @param config the configuration of the Hotmoka node
 	 * @param mokamintConfig the configuration of the underlying Mokamint engine
@@ -124,7 +126,8 @@ public abstract class MokamintNodesImpl {
 	 * Creates and starts a Mokamint node that uses an already existing store. The consensus
 	 * parameters are recovered from the manifest in the store, hence the store must
 	 * be that of an already initialized blockchain. It spawns a local Mokamint engine
-	 * and connects it to an application for handling its transactions.
+	 * and connects it to an application for handling its transactions. It does not erase
+	 * an already existing directory holding a previously created blockchain.
 	 * 
 	 * @param config the configuration of the Hotmoka node
 	 * @param mokamintConfig the configuration of the underlying Mokamint engine
@@ -133,7 +136,7 @@ public abstract class MokamintNodesImpl {
 	 * @throws InterruptedException if the current thread is interrupted before completing the operation
 	 */
 	public static MokamintNode<LocalNode> resume(MokamintNodeConfig config, LocalNodeConfig mokamintConfig, KeyPair keyPair) throws InterruptedException {
-		var app = new HotmokaApplicationImpl<LocalNode>(config, false);
+		var app = new HotmokaApplicationImpl<LocalNode>(config, !Files.exists(config.getDir()));
 		AbstractLocalNode engine;
 
 		try {

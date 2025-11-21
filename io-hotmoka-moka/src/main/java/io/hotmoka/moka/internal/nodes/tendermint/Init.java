@@ -103,6 +103,9 @@ public class Init extends AbstractNodeInit {
 	@Option(names = "--bind-validators", description = "bind the key pair files of the validators to their storage references, if they exist; this requires the key pairs of the validators to be in files named as their public key, base58 encoded, with suffix .pem")
 	private boolean bindValidators;
 
+	@Option(names = "--exit-after-initialization", description = "exit immediately after the initialization of the new blockchain node", defaultValue="false")
+	private boolean exitAfterInitialization;
+
 	@Override
 	protected void execute() throws CommandException {
 		TendermintNodeConfig localNodeConfig = mkLocalConfig();
@@ -117,7 +120,8 @@ public class Init extends AbstractNodeInit {
 			var output = new Output(initialized.gamete(), URI.create("ws://localhost:" + getPort()), scanValidators(node));
 			report(output, NodesTendermintInitOutputs.Encoder::new);
 
-			waitForEnterKey();
+			if (!exitAfterInitialization)
+				waitForEnterKey();
 		}
 		catch (FailedDeploymentException e) {
 			throw new CommandException("Cannot deploy the service at port " + getPort());

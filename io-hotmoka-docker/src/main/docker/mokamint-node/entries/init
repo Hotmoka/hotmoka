@@ -18,6 +18,7 @@ moka-print-logs nodes mokamint init \
 	hotmoka_mokamint/plot.plot \
 	hotmoka_mokamint/node.pem \
 	--yes \
+	--exit-after-initialization \
 	--password-of-mokamint-node \
 	--mokamint-config=hotmoka_mokamint/mokamint_config.toml \
 	--consensus-config=hotmoka_mokamint/consensus_config.toml \

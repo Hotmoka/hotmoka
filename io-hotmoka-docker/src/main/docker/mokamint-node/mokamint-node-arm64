@@ -58,7 +58,7 @@ RUN echo java -Djava.util.logging.config.file=logging.properties --module-path /
 
 # install the control scripts
 COPY src/main/docker/mokamint-node/entries/* ./
-RUN chmod 755 info && chmod 755 init && chmod 755 resume && chmod 755 start && chmod 755 config-init && chmod 755 config-start
+RUN chmod 755 info && chmod 755 init && chmod 755 go && chmod 755 config-init && chmod 755 config-go
 
 USER hotmoka
 WORKDIR /home/hotmoka

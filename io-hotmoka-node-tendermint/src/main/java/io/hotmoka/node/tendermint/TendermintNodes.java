@@ -16,6 +16,8 @@ limitations under the License.
 
 package io.hotmoka.node.tendermint;
 
+import java.nio.file.Files;
+
 import io.hotmoka.node.tendermint.api.TendermintNode;
 import io.hotmoka.node.tendermint.api.TendermintNodeConfig;
 import io.hotmoka.node.tendermint.internal.TendermintNodeImpl;
@@ -28,8 +30,11 @@ public abstract class TendermintNodes {
 	private TendermintNodes() {}
 
 	/**
-	 * Creates and starts a node with a brand new store, of a blockchain based on Tendermint.
-	 * It spawns the Tendermint process and connects it to an ABCI application for handling its transactions.
+	 * Starts a Tendermint node that uses an already existing store. The consensus
+	 * parameters are recovered from the manifest in the store, hence the store must
+	 * be that of an already initialized blockchain. It spawns the Tendermint process
+	 * and connects it to an ABCI application for handling its transactions.  It erases
+	 * the directory holding a previously created blockchain, if any.
 	 * 
 	 * @param config the configuration of the blockchain
 	 * @return the Tendermint node
@@ -43,13 +48,14 @@ public abstract class TendermintNodes {
 	 * Starts a Tendermint node that uses an already existing store. The consensus
 	 * parameters are recovered from the manifest in the store, hence the store must
 	 * be that of an already initialized blockchain. It spawns the Tendermint process
-	 * and connects it to an ABCI application for handling its transactions.
+	 * and connects it to an ABCI application for handling its transactions.  It does not
+	 * erase the directory holding a previously created blockchain.
 	 * 
 	 * @param config the configuration of the blockchain
 	 * @return the Tendermint node
 	 * @throws InterruptedException if the current thread is interrupted before completing the operation
 	 */
 	public static TendermintNode resume(TendermintNodeConfig config) throws InterruptedException {
-		return new TendermintNodeImpl(config, false);
+		return new TendermintNodeImpl(config, !Files.exists(config.getDir()));
 	}
 }

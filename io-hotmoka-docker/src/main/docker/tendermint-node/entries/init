@@ -10,6 +10,7 @@ echo -e "${BOLD_GREEN}Starting a Hotmoka node based on Tendermint as the single 
 moka-print-logs nodes tendermint init \
 	/modules/explicit_or_automatic/io-takamaka-code-1.8.0.jar \
 	--yes \
+	--exit-after-initialization \
 	--tendermint-config=hotmoka_tendermint/tendermint_config \
 	--consensus-config=hotmoka_tendermint/consensus_config.toml \
 	--local-config=hotmoka_tendermint/local_config.toml

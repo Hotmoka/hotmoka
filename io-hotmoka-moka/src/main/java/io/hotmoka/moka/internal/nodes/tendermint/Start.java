@@ -16,12 +16,8 @@ limitations under the License.
 
 package io.hotmoka.moka.internal.nodes.tendermint;
 
-import java.io.File;
-import java.io.IOException;
 import java.net.URI;
-import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Comparator;
 
 import io.hotmoka.cli.CommandException;
 import io.hotmoka.moka.NodesTendermintStartOutputs;
@@ -44,14 +40,11 @@ import picocli.CommandLine.Option;
 	showDefaultValues = true)
 public class Start extends AbstractNodeStart {
 
-	@Option(names = "--tendermint-config", paramLabel = "<path>", description = "the directory containing the configuration of the underlying Tendermint engine; this is a directory containing config/ and data/ that can be generated, for instance, by the tendermint init command of Tendermint; if missing, a default configuration for a one-validator network will be used; this will be copied inside the directory specified by --chain-dir")
-	private Path tendermintConfig;
-
 	@Option(names = "--local-config", paramLabel = "<path>", description = "the local configuration of the Hotmoka node, in TOML format", converter = TendermintNodeConfigOptionConverter.class)
 	private TendermintNodeConfig localConfig;
 
-	@Option(names = "--delete-tendermint-config", description = "delete the directory specified by --tendermint-config after starting the node and copying it inside the directory specified by --chain-dir")
-	private boolean deleteTendermintConfig;
+	@Option(names = "--tendermint-config", paramLabel = "<path>", description = "the directory containing the configuration of the underlying Tendermint engine; this is a directory containing config/ and data/ that can be generated, for instance, by the tendermint init command of Tendermint; if missing, a default configuration for a one-validator network will be used; this will be copied inside the directory specified by --chain-dir")
+	private Path tendermintConfig;
 
 	@Override
 	protected void execute() throws CommandException {
@@ -59,7 +52,6 @@ public class Start extends AbstractNodeStart {
 		askForConfirmation(localNodeConfig.getDir());
 
 		try (var node = TendermintNodes.init(localNodeConfig); var service = NodeServices.of(node, getPort())) {
-			cleanUp();
 			var output = new Output(URI.create("ws://localhost:" + getPort()));
 			report(output, NodesTendermintStartOutputs.Encoder::new);
 			waitForEnterKey();
@@ -92,19 +84,6 @@ public class Start extends AbstractNodeStart {
 			builder.setTendermintConfigurationToClone(tendermintConfig);
 
 		return builder.build();
-	}
-
-	private void cleanUp() throws CommandException {
-		try {
-			if (deleteTendermintConfig)
-				Files.walk(tendermintConfig)
-				.sorted(Comparator.reverseOrder())
-				.map(Path::toFile)
-				.forEach(File::delete);
-		}
-		catch (IOException e) {
-			throw new CommandException("Cannot delete the Tendermint configuration", e);
-		}
 	}
 
 	/**

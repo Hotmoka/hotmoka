@@ -93,6 +93,9 @@ public class Init extends AbstractNodeInit {
 	@Option(names = "--consensus-config", paramLabel = "<path>", description = "the consensus configuration of the Hotmoka network, in TOML format", converter = ConsensusConfigOptionConverter.class)
 	private ConsensusConfig<?, ?> consensusConfig;
 
+	@Option(names = "--exit-after-initialization", description = "exit immediately after the initialization of the new blockchain node", defaultValue="false")
+	private boolean exitAfterInitialization;
+
 	@Override
 	protected void execute() throws CommandException {
 		try {
@@ -127,6 +130,8 @@ public class Init extends AbstractNodeInit {
 					try (var initialized = MokamintInitializedNodes.of(node, consensus, getTakamakaCode()); var service = NodeServices.of(node, getPort())) {
 						var output = new Output(initialized.gamete(), URI.create("ws://localhost:" + getPort()), mokamintNodePublicURI, URI.create("ws://localhost:" + mokamintPortRestricted));
 						report(output, NodesMokamintInitOutputs.Encoder::new);
+						if (!exitAfterInitialization)
+							waitForEnterKey();
 					}
 					catch (FailedDeploymentException e) {
 						throw new CommandException("Cannot deploy the service at port " + getPort());

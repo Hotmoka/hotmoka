@@ -5,7 +5,8 @@ BOLD_GREEN='\033[1;32m'
 BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
-echo -e "${BOLD_GREEN}Resuming an already existing node.${NC}"
+echo -e "${BOLD_GREEN}Starting a Hotmoka node based on Tendermint in an already initialized blockchain.${NC}"
 
 moka-print-logs nodes tendermint resume \
+    --tendermint-config=hotmoka_tendermint/tendermint_config \
 	--local-config=hotmoka_tendermint/local_config.toml

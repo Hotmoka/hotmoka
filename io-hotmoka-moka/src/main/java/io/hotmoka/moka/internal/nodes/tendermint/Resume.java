@@ -17,6 +17,7 @@ limitations under the License.
 package io.hotmoka.moka.internal.nodes.tendermint;
 
 import java.net.URI;
+import java.nio.file.Path;
 
 import io.hotmoka.cli.CommandException;
 import io.hotmoka.moka.NodesTendermintResumeOutputs;
@@ -41,6 +42,9 @@ public class Resume extends AbstractNodeResume {
 
 	@Option(names = "--local-config", paramLabel = "<path>", description = "the local configuration of the Hotmoka node, in TOML format", converter = TendermintNodeConfigOptionConverter.class)
 	private TendermintNodeConfig localConfig;
+
+	@Option(names = "--tendermint-config", paramLabel = "<path>", description = "the directory containing the configuration of the underlying Tendermint engine; this is a directory containing config/ and data/ that can be generated, for instance, by the tendermint init command of Tendermint; if missing, a default configuration for a one-validator network will be used; this will be copied inside the directory specified by --chain-dir")
+	private Path tendermintConfig;
 
 	@Override
 	protected void execute() throws CommandException {
@@ -76,6 +80,9 @@ public class Resume extends AbstractNodeResume {
 
 		if (getChainDir() != null)
 			builder = builder.setDir(getChainDir());
+
+		if (tendermintConfig != null)
+			builder.setTendermintConfigurationToClone(tendermintConfig);
 
 		return builder.build();
 	}
