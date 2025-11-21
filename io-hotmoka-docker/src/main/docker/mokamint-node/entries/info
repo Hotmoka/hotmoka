@@ -33,7 +33,7 @@ echo -e "    ${BLUE}PUBLIC_KEY_MINER_BASE58:${NC} the Base58-encoded public key 
 echo -e "    ${BLUE}TARGET_BLOCK_CREATION_TIME:${NC} the milliseconds between two successive blocks (on average)"
 echo
 echo "  For instance:"
-echo -e "  ${BOLD_CYAN}docker run -it -e PUBLIC_KEY_OF_GAMETE=\"ZgEyMfo89coBtA2i7IMnLzZleFzWLcfDan3dMVDDb38=\" -e PUBLIC_KEY_MINER_BASE58=E4hbKgLjoen1sRNRmyPC59jgkjifCCUxjmGCAPnnSwvQ hotmoka/mokamint-node:VERSION config-init${NC}"
+echo -e "  ${BOLD_CYAN}docker run -it -e PUBLIC_KEY_GAMETE_BASE64=\"ZgEyMfo89coBtA2i7IMnLzZleFzWLcfDan3dMVDDb38=\" -e PUBLIC_KEY_MINER_BASE58=E4hbKgLjoen1sRNRmyPC59jgkjifCCUxjmGCAPnnSwvQ hotmoka/mokamint-node:VERSION config-init${NC}"
 echo
 echo -e "* ${RED}config-start:${NC} create the configuration directory of a new node of an existing blockchain"
 echo -e "    ${BLUE}MOKAMINT_PUBLIC_SERVICE_URI:${NC} the URI of an already existing node of the blockchain"

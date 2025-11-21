@@ -156,7 +156,6 @@ public class TendermintNodeImpl extends AbstractTrieBasedLocalNode<TendermintNod
 			checkOutRootBranch();
 
 		this.tendermintConfigFile = new TendermintConfigFile(config);
-
 		this.poster = new TendermintPoster(config, tendermintConfigFile.getTendermintPort());
 		this.abci = new Server(tendermintConfigFile.getAbciPort(), new TendermintApplication());
 
