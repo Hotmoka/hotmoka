@@ -3,7 +3,6 @@
 # This script creates the configuration directory of a Hotmoka node based on Mokamint, for starting a node
 # of an already existing blockchain. The configuration directory will have the following structure:
 #
-# miner.pem
 # node.pem
 # plot.plot
 # mokamint_config.toml
@@ -31,6 +30,10 @@ echo
 
 echo -n "Cleaning the directory hotmoka_mokamint... "
 rm -rf hotmoka_mokamint/*
+echo -e "${RED}done${NC}"
+
+echo -n "Cleaning the directory chain... "
+rm -rf chain/*
 echo -e "${RED}done${NC}"
 
 echo -n "Cloning the Mokamint configuration file from ${MOKAMINT_PUBLIC_SERVICE_URI}... "

@@ -535,7 +535,7 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 		return node;
 	}
 
-	private static Node mkRemoteNode(Node exposed) throws FailedDeploymentException {
+	private static Node mkRemoteNode(Node exposed) throws FailedDeploymentException, InterruptedException {
 		NodeServices.of(exposed, 8000); // it will be closed when exposed will be closed
 		var uri = URI.create("ws://localhost:8000");
 		var result = RemoteNodes.of(uri, 150_000);
@@ -544,7 +544,7 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 	}
 
 	@SuppressWarnings("unused")
-	private static Node mkRemoteNode(String uri) throws FailedDeploymentException {
+	private static Node mkRemoteNode(String uri) throws FailedDeploymentException, InterruptedException {
 		return RemoteNodes.of(URI.create(uri), 100_000);
 	}
 

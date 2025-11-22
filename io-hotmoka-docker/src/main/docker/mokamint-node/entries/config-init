@@ -44,6 +44,10 @@ echo -n "Cleaning the directory hotmoka_mokamint... "
 rm -rf hotmoka_mokamint/*
 echo -e "${RED}done${NC}"
 
+echo -n "Cleaning the directory chain... "
+rm -rf chain/*
+echo -e "${RED}done${NC}"
+
 echo -n "Creating the node.pem key pair for signing the blocks: "
 moka keys create --output-dir=hotmoka_mokamint --name=node.pem --password --json --redirection node_key_creation.json
 PUBLIC_KEY_NODE_BASE58=$(cat node_key_creation.json | python3 -c "import sys, json; print(json.load(sys.stdin)['publicKeyBase58'])")
