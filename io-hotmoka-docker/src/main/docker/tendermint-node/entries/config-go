@@ -32,6 +32,10 @@ echo -n "Cleaning the directory hotmoka_tendermint... "
 rm -rf hotmoka_tendermint/*
 echo -e "${RED}done${NC}"
 
+echo -n "Cleaning the directory chain... "
+rm -rf chain/*
+echo -e "${RED}done${NC}"
+
 echo -n "Creating the validator.pem key pair of the node as validator... "
 # Tendermint's validators have no password
 VALIDATOR_ACCOUNT_CREATION=$(moka keys create --output-dir=hotmoka_tendermint --name=validator.pem --json)

@@ -127,7 +127,7 @@ public abstract class MokamintNodesImpl {
 	 * parameters are recovered from the manifest in the store, hence the store must
 	 * be that of an already initialized blockchain. It spawns a local Mokamint engine
 	 * and connects it to an application for handling its transactions. It does not erase
-	 * an already existing directory holding a previously created blockchain.
+	 * an already existing directory holding a previously created blockchain, if it already existed.
 	 * 
 	 * @param config the configuration of the Hotmoka node
 	 * @param mokamintConfig the configuration of the underlying Mokamint engine
@@ -136,7 +136,7 @@ public abstract class MokamintNodesImpl {
 	 * @throws InterruptedException if the current thread is interrupted before completing the operation
 	 */
 	public static MokamintNode<LocalNode> resume(MokamintNodeConfig config, LocalNodeConfig mokamintConfig, KeyPair keyPair) throws InterruptedException {
-		var app = new HotmokaApplicationImpl<LocalNode>(config, !Files.exists(config.getDir()));
+		var app = new HotmokaApplicationImpl<LocalNode>(config, !Files.exists(config.getDir().resolve("hotmoka")));
 		AbstractLocalNode engine;
 
 		try {

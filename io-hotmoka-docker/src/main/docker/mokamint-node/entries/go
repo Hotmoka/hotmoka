@@ -5,7 +5,7 @@ BOLD_GREEN='\033[1;32m'
 BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
-echo -e "${BOLD_GREEN}Starting an already configured node of a blockchain, whose configuration has been created with config-start or with config-init and then init.${NC}"
+echo -e "${BOLD_GREEN}Starting an already configured node of a blockchain, whose configuration has been created with config-go or with config-init and then init.${NC}"
 echo -e "  ${BLUE}VISIBLE_AS${NC}=${RED}${VISIBLE_AS}${NC}"
 
 if [ ! -z "$VISIBLE_AS" ]

@@ -37,8 +37,12 @@ echo -e "  ${BLUE}TARGET_BLOCK_CREATION_TIME${NC}=${RED}$TARGET_BLOCK_CREATION_T
 echo -e "      ${BLUE}TOTAL_VALIDATION_POWER${NC}=${RED}$TOTAL_VALIDATION_POWER${NC}"
 echo
 
-echo -n "Cleaning the configuration directory..."
+echo -n "Cleaning the directory hotmoka_tendermint... "
 rm -rf hotmoka_tendermint/*
+echo -e "${RED}done${NC}"
+
+echo -n "Cleaning the directory chain... "
+rm -rf chain/*
 echo -e "${RED}done${NC}"
 
 echo -n "Creating the validator.pem key pair of the node as validator... "

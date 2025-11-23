@@ -51,10 +51,8 @@ public class Resume extends AbstractNodeResume {
 		TendermintNodeConfig localNodeConfig = mkLocalConfig();
 
 		try (var node = TendermintNodes.resume(localNodeConfig); var service = NodeServices.of(node, getPort())) {
-			//cleanUp();
 			var output = new Output(URI.create("ws://localhost:" + getPort()));
 			report(output, NodesTendermintResumeOutputs.Encoder::new);
-
 			waitForEnterKey();
 		}
 		catch (FailedDeploymentException e) {

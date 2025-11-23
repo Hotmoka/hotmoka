@@ -6,7 +6,7 @@ BLUE='\033[0;34m'
 BOLD_CYAN='\033[1;36m'
 NC='\033[0m' # No Color
 
-echo -e "${BOLD_GREEN}This container manages Hotmoka nodes using Tendermint as byzantine consensus engine.${NC}"
+echo -e "${BOLD_GREEN}This container manages Hotmoka nodes using Tendermint as a proof of stake engine.${NC}"
 echo
 echo -e "${BOLD_GREEN}It provides the moka tool:${NC}"
 echo -e "* ${RED}moka:${NC}         a manager of Hotmoka nodes"
@@ -28,26 +28,21 @@ echo -e "    ${BLUE}TARGET_BLOCK_CREATION_TIME:${NC} the milliseconds between tw
 echo -e "    ${BLUE}TOTAL_VALIDATION_POWER:${NC} the total units of validation power, initially owned by the first validator account"
 echo
 echo "  For instance:"
-echo -e "  ${BOLD_CYAN}docker run -it -e PUBLIC_KEY_GAMETE_BASE64=\"ZgEyMfo89coBtA2i7IMnLzZleFzWLcfDan3dMVDDb38=\" hotmoka/tendermint-node:VERSION config-init${NC}"
+echo -e "  ${BOLD_CYAN}docker run -it -e PUBLIC_KEY_GAMETE_BASE64=\"ZgEyMfo89coBtA2i7IMnLzZleFzWLcfDan3dMVDDb38=\" -v chain:/home/hotmoka/chain -v hotmoka_tendermint:/home/hotmoka/hotmoka_tendermint hotmoka/tendermint-node:VERSION config-init${NC}"
 echo
-echo -e "* ${RED}config-start:${NC} create the configuration directory of a new node of an existing blockchain"
+echo -e "* ${RED}config-go:${NC}    create the configuration directory of a new node of an existing blockchain"
 echo -e "    ${BLUE}HOTMOKA_PUBLIC_SERVICE_URI${NC}: the URI of an already existing node of the blockchain"
 echo -e "    ${BLUE}TARGET_BLOCK_CREATION_TIME${NC}: the milliseconds between two successive blocks"
 echo
 echo "  For instance:"
-echo -e "  ${BOLD_CYAN}docker run -it -e HOTMOKA_PUBLIC_SERVICE_URI=ws://panarea.hotmoka.io:8002 hotmoka/tendermint-node:VERSION config-start${NC}"
+echo -e "  ${BOLD_CYAN}docker run -it -e HOTMOKA_PUBLIC_SERVICE_URI=ws://panarea.hotmoka.io:8002 -v chain:/home/hotmoka/chain -v hotmoka_tendermint:/home/hotmoka/hotmoka_tendermint hotmoka/tendermint-node:VERSION config-go${NC}"
 echo
 echo -e "* ${RED}init:${NC}         create a node for a brand new blockchain, whose configuration has been created with config-init"
 echo
 echo "  For instance:"
-echo -e "  ${BOLD_CYAN}docker run --log-driver local -dit -p 8001:8001 -p 26656:26656 -v chain:/home/hotmoka/chain -v hotmoka_tendermint:/home/hotmoka/hotmoka_tendermint hotmoka/tendermint-node:VERSION init${NC}"
+echo -e "  ${BOLD_CYAN}docker run -it -v chain:/home/hotmoka/chain -v hotmoka_tendermint:/home/hotmoka/hotmoka_tendermint hotmoka/tendermint-node:VERSION init${NC}"
 echo
-echo -e "* ${RED}start:${NC}        create a node that connects to an already existing node of a blockchain, whose configuration has been created with config-start"
+echo -e "* ${RED}go:${NC}           create a node that connects to an already existing node of a blockchain, whose configuration has been created with config-start"
 echo
 echo "  For instance:"
 echo -e "  ${BOLD_CYAN}docker run --log-driver local -dit -p 8001:8001 -p 26656:26656 -v chain:/home/hotmoka/chain -v hotmoka_tendermint:/home/hotmoka/hotmoka_tendermint hotmoka/tendermint-node:VERSION start${NC}"
-echo
-echo -e "* ${RED}resume:${NC}       resume a node whose container was previously turned off"
-echo
-echo "  For instance:"
-echo -e "  ${BOLD_CYAN}docker run --log-driver local -dit -p 8001:8001 -p 26656:26656 -v chain:/home/hotmoka/chain -v hotmoka_tendermint:/home/hotmoka/hotmoka_tendermint hotmoka/tendermint-node:VERSION resume${NC}"

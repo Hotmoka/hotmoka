@@ -48,7 +48,7 @@ echo
 echo "  For instance:"
 echo -e "  ${BOLD_CYAN}docker run -it -v chain:/home/hotmoka/chain -v hotmoka_mokamint:/home/hotmoka/hotmoka_mokamint hotmoka/mokamint-node:VERSION init${NC}"
 echo
-echo -e "* ${RED}go:${NC}           start an already configured node of a blockchain, whose configuration has been created with config-start or with config-init and then init"
+echo -e "* ${RED}go:${NC}           start an already configured node of a blockchain, whose configuration has been created with config-go or with config-init and then init"
 echo -e "    ${BLUE}VISIBLE_AS:${NC} a URI that the external world can use to contact the new node"
 echo
 echo "  For instance:"

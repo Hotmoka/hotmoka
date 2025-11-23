@@ -137,6 +137,18 @@ public class TendermintNodeImpl extends AbstractTrieBasedLocalNode<TendermintNod
 
 	/**
 	 * Builds a Tendermint node. This constructor spawns the Tendermint process on localhost
+	 * and connects it to an ABCI application for handling its transactions. It initializes
+	 * the working directory only if it does not exist yet.
+	 * 
+	 * @param config the configuration of the blockchain
+	 * @throws InterruptedException the the currently thread is interrupted before completing the construction
+	 */
+	public TendermintNodeImpl(TendermintNodeConfig config) throws InterruptedException {
+		this(config, !Files.exists(config.getDir().resolve("hotmoka")));
+	}
+
+	/**
+	 * Builds a Tendermint node. This constructor spawns the Tendermint process on localhost
 	 * and connects it to an ABCI application for handling its transactions.
 	 * 
 	 * @param config the configuration of the blockchain

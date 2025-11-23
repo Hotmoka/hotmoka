@@ -16,8 +16,6 @@ limitations under the License.
 
 package io.hotmoka.node.tendermint;
 
-import java.nio.file.Files;
-
 import io.hotmoka.node.tendermint.api.TendermintNode;
 import io.hotmoka.node.tendermint.api.TendermintNodeConfig;
 import io.hotmoka.node.tendermint.internal.TendermintNodeImpl;
@@ -49,13 +47,13 @@ public abstract class TendermintNodes {
 	 * parameters are recovered from the manifest in the store, hence the store must
 	 * be that of an already initialized blockchain. It spawns the Tendermint process
 	 * and connects it to an ABCI application for handling its transactions.  It does not
-	 * erase the directory holding a previously created blockchain.
+	 * erase the directory holding a previously created blockchain, if it already exists.
 	 * 
 	 * @param config the configuration of the blockchain
 	 * @return the Tendermint node
 	 * @throws InterruptedException if the current thread is interrupted before completing the operation
 	 */
 	public static TendermintNode resume(TendermintNodeConfig config) throws InterruptedException {
-		return new TendermintNodeImpl(config, !Files.exists(config.getDir()));
+		return new TendermintNodeImpl(config);
 	}
 }
