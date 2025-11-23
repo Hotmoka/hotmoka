@@ -18,7 +18,7 @@ echo -e "  ${BOLD_CYAN}docker run -it -p 8001:8001 -p 26656:26656 -v chain:/home
 echo
 echo -e "* ${RED}info:${NC}         print this information message"
 echo
-echo -e "* ${RED}config-init:${NC}  create the configuration directory of the first node of a brand new blockchain"
+echo -e "* ${RED}config-new:${NC}   create the configuration directory of the first node of a brand new blockchain"
 echo -e "    ${BLUE}ALLOWS_UNSIGNED_FAUCET:${NC} true if the unsigned faucet must be opened"
 echo -e "    ${BLUE}CHAIN_ID:${NC} the chain identifier of the blockchain"
 echo -e "    ${BLUE}INITIAL_SUPPLY:${NC} the initial supply of coins of the blockchain"
@@ -28,16 +28,16 @@ echo -e "    ${BLUE}TARGET_BLOCK_CREATION_TIME:${NC} the milliseconds between tw
 echo -e "    ${BLUE}TOTAL_VALIDATION_POWER:${NC} the total units of validation power, initially owned by the first validator account"
 echo
 echo "  For instance:"
-echo -e "  ${BOLD_CYAN}docker run -it -e PUBLIC_KEY_GAMETE_BASE64=\"ZgEyMfo89coBtA2i7IMnLzZleFzWLcfDan3dMVDDb38=\" -v chain:/home/hotmoka/chain -v hotmoka_tendermint:/home/hotmoka/hotmoka_tendermint hotmoka/tendermint-node:VERSION config-init${NC}"
+echo -e "  ${BOLD_CYAN}docker run -it -e PUBLIC_KEY_GAMETE_BASE64=\"ZgEyMfo89coBtA2i7IMnLzZleFzWLcfDan3dMVDDb38=\" -v chain:/home/hotmoka/chain -v hotmoka_tendermint:/home/hotmoka/hotmoka_tendermint hotmoka/tendermint-node:VERSION config-new${NC}"
 echo
-echo -e "* ${RED}config-go:${NC}    create the configuration directory of a new node of an existing blockchain"
+echo -e "* ${RED}config-clone:${NC} create the configuration directory of a new node of an existing blockchain"
 echo -e "    ${BLUE}HOTMOKA_PUBLIC_SERVICE_URI${NC}: the URI of an already existing node of the blockchain"
 echo -e "    ${BLUE}TARGET_BLOCK_CREATION_TIME${NC}: the milliseconds between two successive blocks"
 echo
 echo "  For instance:"
-echo -e "  ${BOLD_CYAN}docker run -it -e HOTMOKA_PUBLIC_SERVICE_URI=ws://panarea.hotmoka.io:8002 -v chain:/home/hotmoka/chain -v hotmoka_tendermint:/home/hotmoka/hotmoka_tendermint hotmoka/tendermint-node:VERSION config-go${NC}"
+echo -e "  ${BOLD_CYAN}docker run -it -e HOTMOKA_PUBLIC_SERVICE_URI=ws://panarea.hotmoka.io:8002 -v chain:/home/hotmoka/chain -v hotmoka_tendermint:/home/hotmoka/hotmoka_tendermint hotmoka/tendermint-node:VERSION config-clone${NC}"
 echo
-echo -e "* ${RED}init:${NC}         create a node for a brand new blockchain, whose configuration has been created with config-init"
+echo -e "* ${RED}init:${NC}         create a node for a brand new blockchain, whose configuration has been created with config-new"
 echo
 echo "  For instance:"
 echo -e "  ${BOLD_CYAN}docker run -it -v chain:/home/hotmoka/chain -v hotmoka_tendermint:/home/hotmoka/hotmoka_tendermint hotmoka/tendermint-node:VERSION init${NC}"

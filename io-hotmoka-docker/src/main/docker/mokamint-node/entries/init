@@ -5,7 +5,7 @@ BOLD_GREEN='\033[1;32m'
 BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
-echo -e "${BOLD_GREEN}Initializing a node for a brand new blockchain, whose configuration has been created with config-init.${NC}"
+echo -e "${BOLD_GREEN}Initializing a node for a brand new blockchain, whose configuration has been created with config-new.${NC}"
 
 moka-print-logs nodes mokamint init \
 	/modules/explicit_or_automatic/io-takamaka-code-1.8.0.jar \
