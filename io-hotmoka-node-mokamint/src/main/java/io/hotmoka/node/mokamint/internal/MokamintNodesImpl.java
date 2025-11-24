@@ -58,7 +58,6 @@ public abstract class MokamintNodesImpl {
 			throw new LocalNodeException(e);
 		}
 
-		// TODO: simplify below: I think that the TimeoutException could be shown impossible statically; also in the other methods
 		MokamintNode<LocalNode> node = app.getNode();
 
 		try {
