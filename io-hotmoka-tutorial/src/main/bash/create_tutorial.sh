@@ -6,6 +6,7 @@ mkdir -p target/pdf
 rm -r target/pdf/*
 cp src/main/latex/tutorial.tex target/pdf
 cp src/main/latex/introduction.tex target/pdf
+cp src/main/latex/getting_started.tex target/pdf
 cp src/main/latex/parameters.tex target/pdf
 cp src/main/latex/biblio.bib target/pdf
 cp -r src/main/resources/pics target/pdf
@@ -23,6 +24,7 @@ mkdir -p target/html
 rm -r target/html/*
 cp src/main/latex/tutorial.tex target/html
 cp src/main/latex/introduction.tex target/html
+cp src/main/latex/getting_started.tex target/html
 cp src/main/latex/parameters.tex target/html
 cp src/main/latex/biblio.bib target/html
 cp -r src/main/resources/pics target/html

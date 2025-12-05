@@ -1,0 +1,112 @@
+\chapter{Getting started with Hotmoka}\label{ch:getting_started_with_hotmoka}
+
+\section{Hotmoka in a nutshell}\label{hotmoka_in_a_nutshell}
+
+Hotmoka is the abstract definition of a device that can store
+objects (data structures) in its persistent memory (its \emph{state} or \emph{storage})
+and can execute, on those objects,
+code written in a subset of Java called Takamaka. Such a device is
+called a \emph{Hotmoka node} and such programs are known as
+\emph{smart contracts}, taking that terminology from programs that run inside
+a blockchain. It is well true that Hotmoka nodes can be different from the nodes
+of a blockchain (for instance, they can be an Internet of Things device);
+however, the most prominent application of Hotmoka nodes is, at the
+moment, the construction of blockchains whose nodes are Hotmoka nodes.
+
+Every Hotmoka node has its own persistent state, that contains code and
+objects. Since Hotmoka nodes are made for running Java code, the code
+inside their state is kept in the standard jar format used by Java, while objects
+are just a collection of values for their fields, with a class tag that identifies
+whose class they belong to and a reference (the \emph{classpath})
+to the jar where that class is defined.
+While a device of an Internet of Thing network is the sole responsible
+for its own state, things are different if a Hotmoka node that is part of a blockchain.
+There, the state is synchronized and identical across all nodes of the blockchain.
+
+In object-oriented programming, the units of code that can be run
+on an object are called \emph{methods}.
+When a method must be run on an object,
+that object is identified as the \emph{receiver} of the execution of the method.
+The same happens in Hotmoka. That is, when one wants to run a method
+on an object, that object must have been already allocated
+in the state of the node and must be marked as the receiver of the execution
+of the method. Assume for instance that one wants to run a method
+on the object in Fig.~\ref{fig:receiver_payer}, identified as receiver.
+The code of the method is contained in a jar, previously installed in the state
+of the node, and referred to as \emph{classpath}. This is the jar where the class of
+the receiver is defined.
+
+\begin{figure}
+  \begin{center}
+    \includegraphics[width=\textwidth/2]{pics/receiver_payer}
+  \end{center}
+  \caption{Receiver, payer and classpath for a method call in a Hotmoka node.}
+  \label{fig:receiver_payer}
+\end{figure}
+
+The main difference with standard object-oriented programming is that Hotmoka requires one
+to specify a further object, called \emph{payer}. This is because a Hotmoka node is
+a public service, that can be used by everyone has an internet connection
+that can reach the node. Therefore, that service must be paid with the
+internal cryptocurrency of the node, by providing a measure of execution
+effort known as \emph{gas}. The payer is therefore a sort of bank account, whose
+balance gets decreased in order to pay for the gas needed for the execution of the method.
+The payer is accessible inside the method as its \emph{caller}.
+
+\begin{commentbox}
+There are many similarities with what happens in Ethereum: the notion of
+receiver, payer and gas are taken from there. There are, however, also
+big differences. The first is that the code of the methods is inside
+a jar \emph{referenced} by the objects, while Ethereum requires to reinstall
+the code of the contracts each time a contract is instantiated.
+More importantly, Hotmoka keeps an explicit class tag inside the objects,
+while contracts are untyped in Ethereum~\cite{CrafaPZ19}
+and are referenced through the untyped \texttt{address} type.
+\end{commentbox}
+
+Receiver and payer have different roles but are treated identically in Hotmoka:
+they are objects stored in state at their respective state locations, known as
+their \emph{storage references}. For instance the payer in
+Fig.~\ref{fig:receiver_payer} might be allocated at the storage
+reference \texttt{@account1}. A storage reference has two parts, separated
+by a \texttt{\#} sign. The first part are 64 hexadecimal digits (\ie, 32 bytes)
+that identify the
+transaction that created the object; the second part is a progressive number
+that identifies an object created during that transaction: the first object
+created during the transaction has progressive zero, the second has progressive
+one, and so on. When a method is called on a Hotmoka node, what is actually specified
+in the call request are the storage references of the receiver and of the payer
+(plus the actual arguments to the method, if any).
+
+In Hotmoka, a \emph{transaction} is either
+%
+\begin{enumerate}
+\item the installation of a jar, that modifies the state of the node, and is paid by a payer account, or
+\item the execution of a constructor, that yields the storage reference of a new object, or
+\item the execution of a method on a receiver, that yields a returned
+  value and/or has side-effects that modify the state of the node, and is paid by a payer account.
+\end{enumerate}
+
+A Hotmoka node can keep track
+of the transactions that it has executed, so that it is possible, for instance,
+to recreate its state by running all the transactions executed in the past, starting from
+the empty state.
+
+It is very important to discuss at this moment a significant difference with what
+happens in Bitcoin, Ethereum and most other blockchains. There, an account
+is not an object, nor a contract,
+but just a key in the key/value store of the blockchain, whose value is its balance.
+The key used for an account is typically computed by hashing the public key derived from
+the private key of the account. In some sense, accounts, in those blockchains, exist
+independently from the state of the blockchain and can be computed offline: just
+create a random private key, compute the associated public key and hence its hash.
+Hotmoka is radically different: an account is an object that must be allocated in
+state by an explicit construction transaction (that must be paid, as every transaction).
+The public key is explicitly stored inside the constructed object
+(Base64-encoded in its \texttt{publicKey} field, see Fig.~\ref{fig:receiver_payer}.
+That public key was passed as a parameter at the creation of the payer object and
+can be passed again for creating more accounts. That is, it is well possible, in Hotmoka,
+to have more accounts in the state of a node, all distinct, but controlled by the same key.
+It is also possible to rotate the key of an account
+(that is, replace it with another key), since the
+\texttt{publicKey} field is not \texttt{final}.

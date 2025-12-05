@@ -60,6 +60,7 @@
 \DeclareUrlCommand\email{\urlstyle{tt}}
 \DeclareUrlCommand\website{\urlstyle{same}}
 \DeclareUrlCommand\directory{\urlstyle{same}}
+\usepackage{mdframed}
 
 % --- DOCUMENT PARAMETERS ---
 
@@ -89,6 +90,17 @@
 \HTMLPageBottom{Copyright 2022 by Fausto Spoto (\faustoemail{})}
 \CSSFilename{lwarp_sagebrush.css}
 
+\definecolor{commentboxbackgroundcolor}{rgb}{0.85,0.85,0.85}
+\newmdenv[linecolor=black,leftmargin=2em,rightmargin=2em,innertopmargin=1em,innerbottommargin=1em,backgroundcolor={commentboxbackgroundcolor}]{commentbox}
+
+\newcommand{\graybox}[1]{
+\fcolorbox{black}{lightgray}{
+\begin{minipage}{0.9\textwidth}
+  {#1}
+\end{minipage}}}
+
+\newcommand{\ie}{\emph{i.e.}\@}
+
 \begin{document}
 
 \maketitle                      % Or titlepage/titlingpage environment.
@@ -99,29 +111,7 @@
 %\listoffigures
 
 \input{introduction}
-
-\chapter{First chapter}
-
-\section{A section}
-
-This is some text which is indexed.\index{Some text}
-
-\subsection{A subsection}
-
-See \cref{fig:withtext}.
-
-\begin{figure}\begin{center}
-\fbox{\textcolor{blue!50!green}{Text in a figure.}}
-\caption{A strange figure with text\label{fig:withtext}}
-\end{center}\end{figure}
-
-\section{Some math}
-
-Inline math: $r = r_0 + vt - \frac{1}{2}at^2$
-followed by display math:
-\begin{equation}
-a^2 + b^2 = c^2
-\end{equation}
+\input{getting_started}
 
 \bibliographystyle{plain}
 
