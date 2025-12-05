@@ -1,0 +1,158 @@
+\chapter{Introduction}\label{ch:introduction}
+
+\section{Origin of Hotmoka, Takamaka and Mokamint}
+
+Almost two decades ago, Bitcoin~\cite{Nakamoto08}
+swept the computer industry
+as a revolution, providing, for the first time, a reliable technology
+for building trust over an inherently untrusted computing
+infrastructure, such as a distributed network of computers.
+Trust immediately translated into money and Bitcoin became
+an investment target, exactly at the moment of one of the worst
+economical turmoil of recent times. \emph{Centralized} banks,
+fighting against the crisis, looked like dinosaurs in comparison
+to the \emph{decentralized} nature of Bitcoin.
+
+Nevertheless, the novelty of Bitcoin was mainly related to its
+\emph{consensus} mechanism based on a \emph{proof of work}, while the
+programmability of Bitcoin transactions was limited due
+to the use of a non-Turing-equivalent scripting
+bytecode~\cite{Antonopoulos23}.
+
+The next step was hence the use of a Turing-equivalent
+programming language (up to \emph{gas limits}) over an abstract
+store of key/value pairs, that can be
+efficiently kept in a Merkle-Patricia trie.
+That was Ethereum~\cite{AntonopoulosWPMP25}, whose
+Solidity programming language allows one
+to code any form of \emph{smart contract}, that is, code
+that becomes an agreement between parties, thanks to
+the underlying consensus enforced by the blockchain.
+
+Solidity looks familiar to most programmers. Conditionals, loops and
+structures are there since more than half a century. Programmers
+assumed that they \emph{knew} Solidity. However, the intricacies of
+its semantics made learning Solidity harder than expected.
+Finding good Solidity programmers is still difficult and
+they are consequently expensive. It is, instead, way too easy
+to write buggy code in Solidity, that \emph{seems} to work perfectly,
+up to \emph{that} day when things go wrong, very
+wrong~\cite{AtzeiBC17}.
+
+It is ungenerous to blame Solidity for all recent attacks to smart contracts
+in blockchain. That mainly happened because of the same success of Solidity,
+that made it the natural target of the attacks. Moreover, once the
+Pandora's box of Turing equivalence has been opened, you cannot expect anymore to
+keep the devils at bay, that is, to be able to
+decide and understand, exactly, what your code will do at run time.
+And this holds for every programming language, past, present or future.
+
+I must confess that my first encounter with Solidity
+was a source of frustration. Why was I expected to learn another programming
+language? and another development environment? and another testing framework?
+Why was I expected to write code without a support library that provides
+proved solutions to frequent problems?
+What was so special with Solidity after all? Things became even more difficult when
+I tried to understand the semantics of the language. After twenty-five years of studying
+and teaching programming languages, compilation, semantics and code analysis
+(or, possibly, just because of that) I still cannot explain exactly why there
+are structures and contracts instead of a single composition mechanism in Solidity;
+nor what is indeed the meaning of \texttt{memory} and \texttt{storage} and why
+it is not the compiler that takes care of such gritty details; nor why
+externally owned accounts are not just a special kind of contracts;
+nor why Solidity needs such low-level (and uncontrollable)
+call instructions, that make Java's (horrible) reflection, in comparison, look like
+a monument to clarity;
+nor why types are weak in Solidity, so that contracts are held in
+\texttt{address}
+variables, whose actual type is unknown and cannot be easily
+enforced at run time~\cite{CrafaPZ19}, with all consequent
+programming monsters, such as unchecked casts. It seems that the evolution
+of programming languages has brought us back to C's \texttt{void*} type.
+
+Hence, when I first met people from Ailia SA in fall 2018, I was not surprised
+to realize that they were looking for a new way of programming smart contracts
+over the new blockchain that they were developing. I must thank them and our useful
+discussions, that pushed me to dive in blockchain technology and
+study many programming languages for smart contracts. The result
+is Takamaka, a Java framework for writing smart contracts.
+This means that it allows programmers to use a subset of Java for writing code
+that can be installed and run in blockchain. Programmers will not have
+to deal with the storage of objects in blockchain: this is completely
+transparent to them. This makes Takamaka completely different from other
+attempts at using Java for writing smart contracts, where programmers
+must use explicit method calls to persist data to blockchain.
+
+Writing smart contracts in Java entails that programmers
+do not have to learn yet another programming language.
+Moreover, they can use a well-understood and stable development
+platform, together with all its modern tools. Programmers can use
+features from the latest versions of Java, including lambda
+expressions.
+There are, of course, limitations to the kind of code that can
+be run inside a blockchain. The most important limitation is
+that programmers can only call a portion of the huge Java library,
+whose behavior is deterministic, whose cost is predictable and whose methods are guaranteed
+to terminate.
+
+The runtime of the Takamaka programming language
+is included in the Hotmoka project, a software layer for the
+execution of smart contracts.
+The more scientific aspects of Hotmoka and Takamaka have been published
+in the last years~\cite{BeniniGMS21,CrosaraOST21,OlivieriST21,Spoto19,Spoto20}.
+Hotmoka is only the application layer of a blockchain. The networking and
+consensus layers of a blockchain are not part of Hotmoka. Instead, these
+are either provided by Mokamint, a generic engine for building blockchains
+based on proof of space~\cite{Spoto25}, or by the Tendermint generic engine
+for building byzantine fault-tolerant networks~\cite{Kwon14}.
+In the former case, Hotmoka becomes a blockchain, completely decentralized,
+based on proof of space: the more disk space a miner allocates for mining, the
+more blocks it will create. In the latter case, Hotmoka becomes a less
+decentralized proof of
+stake blockchain, where a dynamic set of validators decides the creation
+of the next blocks.
+
+\section{Intended Audience}
+
+This book is for software developers who want to use Hotmoka nodes and program smart contracts in Takamaka.
+It goes deep into the inner working of Hotmoka. For instance, it shows how transactions can be
+triggered in code, not just with the moka client of Hotmoka. Less experienced readers, or
+developers not interested in writing code that interacts with Hotmoka nodes, can just skip these
+parts and concentrate on the use of the moka command-line client only. Non-technical users might
+just be happy with the use of Mokito, the mobile and web clients of Hotmoka, whose
+functionalities are limited of course.
+
+\section{Contributing to Hotmoka}
+
+Hotmoka is a complex project, that requires many and different skills. After years of development,
+it is ready for the general public. This does not mean that it is bug-free, nor perfect:
+we expect our users to find all sort of bugs and to suggest improvements. Hence, feel
+free to write to us at \faustoemail{},
+with bugs and improvement requests.
+If you are a developer, consider the possibility of helping us with the development
+of the project. In particular, the whole ecosystem of applications running
+over Hotmoka is missing at the moment (that is, applications, typically web-based, that
+use Hotmoka as their backend storage). Hotmoka is open-source and non-proprietary,
+licensed under the terms of the Apache~2.0 License. Therefore, feel free to clone and fork the code.
+
+\section{The Example Projects of This Book}
+
+The experiments that we will perform in this book will
+require one to create Java projects. We suggest that you create and
+experiment with these projects yourself.
+However, if you have no time and want to jump immediately to the result,
+or if you want to compare your work
+with the expected result, we provide you with the completed examples of this book in
+a module of the Hotmoka distribution repository, that you can clone.
+Each section of this book will report
+the project of the repository where you can find the related code.
+You can clone the code as follows:
+
+\begin{center}
+\texttt{git clone --branch v\hotmokaversion{} \hotmokarepo{}}
+\end{center}
+
+\noindent
+The examples will be inside the Maven module
+\texttt{io-hotmoka-tutorial-examples}.
+

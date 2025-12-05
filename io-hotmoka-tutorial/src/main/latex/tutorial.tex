@@ -1,0 +1,465 @@
+
+% Save this as tutorial.tex for the lwarp package tutorial.
+
+\documentclass[12pt,oneside,openright]{book}
+
+\usepackage{iftex}
+
+% --- LOAD FONT SELECTION AND ENCODING BEFORE LOADING LWARP ---
+
+\ifPDFTeX
+\usepackage{lmodern}            % pdflatex or dvi latex
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\else
+\usepackage{fontspec}           % XeLaTeX or LuaLaTeX
+\fi
+
+% --- LWARP IS LOADED NEXT ---
+\usepackage[
+%   HomeHTMLFilename=index,     % Filename of the homepage.
+%   HTMLFilename={node-},       % Filename prefix of other pages.
+%   IndexLanguage=english,      % Language for xindy index, glossary.
+%   latexmk,                    % Use latexmk to compile.
+%   OSWindows,                  % Force Windows. (Usually automatic.)
+%   mathjax,                    % Use MathJax to display math.
+]{lwarp}
+% \boolfalse{FileSectionNames}  % If false, numbers the files.
+
+% --- LOAD PDFLATEX MATH FONTS HERE ---
+
+% --- OTHER PACKAGES ARE LOADED AFTER LWARP ---
+\usepackage[
+    left=0.5in,
+    right=0.5in,
+    top=0.75in,
+    bottom=1.0in,
+    paperwidth=8.25in,
+    paperheight=11in,
+    bindingoffset=0.375in
+]{geometry}
+
+\usepackage[pdftex]{graphicx}
+
+\usepackage{fancyhdr}
+
+\pagestyle{fancy}
+
+\fancyhf{}%
+%\renewcommand{\headrulewidth}{1pt}
+\fancyhead[L]{\includegraphics[width=1.5cm]{pics/hotmoka-logo}}
+\fancyhead[R]{Chapter~\thechapter}
+\fancyfoot[L]{}
+\fancyfoot[C]{\thepage}
+\fancyfoot[R]{}
+
+\usepackage{makeidx} \makeindex
+\usepackage{xcolor}             % (Demonstration purposes only.)
+\usepackage{hyperref,cleveref}  % LOAD THESE LAST!
+\usepackage{url}
+\DeclareUrlCommand\email{\urlstyle{tt}}
+\DeclareUrlCommand\website{\urlstyle{same}}
+\DeclareUrlCommand\directory{\urlstyle{same}}
+
+% --- DOCUMENT PARAMETERS ---
+
+\input{parameters.tex}
+
+% --- LATEX AND HTML CUSTOMIZATION ---
+\title{Programming Hotmoka\\{\small A tutorial on Hotmoka and smart contracts in Takamaka}}
+\author{Fausto Spoto (\faustoemail{})}
+\date{\today\\{\small (updated to Hotmoka \hotmokaversion{} and Takamaka \takamakaversion{})}}
+\setcounter{tocdepth}{2}        % Include subsections in the \TOC.
+\setcounter{secnumdepth}{2}     % Number down to subsections.
+\setcounter{FileDepth}{1}       % Split \HTML\ files at sections
+\booltrue{CombineHigherDepths}  % Combine parts/chapters/sections
+\setcounter{SideTOCDepth}{1}    % Include subsections in the side\TOC
+\HTMLTitle{Programming Hotmoka} % Overrides \title for the web page.
+\HTMLAuthor{Fausto Spoto}       % Sets the HTML meta author tag.
+\HTMLLanguage{en-US}            % Sets the HTML meta language.
+\HTMLDescription{A tutorial on Hotmoka and smart contracts in Takamaka} % Sets the HTML meta description.
+\HTMLFirstPageTop{\begin{center}\includegraphics[width=10cm]{pics/hotmoka-logo}\end{center}}
+\HTMLPageTop{\begin{center}\includegraphics[width=7cm]{pics/hotmoka-logo}\end{center}}
+\HTMLPageBottom{Copyright 2018 by Fausto Spoto (\faustoemail{})}
+\CSSFilename{lwarp_sagebrush.css}
+
+\begin{document}
+
+\maketitle                      % Or titlepage/titlingpage environment.
+
+% An article abstract would go here.
+
+\tableofcontents                % MUST BE BEFORE THE FIRST SECTION BREAK!
+%\listoffigures
+
+\input{introduction}
+
+\chapter{First chapter}
+
+\section{A section}
+
+This is some text which is indexed.\index{Some text}
+
+\subsection{A subsection}
+
+See \cref{fig:withtext}.
+
+\begin{figure}\begin{center}
+\fbox{\textcolor{blue!50!green}{Text in a figure.}}
+\caption{A strange figure with text\label{fig:withtext}}
+\end{center}\end{figure}
+
+\section{Some math}
+
+Inline math: $r = r_0 + vt - \frac{1}{2}at^2$
+followed by display math:
+\begin{equation}
+a^2 + b^2 = c^2
+\end{equation}
+
+ciao
+
+amico
+
+come
+
+va?
+
+ciao
+
+amico
+
+come
+
+va?
+
+ciao
+
+amico
+
+come
+
+va?
+
+ciao
+
+amico
+
+come
+
+va?
+
+ciao
+
+amico
+
+come
+
+va?
+
+ciao
+
+amico
+
+come
+
+va?
+
+ciao
+
+amico
+
+come
+
+va?
+
+ciao
+
+amico
+
+come
+
+va?
+
+ciao
+
+amico
+
+come
+
+va?
+
+ciao
+
+amico
+
+come
+
+va?
+
+
+ciao
+
+amico
+
+come
+
+va?
+
+ciao
+
+amico
+
+come
+
+va?
+
+ciao
+
+amico
+
+come
+
+va?
+
+ciao
+
+amico
+
+come
+
+va?
+
+ciao
+
+amico
+
+come
+
+va?
+
+ciao
+
+amico
+
+come
+
+va?
+
+ciao
+
+amico
+
+come
+
+va?
+
+ciao
+
+amico
+
+come
+
+va?
+
+ciao
+
+amico
+
+come
+
+va?
+
+ciao
+
+amico
+
+come
+
+va?
+
+
+ciao
+
+amico
+
+come
+
+va?
+
+ciao
+
+amico
+
+come
+
+va?
+
+ciao
+
+amico
+
+come
+
+va?
+
+ciao
+
+amico
+
+come
+
+va?
+
+ciao
+
+amico
+
+come
+
+va?
+
+ciao
+
+amico
+
+come
+
+va?
+
+ciao
+
+amico
+
+come
+
+va?
+
+ciao
+
+amico
+
+come
+
+va?
+
+ciao
+
+amico
+
+come
+
+va?
+
+ciao
+
+amico
+
+come
+
+va?
+
+
+ciao
+
+amico
+
+come
+
+va?
+
+ciao
+
+amico
+
+come
+
+va?
+
+ciao
+
+amico
+
+come
+
+va?
+
+ciao
+
+amico
+
+come
+
+va?
+
+ciao
+
+amico
+
+come
+
+va?
+
+ciao
+
+amico
+
+come
+
+va?
+
+ciao
+
+amico
+
+come
+
+va?
+
+ciao
+
+amico
+
+come
+
+va?
+
+ciao
+
+amico
+
+come
+
+va?
+
+ciao
+
+amico
+
+come
+
+va?
+
+\bibliographystyle{plain}
+
+\begin{warpprint}   % For print output ...
+\cleardoublepage    % ... a common method to place index entry into TOC.
+\phantomsection
+\addcontentsline{toc}{chapter}{\indexname}
+\printindex
+\cleardoublepage    % ... a common method to place bibliography entry into TOC.
+\phantomsection
+\addcontentsline{toc}{chapter}{Bibliography}
+\bibliography{biblio}
+\end{warpprint}
+
+\begin{warpHTML}
+\ForceHTMLPage      % HTML index will be on its own page.
+\ForceHTMLTOC       % HTML index will have its own toc entry.
+\printindex
+\ForceHTMLPage      % HTML bibliography will be on its own page.
+\ForceHTMLTOC       % HTML bibliography will have its own toc entry.
+\bibliography{biblio}
+\end{warpHTML}
+
+\end{document}
