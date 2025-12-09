@@ -111,61 +111,56 @@ public class UpdateForNewNode2 {
 			this.dir = Files.createTempDirectory("tmp");
 			System.out.println(dir);
 
-			report("hotmokaversion", HOTMOKA_VERSION);
-			report("takamakaversion", TAKAMAKA_VERSION);
-			report("faustoemail", "\\email{fausto.spoto@hotmoka.io}");
-			report("hotmokarepo", "git@github.com:Hotmoka/hotmoka.git");
-
-			/*
-
-			report("sed -i 's/@server_mokamint/" + mokamintURI.toString().replace("/", "\\/") + "/g' target/Tutorial.md");
-			report("sed -i 's/@server_tendermint/" + tendermintURI.toString().replace("/", "\\/") + "/g' target/Tutorial.md");
+			report("hotmokaVersion", HOTMOKA_VERSION);
+			report("takamakaVersion", TAKAMAKA_VERSION);
+			report("faustoEmail", "\\email{fausto.spoto@hotmoka.io}");
+			report("hotmokaRepo", "git@github.com:Hotmoka/hotmoka.git");
+			report("serverMokamint", mokamintURI.toString());
+			report("serverTendermint", tendermintURI.toString());
 
 			var output1 = NodesTakamakaAddressOutputs.from(Moka.nodesTakamakaAddress("--uri=" + mokamintURI + " --json --timeout=" + TIMEOUT));
 			TransactionReference takamakaCode = output1.getTakamakaCode();
-			report("sed -i 's/@takamakaCode/" + takamakaCode + "/g' target/Tutorial.md");
+			report("takamakaCode", takamakaCode.toString());
 
 			var output2 = NodesManifestAddressOutputs.from(Moka.nodesManifestAddress("--uri=" + mokamintURI + " --json --timeout=" + TIMEOUT));
 			StorageReference manifest = output2.getManifest();
-			report("sed -i 's/@manifest/" + manifest + "/g' target/Tutorial.md");
+			report("manifest", manifest.toString().replace("#", "\\#"));
 
 			var output3 = ObjectsCallOutputs.from(Moka.objectsCall(manifest + " " + Constants.MANIFEST_NAME + " getGamete --receiver=" + manifest + " --uri=" + mokamintURI + " --json --timeout=" + TIMEOUT));
 			StorageReference gamete = output3.getResult().get().asReference(value -> new IllegalStateException("The gamete should be a storage reference"));
-			report("sed -i 's/@gamete/" + gamete + "/g' target/Tutorial.md");
+			report("gamete", gamete.toString().replace("#", "\\#"));
 
 			var output4 = ObjectsCallOutputs.from(Moka.objectsCall(manifest + " " + Constants.MANIFEST_NAME + " getGasStation --receiver=" + manifest + " --uri=" + mokamintURI + " --json --timeout=" + TIMEOUT));
 			StorageReference gasStation = output4.getResult().get().asReference(value -> new IllegalStateException("The gas station should be a storage reference"));
-			report("sed -i 's/@gasStation/" + gasStation + "/g' target/Tutorial.md");
+			report("gasStation", gasStation.toString().replace("#", "\\#"));
 
 			var output5 = ObjectsCallOutputs.from(Moka.objectsCall(manifest + " " + Constants.MANIFEST_NAME + " getValidators --receiver=" + manifest + " --uri=" + mokamintURI + " --json --timeout=" + TIMEOUT));
 			StorageReference validators = output5.getResult().get().asReference(value -> new IllegalStateException("The validators should be a storage reference"));
-			report("sed -i 's/@validators/" + validators + "/g' target/Tutorial.md");
+			report("validators", validators.toString().replace("#", "\\#"));
 
 			var output6 = ObjectsCallOutputs.from(Moka.objectsCall(manifest + " " + Constants.GAMETE_NAME + " getMaxFaucet --receiver=" + gamete + " --uri=" + mokamintURI + " --json --timeout=" + TIMEOUT));
 			BigInteger maxFaucet = output6.getResult().get().asBigInteger(value -> new IllegalStateException("The max faucet threshold should be a BigInteger"));
-			report("sed -i 's/@maxFaucet/" + maxFaucet + "/g' target/Tutorial.md");
+			report("maxFaucet", maxFaucet.toString());
 
 			var output7 = ObjectsCallOutputs.from(Moka.objectsCall(manifest + " " + Constants.MANIFEST_NAME + " getChainId --receiver=" + manifest + " --uri=" + mokamintURI + " --json --timeout=" + TIMEOUT));
 			String chainId = output7.getResult().get().asString(value -> new IllegalStateException("The chain identifier should be a String"));
-			report("sed -i 's/@chainid/" + chainId + "/g' target/Tutorial.md");
-			report("sed -i 's/@chainid/" + chainId + "/g' target/pics/state1.fig");
-			report("sed -i 's/@chainid/" + chainId + "/g' target/pics/state2.fig");
-			report("sed -i 's/@chainid/" + chainId + "/g' target/pics/state3.fig");
+			report("chainId", chainId);
 
 			var output8 = KeysCreateOutputs.from(Moka.keysCreate("--name account1.pem --output-dir=" + dir + " --password=chocolate --json"));
-			report("sed -i 's/@publickeybase58account1/" + output8.getPublicKeyBase58() + "/g' target/Tutorial.md");
-			// we replace the / character of Base64 encodings with the (escaped) escape sequence \/ for "sed"
+			report("accountOnePublicKeyBaseFiftyeight", output8.getPublicKeyBase58());
 			String publicKeyAccount1Base64 = output8.getPublicKeyBase64();
-			report("sed -i \"s/@publickeyaccount1/" + publicKeyAccount1Base64.replace("/", "\\/") + "/g\" target/Tutorial.md");
-			report("sed -i 's/@tendermintaddressaccount1/" + output8.getTendermintAddress() + "/g' target/Tutorial.md");
-			String publicKeyAccount1Base64Short = publicKeyAccount1Base64.substring(0, 10).replace("/", "\\/");
-			report("sed -i \"s/@short_publickeyaccount1/" + publicKeyAccount1Base64Short + ".../g\" target/pics/state2.fig");
-			report("sed -i \"s/@short_publickeyaccount1/" + publicKeyAccount1Base64Short + ".../g\" target/pics/state3.fig");
+			report("accountOnePublicKeyBaseSixtyfour", publicKeyAccount1Base64);
+			report("accountOneTendermintAddress", output8.getTendermintAddress());
+			String publicKeyAccount1Base64Short = publicKeyAccount1Base64.substring(0, 10);
+			report("accountOnePublicKeyBaseSixtyfourShort", publicKeyAccount1Base64Short + "\\ldots");
 
 			var output9 = AccountsCreateOutputs.from(Moka.accountsCreate("faucet 50000000000000 " + dir.resolve("account1.pem") + " --dir=" + dir + " --output-dir=" + dir + " --password=chocolate --uri=" + mokamintURI + " --json --timeout=" + TIMEOUT));
 			StorageReference account1 = output9.getAccount().get();
-			report("sed -i 's/@transaction_account1/" + output9.getTransaction() + "/g' target/Tutorial.md");
-			report("sed -i 's/@account1/" + account1 + "/g' target/Tutorial.md");
+			report("accountOneTransaction", output9.getTransaction().toString());
+			report("accountOne", account1.toString().replace("#", "\\#"));
+			report("accountOneShort", output9.getTransaction().toString().substring(0, 10) + "\\ldots\\#0");
+
+			/*
 			String account1String = account1.toString();
 			int account1ProgressivePos = account1String.lastIndexOf('#');
 			String account1Short = account1String.substring(0, 11) + "..." + account1String.substring(account1ProgressivePos);

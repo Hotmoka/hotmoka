@@ -38,7 +38,28 @@ the receiver is defined.
 
 \begin{figure}
   \begin{center}
-    \includegraphics[width=\textwidth/2]{pics/receiver_payer}
+    \begin{tikzpicture}[scale=0.5,>=Stealth]
+      \draw[rounded corners] (0,0) rectangle (12,13) [fill=statebackgroundcolor];
+
+      \draw[rounded corners] (0.5,9.5) rectangle +(11,2.8) [fill=jarbackgroundcolor];
+      \draw (1,10.9) node[right] {jar (code of the methods)};
+
+      \draw[->,thick] (6,6.8) -- +(0,2.7);
+      \draw (6,8.2) node[left] {classpath};
+
+      \draw[rounded corners] (0.5,4) rectangle +(11,2.8) [fill=objectbackgroundcolor];
+      \draw (1,5.4) node[right] {class tag: \texttt{Person.class}};
+      \draw (-2,5.4) node[left] {receiver};
+      \draw[->,thick] (-2,5.4) -- +(2.5,0);
+
+      \draw[rounded corners] (0.5,0.5) rectangle +(11,3) [fill=objectbackgroundcolor];
+      \draw (1,2.6) node[right] {balance: 3432\ldots};
+      \draw (1,1.3) node[right] {publicKey: \texttt{\accountOneShortPublicKey}};
+      \draw (-2,2.5) node[left] {payer (account)};
+      \draw (-2,1.5) node[left] {at \texttt{\accountOneShort}};
+      \draw[->,thick] (-2,2) -- +(2.5,0);
+
+    \end{tikzpicture}
   \end{center}
   \caption{Receiver, payer and classpath for a method call in a Hotmoka node.}
   \label{fig:receiver_payer}
@@ -64,11 +85,11 @@ while contracts are untyped in Ethereum~\cite{CrafaPZ19}
 and are referenced through the untyped \texttt{address} type.
 \end{commentbox}
 
-Receiver and payer have different roles but are treated identically in Hotmoka:
-they are objects stored in state at their respective state locations, known as
-their \emph{storage references}. For instance the payer in
-Fig.~\ref{fig:receiver_payer} might be allocated at the storage
-reference \texttt{@account1}. A storage reference has two parts, separated
+Receiver and payer have different roles but same treatment in Hotmoka:
+they are objects in state, stored at their respective state locations or
+\emph{storage references}. For instance, the payer
+might be allocated at \texttt{\accountOne}\linebreak
+(Fig.~\ref{fig:receiver_payer}). A storage reference has two parts, separated
 by a \texttt{\#} sign. The first part are 64 hexadecimal digits (\ie, 32 bytes)
 that identify the
 transaction that created the object; the second part is a progressive number
@@ -110,3 +131,123 @@ to have more accounts in the state of a node, all distinct, but controlled by th
 It is also possible to rotate the key of an account
 (that is, replace it with another key), since the
 \texttt{publicKey} field is not \texttt{final}.
+
+This has a major consequence. In Bitcoin and Ethereum, an account is identified by
+twelve words and a password, by using the BIP39 encoding
+(see Fig.~5 and~6 of~\cite{Antonopoulos23}). These twelve words are just
+a mnemonic representation of 132 bits: 128 bits for the random entropy used to derive the
+private key of the account and four bits of checksum. In Hotmoka, these 128 bits are
+not enough, since they identify the key of the account but not the 32 bytes of its
+storage reference (in this representation, the progressive is assumed to be zero).
+As a consequence, accounts in Hotmoka are identified by
+128+256 bits, plus 12 bits of checksum (and a password),
+which give rise to 36 words in BIP39 encoding.
+By specifying those 36 words across different clients, one can control the
+same account with all such clients. As usual, those 36 words must be stored in paper
+and kept in a secure place, since their lost amounts to losing access to the account.
+
+As shown in Fig.~\ref{fig:receiver_payer}, the code of the objects (contracts) installed in
+the state of a Hotmoka node consists in jars (Java archives) written in a subset of Java
+known as Takamaka. This is done in a way completely different from other blockchains:
+
+\begin{enumerate}
+\item In Hotmoka, programmers code the contracts that want to install in the node and nothing more;
+  they do \emph{not} program the encoding of data into the
+  key/value store of the node (its \emph{keeper},
+  as it is called in other blockchains); they do \emph{not} program the gas metering;
+  they do \emph{not}
+  program the authentication of the accounts and the verification of their credentials.
+  Everything is automatic in Hotmoka, exactly as in Ethereum, and differently from other blockchains
+  that use general purpose languages such as Java for their smart contracts: there, programmers
+  must take care of all these details, which is difficult, boring and error-prone. If this is done
+  incorrectly, those blockchains will hang.
+\item In Hotmoka, the code installed in the node passes
+  a preliminary verification, that checks the correct
+  use of some primitives, that we will introduce in the subsequent chapters, and guarantees that the
+  code is deterministic. This excludes an array of errors in Hotmoka, while other blockchains
+  will hang if, for instance, the code is non-deterministic.
+\end{enumerate}
+
+\section{Hotmoka clients}\label{sec:hotmoka_clients}
+
+In order to query a Hotmoka node, handle accounts and run transactions on the node,
+one needs a client application. Currently, there is a command-line client, called
+moka and a mobile client for Android, called Mokito. Mokito provides
+basic functionalities only (handling accounts, querying the state of the objects in the node,
+running simple transactions), while moka is the most complete solution.
+
+\subsection{Moka}\label{subsec:moka}
+
+You can use the \texttt{moka} command to interact with an existing Hotmoka node,
+install code in the node and run transactions. There are two ways of using \texttt{moka}.
+You can either use \texttt{moka} inside a docker container provided by the Hotmoka developers.
+Or you can download its source code, compile it and add the \texttt{moka} executable to
+the command path of your machine. This latter approach is more flexible but requires to have
+Java JDK version 21 (or higher) installed in your
+computer, along with a recent version of Maven. The former approach avoids to install
+and compile software on your machine, beyond having docker installed of course.
+Moreover, many operations become ackward with docker, because, for instance, files
+created inside a docker container remain there, unless explicitly copied out of there.
+Both alternatives are described in the following paragraphs, but
+our suggested solution is to compile and install \texttt{moka} in your machine.
+
+\subsubsection{Invoking \texttt{moka} from inside a docker container}
+\label{subsubsec:moka_inside_docker}
+
+There are a few docker containers providing \texttt{moka} and all the machinery
+for running Hotmoka nodes. They are maintained in DockerHub~\cite{hotmoka_dockerhub}.
+For instance, you can query the provided version of \texttt{moka} as follows:
+%
+\begin{center}
+\verb|docker run -it --rm hotmoka/mokamint-node:|\texttt{\hotmokaVersion{}}\verb| moka --version|
+\end{center}
+%
+You should see \texttt{\hotmokaVersion{}} answered on the screen.
+You do need Java nor Maven for this, nor to compile anything: docker will take care
+of downloading the image of the container and run \texttt{moka} inside it.
+
+You can also contact an existing Hotmoka node and query the current state of an object,
+allocated at a given storage reference, such as:
+%
+\begin{warpprint}
+\begin{center}
+\verb|docker run -it --rm hotmoka/mokamint-node:|\texttt{\hotmokaVersion{}}\verb| moka objects show |\linebreak\texttt{\accountOne{}} \verb|--uri ws://panarea.hotmoka.io:8001|
+\end{center}
+\end{warpprint}
+%
+\begin{warpHTML}
+\begin{center}
+\verb|docker run -it --rm hotmoka/mokamint-node:|\texttt{\hotmokaVersion{}}\verb| moka objects show |\texttt{\accountOne{}} \verb|--uri ws://panarea.hotmoka.io:8001|
+\end{center}
+\end{warpHTML}
+%
+The output will be something like:\mbox{}\\
+
+\begin{warpprint}
+\noindent
+\verb|class io.takamaka.code.lang.ExternallyOwnedAccountED25519 (from jar installed|
+
+\noindent
+\verb|  at 0d0f8f8232e4931a7f2f2e0fae7c5f63c6c31d35b1fcd22494e7c3a21fb8d2af)|
+
+\noindent
+\verb|  io.takamaka.code.lang.Contract.balance:java.math.BigInteger = 50000000000000|
+
+\noindent
+\verb|  io.takamaka.code.lang.ExternallyOwnedAccount.nonce:java.math.BigInteger = 0|
+
+\noindent
+\verb|  io.takamaka.code.lang.ExternallyOwnedAccount.publicKey:java.lang.String|
+
+\noindent
+\verb|    = "BUyu8cMDPlkNWtrkxNRYmzuK+vUFmiTJfA7ikGiK6Fw="|
+\end{warpprint}
+%
+\begin{warpHTML}
+\texttt{class io.takamaka.code.lang.ExternallyOwnedAccountED25519 (from jar installed
+  at 0d0f8f8232e4931a7f2f2e0fae7c5f63c6c31d35b1fcd22494e7c3a21fb8d2af)
+  io.takamaka.code.lang.Contract.balance:java.math.BigInteger = 50000000000000
+  io.takamaka.code.lang.ExternallyOwnedAccount.nonce:java.math.BigInteger = 0
+  io.takamaka.code.lang.ExternallyOwnedAccount.publicKey:java.lang.String
+    = "BUyu8cMDPlkNWtrkxNRYmzuK+vUFmiTJfA7ikGiK6Fw="}
+\end{warpHTML}
