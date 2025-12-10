@@ -121,6 +121,7 @@ public class UpdateForNewNode2 {
 			var output1 = NodesTakamakaAddressOutputs.from(Moka.nodesTakamakaAddress("--uri=" + mokamintURI + " --json --timeout=" + TIMEOUT));
 			TransactionReference takamakaCode = output1.getTakamakaCode();
 			report("takamakaCode", takamakaCode.toString());
+			report("takamakaCodeShort", takamakaCode.toString().substring(0, 15));
 
 			var output2 = NodesManifestAddressOutputs.from(Moka.nodesManifestAddress("--uri=" + mokamintURI + " --json --timeout=" + TIMEOUT));
 			StorageReference manifest = output2.getManifest();
@@ -151,14 +152,17 @@ public class UpdateForNewNode2 {
 			String publicKeyAccount1Base64 = output8.getPublicKeyBase64();
 			report("accountOnePublicKeyBaseSixtyfour", publicKeyAccount1Base64);
 			report("accountOneTendermintAddress", output8.getTendermintAddress());
-			String publicKeyAccount1Base64Short = publicKeyAccount1Base64.substring(0, 10);
-			report("accountOnePublicKeyBaseSixtyfourShort", publicKeyAccount1Base64Short + "\\ldots");
+			String publicKeyAccount1Base64Short = publicKeyAccount1Base64.substring(0, 16);
+			report("accountOnePublicKeyBaseSixtyfourShort", publicKeyAccount1Base64Short);
 
-			var output9 = AccountsCreateOutputs.from(Moka.accountsCreate("faucet 50000000000000 " + dir.resolve("account1.pem") + " --dir=" + dir + " --output-dir=" + dir + " --password=chocolate --uri=" + mokamintURI + " --json --timeout=" + TIMEOUT));
+			var account1Balance = 50000000000000L;
+			report("accountOneBalance", Long.toString(account1Balance));
+			report("accountOneBalanceShort", Long.toString(account1Balance).substring(0, 16));
+			var output9 = AccountsCreateOutputs.from(Moka.accountsCreate("faucet " + account1Balance + " " + dir.resolve("account1.pem") + " --dir=" + dir + " --output-dir=" + dir + " --password=chocolate --uri=" + mokamintURI + " --json --timeout=" + TIMEOUT));
 			StorageReference account1 = output9.getAccount().get();
 			report("accountOneTransaction", output9.getTransaction().toString());
 			report("accountOne", account1.toString().replace("#", "\\#"));
-			report("accountOneShort", output9.getTransaction().toString().substring(0, 10) + "\\ldots\\#0");
+			report("accountOneShort", output9.getTransaction().toString().substring(0, 16));
 
 			/*
 			String account1String = account1.toString();

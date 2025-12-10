@@ -39,25 +39,40 @@ the receiver is defined.
 \begin{figure}
   \begin{center}
     \begin{tikzpicture}[scale=0.5,>=Stealth]
-      \draw[rounded corners] (0,0) rectangle (12,13) [fill=statebackgroundcolor];
+      \draw[rounded corners] (0,0) rectangle (21,19.5) [fill=statebackgroundcolor];
 
-      \draw[rounded corners] (0.5,9.5) rectangle +(11,2.8) [fill=jarbackgroundcolor];
-      \draw (1,10.9) node[right] {jar (code of the methods)};
+      \draw[rounded corners] (0.5,16) rectangle +(20,2.8) [fill=jarbackgroundcolor];
+      \draw (1,18) node[right] {jar: basic Takamaka classes};
+      \draw (1,17) node[right] {including \ldots\texttt{ExternallyOwnedAccountED25519}};
+      \draw (-2,17.5) node[left] {at \texttt{\takamakaCodeShort{}\ldots}};
+      \draw[->,thick] (-2,17.5) -- +(2.5,0);
 
-      \draw[->,thick] (6,6.8) -- +(0,2.7);
-      \draw (6,8.2) node[left] {classpath};
+      \draw[->,thick] (6,13.3) -- +(0,2.7);
+      \draw (6,14.8) node[left] {dependency};
 
-      \draw[rounded corners] (0.5,4) rectangle +(11,2.8) [fill=objectbackgroundcolor];
-      \draw (1,5.4) node[right] {class tag: \texttt{Person.class}};
-      \draw (-2,5.4) node[left] {receiver};
-      \draw[->,thick] (-2,5.4) -- +(2.5,0);
+      \draw[rounded corners] (0.5,10.8) rectangle +(11,2.8) [fill=jarbackgroundcolor];
+      \draw (1,12.7) node[right] {jar: code of some classes};
+      \draw (1,11.7) node[right] {including \texttt{Person}};
 
-      \draw[rounded corners] (0.5,0.5) rectangle +(11,3) [fill=objectbackgroundcolor];
-      \draw (1,2.6) node[right] {balance: 3432\ldots};
-      \draw (1,1.3) node[right] {publicKey: \texttt{\accountOneShortPublicKey}};
-      \draw (-2,2.5) node[left] {payer (account)};
-      \draw (-2,1.5) node[left] {at \texttt{\accountOneShort}};
-      \draw[->,thick] (-2,2) -- +(2.5,0);
+      \draw[->,thick] (6,8.1) -- +(0,2.7);
+      \draw (6,9.5) node[left] {classpath};
+
+      \draw[rounded corners] (0.5,5.3) rectangle +(11,2.8) [fill=objectbackgroundcolor];
+      \draw (1,6.7) node[right] {class tag: \texttt{Person.class}};
+      \draw (-2,6.7) node[left] {receiver};
+      \draw[->,thick] (-2,6.7) -- +(2.5,0);
+
+      \draw[rounded corners] (0.5,0.5) rectangle +(20,4.3) [fill=objectbackgroundcolor];
+      \draw (1,3.9) node[right] {class tag: \texttt{\ldots ExternallyOwnedAccountED25519}};
+      \draw (1,2.65) node[right] {balance: \texttt{\accountOneBalance{}}};
+      \draw (1,1.3) node[right] {publicKey: \texttt{\accountOnePublicKeyBaseSixtyfourShort{}\ldots}};
+
+      \draw[->,thick] (17,4.8) -- +(0,11.2);
+      \draw (17,12) node[left] {classpath};
+
+      \draw (-2,3) node[left] {payer (account)};
+      \draw (-2,2) node[left] {at \texttt{\accountOneShort{}\ldots}};
+      \draw[->,thick] (-2,2.5) -- +(2.5,0);
 
     \end{tikzpicture}
   \end{center}
@@ -80,7 +95,8 @@ receiver, payer and gas are taken from there. There are, however, also
 big differences. The first is that the code of the methods is inside
 a jar \emph{referenced} by the objects, while Ethereum requires to reinstall
 the code of the contracts each time a contract is instantiated.
-More importantly, Hotmoka keeps an explicit class tag inside the objects,
+More importantly, Hotmoka keeps an explicit class tag inside the objects
+(Fig.~\ref{fig:receiver_payer}),
 while contracts are untyped in Ethereum~\cite{CrafaPZ19}
 and are referenced through the untyped \texttt{address} type.
 \end{commentbox}
@@ -99,7 +115,14 @@ one, and so on. When a method is called on a Hotmoka node, what is actually spec
 in the call request are the storage references of the receiver and of the payer
 (plus the actual arguments to the method, if any).
 
-In Hotmoka, a \emph{transaction} is either
+Each object in the state of a Hotmoka node knows its \emph{classpath},
+that is, it holds a reference to the jar, already installed in the node,
+that contains the compiled bytecode of the class of the object. For instance,
+in Fig.~\ref{fig:receiver_payer}, the payer account is a Java object whose
+class \texttt{io.takamaka.code.lang.ExternallyOwnedAccountED25519}
+is defined in a jar referenced by the \emph{transaction reference}
+\texttt{\takamakaCode{}}.
+Namely, in Hotmoka, a transaction is either
 %
 \begin{enumerate}
 \item the installation of a jar, that modifies the state of the node, and is paid by a payer account, or
@@ -108,7 +131,7 @@ In Hotmoka, a \emph{transaction} is either
   value and/or has side-effects that modify the state of the node, and is paid by a payer account.
 \end{enumerate}
 
-A Hotmoka node can keep track
+A Hotmoka node keeps track
 of the transactions that it has executed, so that it is possible, for instance,
 to recreate its state by running all the transactions executed in the past, starting from
 the empty state.
@@ -124,7 +147,7 @@ create a random private key, compute the associated public key and hence its has
 Hotmoka is radically different: an account is an object that must be allocated in
 state by an explicit construction transaction (that must be paid, as every transaction).
 The public key is explicitly stored inside the constructed object
-(Base64-encoded in its \texttt{publicKey} field, see Fig.~\ref{fig:receiver_payer}.
+(base64-encoded in its \texttt{publicKey} field, see Fig.~\ref{fig:receiver_payer}).
 That public key was passed as a parameter at the creation of the payer object and
 can be passed again for creating more accounts. That is, it is well possible, in Hotmoka,
 to have more accounts in the state of a node, all distinct, but controlled by the same key.
@@ -198,56 +221,84 @@ There are a few docker containers providing \texttt{moka} and all the machinery
 for running Hotmoka nodes. They are maintained in DockerHub~\cite{hotmoka_dockerhub}.
 For instance, you can query the provided version of \texttt{moka} as follows:
 %
-\begin{center}
-\verb|docker run -it --rm hotmoka/mokamint-node:|\texttt{\hotmokaVersion{}}\verb| moka --version|
-\end{center}
+\begin{shellbox}
+  docker run -it --rm hotmoka/mokamint-node:\hotmokaVersion{} moka --version
+\end{shellbox}
 %
 You should see \texttt{\hotmokaVersion{}} answered on the screen.
 You do need Java nor Maven for this, nor to compile anything: docker will take care
 of downloading the image of the container and run \texttt{moka} inside it.
 
 You can also contact an existing Hotmoka node and query the current state of an object,
-allocated at a given storage reference, such as:
+allocated at a given storage reference, such as the payer account
+of Fig.~\ref{fig:receiver_payer}:
 %
 \begin{warpprint}
-\begin{center}
-\verb|docker run -it --rm hotmoka/mokamint-node:|\texttt{\hotmokaVersion{}}\verb| moka objects show |\linebreak\texttt{\accountOne{}} \verb|--uri ws://panarea.hotmoka.io:8001|
-\end{center}
+\begin{shellbox}
+  docker run -it --rm hotmoka/mokamint-node:\hotmokaVersion{} moka objects show\linebreak\hspace*{5ex}\accountOne{}\linebreak\hspace*{5ex}--uri \serverMokamint{}\end{shellbox}
 \end{warpprint}
-%
 \begin{warpHTML}
-\begin{center}
-\verb|docker run -it --rm hotmoka/mokamint-node:|\texttt{\hotmokaVersion{}}\verb| moka objects show |\texttt{\accountOne{}} \verb|--uri ws://panarea.hotmoka.io:8001|
-\end{center}
+\begin{shellbox}
+  docker run -it --rm hotmoka/mokamint-node:\hotmokaVersion{} moka objects show \accountOne{} --uri \serverMokamint{}\end{shellbox}
 \end{warpHTML}
 %
-The output will be something like:\mbox{}\\
-
-\begin{warpprint}
-\noindent
-\verb|class io.takamaka.code.lang.ExternallyOwnedAccountED25519 (from jar installed|
-
-\noindent
-\verb|  at 0d0f8f8232e4931a7f2f2e0fae7c5f63c6c31d35b1fcd22494e7c3a21fb8d2af)|
-
-\noindent
-\verb|  io.takamaka.code.lang.Contract.balance:java.math.BigInteger = 50000000000000|
-
-\noindent
-\verb|  io.takamaka.code.lang.ExternallyOwnedAccount.nonce:java.math.BigInteger = 0|
-
-\noindent
-\verb|  io.takamaka.code.lang.ExternallyOwnedAccount.publicKey:java.lang.String|
-
-\noindent
-\verb|    = "BUyu8cMDPlkNWtrkxNRYmzuK+vUFmiTJfA7ikGiK6Fw="|
-\end{warpprint}
+The output will be something like:
 %
+\begin{shellbox}
+  class io.takamaka.code.lang.ExternallyOwnedAccountED25519
+    (from jar installed at
+    \takamakaCode{})
+    io.takamaka.code.lang.Contract.balance:java.math.BigInteger = \accountOneBalance{}
+    io.takamaka.code.lang.ExternallyOwnedAccount.nonce:java.math.BigInteger = 0
+    io.takamaka.code.lang.ExternallyOwnedAccount.publicKey:java.lang.String
+      = "\accountOnePublicKeyBaseSixtyfour{}"
+\end{shellbox}
+%
+Note that the classpath (the \emph{jar installed at\ldots}) corresponds to
+what reported in Fig.~\ref{fig:receiver_payer}, since it is an immutable
+property of an object.
+
+\subsubsection{Invoking \texttt{moka} in the local machine}
+\label{subsubsec:moka_local}
+
+In order to invoke \texttt{moka} directly, in the local machine, one needs to download
+its code, compile it and extend the path of the shell so that it finds the compiled code.
+Below, it is shown how to perform this on a Linux machine.
+
+Let us install the code in the \verb|~/Gits| directory of our machine, with the
+following sequence of commands. We assume that you have both Git and Maven
+installed already:
+%
+\begin{shellbox}
+  mkdir -p ~/Gits
+  cd ~/Gits
+  git clone --branch v\hotmokaVersion{} \hotmokaRepo
+  cd hotmoka
+  mvn clean install -DskipTests
+\end{shellbox}
+%
+Then edit your \texttt{.bashrc} configuration file and add at its end
+the following command, that expands the command path of the shell:
+%
+\begin{shellbox}
+  export PATH=~/Gits/hotmoka/io-hotmoka-moka/src/main/bash:$PATH
+\end{shellbox}
+%
+Exit the terminal and spawn a new one. You should be able to run \texttt{moka} directly now.
+For instance, you can run the same commands of Sec.~\ref{subsubsec:moka_inside_docker}, but
+without the help of docker:
+%
+\begin{shellbox}
+  moka --version
+\end{shellbox}
+%
+and
+%
+\begin{warpprint}
+\begin{shellbox}
+  moka objects show\linebreak\hspace*{5ex}\accountOne{}\linebreak\hspace*{5ex}--uri \serverMokamint{}\end{shellbox}
+\end{warpprint}
 \begin{warpHTML}
-\texttt{class io.takamaka.code.lang.ExternallyOwnedAccountED25519 (from jar installed
-  at 0d0f8f8232e4931a7f2f2e0fae7c5f63c6c31d35b1fcd22494e7c3a21fb8d2af)
-  io.takamaka.code.lang.Contract.balance:java.math.BigInteger = 50000000000000
-  io.takamaka.code.lang.ExternallyOwnedAccount.nonce:java.math.BigInteger = 0
-  io.takamaka.code.lang.ExternallyOwnedAccount.publicKey:java.lang.String
-    = "BUyu8cMDPlkNWtrkxNRYmzuK+vUFmiTJfA7ikGiK6Fw="}
+\begin{shellbox}
+  moka objects show \accountOne{} --uri \serverMokamint{}\end{shellbox}
 \end{warpHTML}

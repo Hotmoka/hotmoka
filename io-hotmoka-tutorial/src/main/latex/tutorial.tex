@@ -42,6 +42,8 @@
 \usepackage{amsmath}
 \usepackage{amssymb}
 \usepackage{amsfonts}
+\usepackage{cmap} % Improves copy-paste functionality
+\usepackage{alltt}
 
 \usepackage[pdftex]{graphicx}
 
@@ -105,14 +107,13 @@
 \definecolor{jarbackgroundcolor}{rgb}{0.9,0.9,0.3}
 \definecolor{statebackgroundcolor}{rgb}{0.6,0.6,1.0}
 
-\definecolor{commentboxbackgroundcolor}{rgb}{0.85,0.85,0.85}
+\definecolor{commentboxbackgroundcolor}{rgb}{0.9,0.85,1.0}
 \newmdenv[linecolor=black,leftmargin=2em,rightmargin=2em,innertopmargin=1em,innerbottommargin=1em,backgroundcolor={commentboxbackgroundcolor}]{commentbox}
 
-\newcommand{\graybox}[1]{
-\fcolorbox{black}{lightgray}{
-\begin{minipage}{0.9\textwidth}
-  {#1}
-\end{minipage}}}
+\definecolor{shellboxbackgroundcolor}{rgb}{0.8,1.0,0.8}
+\newmdenv[linecolor=black,leftmargin=2em,rightmargin=2em,innertopmargin=1em,innerbottommargin=1em,backgroundcolor={shellboxbackgroundcolor}]{shellboxmd}
+
+\newenvironment{shellbox}{\begin{alltt}}{\end{alltt}}
 
 \newcommand{\ie}{\emph{i.e.}\@}
 
