@@ -68,6 +68,28 @@ public class Moka extends AbstractCLI {
 	}
 
 	/**
+	 * Runs the {@code moka help} command with the given arguments.
+	 * 
+	 * @param args the arguments
+	 * @return what the moka tool has written into the standard output
+	 * @throws IOException if the construction of the return value failed
+	 */
+	public static String help(String args) throws IOException {
+		return run("help " + args);
+	}
+
+	/**
+	 * Runs the {@code moka accounts help} command with the given arguments.
+	 * 
+	 * @param args the arguments
+	 * @return what the moka tool has written into the standard output
+	 * @throws IOException if the construction of the return value failed
+	 */
+	public static String accountsHelp(String args) throws IOException {
+		return run("accounts help " + args);
+	}
+
+	/**
 	 * Runs the {@code moka accounts create} command with the given arguments.
 	 * 
 	 * @param args the arguments
@@ -134,6 +156,17 @@ public class Moka extends AbstractCLI {
 	}
 
 	/**
+	 * Runs the {@code moka keys help} command with the given arguments.
+	 * 
+	 * @param args the arguments
+	 * @return what the moka tool has written into the standard output
+	 * @throws IOException if the construction of the return value failed
+	 */
+	public static String keysHelp(String args) throws IOException {
+		return run("keys help " + args);
+	}
+
+	/**
 	 * Runs the {@code moka keys bind} command with the given arguments.
 	 * 
 	 * @param args the arguments
@@ -189,6 +222,17 @@ public class Moka extends AbstractCLI {
 	}
 
 	/**
+	 * Runs the {@code moka jars help} command with the given arguments.
+	 * 
+	 * @param args the arguments
+	 * @return what the moka tool has written into the standard output
+	 * @throws IOException if the construction of the return value failed
+	 */
+	public static String jarsHelp(String args) throws IOException {
+		return run("jars help " + args);
+	}
+
+	/**
 	 * Runs the {@code moka jars verify} command with the given arguments.
 	 * 
 	 * @param args the arguments
@@ -222,6 +266,17 @@ public class Moka extends AbstractCLI {
 	}
 
 	/**
+	 * Runs the {@code moka nodes help} command with the given arguments.
+	 * 
+	 * @param args the arguments
+	 * @return what the moka tool has written into the standard output
+	 * @throws IOException if the construction of the return value failed
+	 */
+	public static String nodesHelp(String args) throws IOException {
+		return run("nodes help " + args);
+	}
+
+	/**
 	 * Runs the {@code moka nodes faucet} command with the given arguments.
 	 * 
 	 * @param args the arguments
@@ -233,6 +288,17 @@ public class Moka extends AbstractCLI {
 	}
 
 	/**
+	 * Runs the {@code moka nodes takamaka help} command with the given arguments.
+	 * 
+	 * @param args the arguments
+	 * @return what the moka tool has written into the standard output
+	 * @throws IOException if the construction of the return value failed
+	 */
+	public static String nodesTakamakaHelp(String args) throws IOException {
+		return run("nodes takamaka help " + args);
+	}
+
+	/**
 	 * Runs the {@code moka nodes takamaka address} command with the given arguments.
 	 * 
 	 * @param args the arguments
@@ -241,6 +307,17 @@ public class Moka extends AbstractCLI {
 	 */
 	public static String nodesTakamakaAddress(String args) throws IOException {
 		return run("nodes takamaka address " + args);
+	}
+
+	/**
+	 * Runs the {@code moka nodes manifest help} command with the given arguments.
+	 * 
+	 * @param args the arguments
+	 * @return what the moka tool has written into the standard output
+	 * @throws IOException if the construction of the return value failed
+	 */
+	public static String nodesManifestHelp(String args) throws IOException {
+		return run("nodes manifest help " + args);
 	}
 
 	/**
@@ -263,6 +340,17 @@ public class Moka extends AbstractCLI {
 	 */
 	public static String nodesManifestShow(String args) throws IOException {
 		return run("nodes manifest show " + args);
+	}
+
+	/**
+	 * Runs the {@code moka tendermint validators help} command with the given arguments.
+	 * 
+	 * @param args the arguments
+	 * @return what the moka tool has written into the standard output
+	 * @throws IOException if the construction of the return value failed
+	 */
+	public static String nodesTendermintValidatorsHelp(String args) throws IOException {
+		return run("nodes nodes tendermint validators help " + args);
 	}
 
 	/**
@@ -310,6 +398,17 @@ public class Moka extends AbstractCLI {
 	}
 
 	/**
+	 * Runs the {@code moka objects help} command with the given arguments.
+	 * 
+	 * @param args the arguments
+	 * @return what the moka tool has written into the standard output
+	 * @throws IOException if the construction of the return value failed
+	 */
+	public static String objectsHelp(String args) throws IOException {
+		return run("objects help " + args);
+	}
+
+	/**
 	 * Runs the {@code moka objects call} command with the given arguments.
 	 * 
 	 * @param args the arguments
@@ -340,6 +439,17 @@ public class Moka extends AbstractCLI {
 	 */
 	public static String objectsShow(String args) throws IOException {
 		return run("objects show " + args);
+	}
+
+	/**
+	 * Runs the {@code moka transactions help} command with the given arguments.
+	 * 
+	 * @param args the arguments
+	 * @return what the moka tool has written into the standard output
+	 * @throws IOException if the construction of the return value failed
+	 */
+	public static String transactionsHelp(String args) throws IOException {
+		return run("transactions help " + args);
 	}
 
 	/**

@@ -80,21 +80,21 @@ public class UpdateForNewNode2 {
 
 	/**
 	 * Edit the {@code parameters.tex} file by rerunning the experiments of the Hotmoka tutorial.
-	 * It allows one to specify the name of the file to edit and two further arguments,
+	 * It allows one to specify the name of the directory where the files will be created and two further arguments,
 	 * that are the URI of the remote nodes (for Mokamint and for Tendermint). The first defaults to
-	 * {@code src/main/latex/parameters.tex} and the last two default to {@code ws://panarea.hotmoka.io:8001}
+	 * {@code src/main/latex/} and the last two default to {@code ws://panarea.hotmoka.io:8001}
 	 * and {@code ws://panarea.hotmoka.io:8002}.
 	 * 
 	 * @param args the arguments
 	 * @throws Exception if the editing of the file fails for some reason
 	 */
 	public static void main(String[] args) throws Exception {
-		String file = args.length > 0 ? args[0] : "src/main/latex/parameters.tex";
+		Path dir = args.length > 0 ? Paths.get(args[0]) : Paths.get("src/main/latex");
 		String server1 = args.length > 1 ? args[1] : "ws://panarea.hotmoka.io:8001";
 		String server2 = args.length > 2 ? args[2] : "ws://panarea.hotmoka.io:8002";
 
-		try (PrintWriter writer = new PrintWriter(new BufferedWriter(new FileWriter(file)))) {
-			new Experiments(new URI(server1), new URI(server2), writer);
+		try (PrintWriter writer = new PrintWriter(dir.resolve("parameters.tex").toFile())) {
+			new Experiments(new URI(server1), new URI(server2), writer, dir);
 		}
 	}
 
@@ -104,12 +104,42 @@ public class UpdateForNewNode2 {
 		/**
 		 * The working directory where key pairs can be temporarily saved, for instance.
 		 */
+		private final Path tempDir;
+
+		/**
+		 * The path where files get created.
+		 */
 		private final Path dir;
 
-		private Experiments(URI mokamintURI, URI tendermintURI, PrintWriter writer) throws Exception {
+		private Experiments(URI mokamintURI, URI tendermintURI, PrintWriter writer, Path dir) throws Exception {
 			this.writer = writer;
-			this.dir = Files.createTempDirectory("tmp");
-			System.out.println(dir);
+			this.dir = dir;
+			this.tempDir = Files.createTempDirectory("tmp");
+			System.out.println("Generating all files inside the directory " + dir);
+
+			Path outputFilePath = dir.resolve("moka_help.txt");
+			try (PrintWriter writer2 = new PrintWriter(outputFilePath.toFile())) {
+				writer2.write(Moka.help(""));
+				System.out.println("Created " + outputFilePath);
+			}
+
+			outputFilePath = dir.resolve("moka_help_objects.txt");
+			try (PrintWriter writer2 = new PrintWriter(outputFilePath.toFile())) {
+				writer2.write(Moka.help("objects"));
+				System.out.println("Created " + outputFilePath);
+			}
+
+			outputFilePath = dir.resolve("moka_objects_help_show.txt");
+			try (PrintWriter writer2 = new PrintWriter(outputFilePath.toFile())) {
+				writer2.write(Moka.objectsHelp("show"));
+				System.out.println("Created " + outputFilePath);
+			}
+
+			outputFilePath = dir.resolve("moka_nodes_manifest_show.txt");
+			try (PrintWriter writer2 = new PrintWriter(outputFilePath.toFile())) {
+				writer2.write(Moka.nodesManifestShow("--uri " + mokamintURI));
+				System.out.println("Created " + outputFilePath);
+			}
 
 			report("hotmokaVersion", HOTMOKA_VERSION);
 			report("takamakaVersion", TAKAMAKA_VERSION);
@@ -157,7 +187,6 @@ public class UpdateForNewNode2 {
 
 			var account1Balance = 50000000000000L;
 			report("accountOneBalance", Long.toString(account1Balance));
-			report("accountOneBalanceShort", Long.toString(account1Balance).substring(0, 16));
 			var output9 = AccountsCreateOutputs.from(Moka.accountsCreate("faucet " + account1Balance + " " + dir.resolve("account1.pem") + " --dir=" + dir + " --output-dir=" + dir + " --password=chocolate --uri=" + mokamintURI + " --json --timeout=" + TIMEOUT));
 			StorageReference account1 = output9.getAccount().get();
 			report("accountOneTransaction", output9.getTransaction().toString());

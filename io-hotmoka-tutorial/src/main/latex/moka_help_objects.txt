@@ -1,0 +1,7 @@
+Manage Hotmoka objects.
+Usage: moka objects [COMMAND]
+Commands:
+  help    Display help information about the specified command.
+  call    Call a method of an object or class.
+  create  Create a storage object.
+  show    Show the state of a storage object.

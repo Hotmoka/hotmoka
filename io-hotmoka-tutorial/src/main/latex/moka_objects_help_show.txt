@@ -1,0 +1,15 @@
+Show the state of a storage object.
+Usage: moka objects show [--api] [--json] [--redirection=<path>]
+                         [--timeout=<milliseconds>] [--uri=<uri>] <object>
+      <object>               the object
+      --api                  print the public API of the object
+      --json                 print the output in JSON
+      --redirection=<path>   the path where the output must be redirected, if
+                               any; if missing, the output is printed to the
+                               standard output
+      --timeout=<milliseconds>
+                             the timeout of the connection
+                               Default: 90000
+      --uri=<uri>            the network URI where the API of the Hotmoka node
+                               service is published
+                               Default: ws://localhost:8001

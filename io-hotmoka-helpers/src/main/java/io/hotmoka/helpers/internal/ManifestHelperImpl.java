@@ -637,7 +637,7 @@ public class ManifestHelperImpl implements ManifestHelper {
 				.orElseThrow(() -> new UnexpectedVoidMethodException(MethodSignatures.GET_VERIFICATION_VERSION))
 				.asReturnedLong(MethodSignatures.GET_VERIFICATION_VERSION, UnexpectedValueException::new);
 
-		builder.append("      └─ verificationVersion: ").append(verificationVersion);
+		builder.append("     └─ verificationVersion: ").append(verificationVersion);
 
 		return builder.toString();
 	}

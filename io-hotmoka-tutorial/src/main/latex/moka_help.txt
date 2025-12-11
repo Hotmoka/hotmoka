@@ -1,0 +1,12 @@
+This is the command-line interface of Hotmoka.
+Usage: moka [--version] [COMMAND]
+      --version   print version information and exit
+Commands:
+  help          Display help information about the specified command.
+  accounts      Manage Hotmoka accounts.
+  jars          Manage jars of Takamaka classes.
+  keys          Manage cryptographic keys.
+  nodes         Manage Hotmoka nodes.
+  objects       Manage Hotmoka objects.
+  transactions  Manage Hotmoka transactions.
+Copyright (c) 2021 Fausto Spoto (fausto.spoto@hotmoka.io)

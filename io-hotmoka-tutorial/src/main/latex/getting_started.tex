@@ -302,3 +302,91 @@ and
 \begin{shellbox}
   moka objects show \accountOne{} --uri \serverMokamint{}\end{shellbox}
 \end{warpHTML}
+
+In the rest of this book, we will normally show direct invocations
+of \texttt{moka}, outside of a docker container.
+Remember, however, that you can also run it from inside its docker container if you prefer.
+
+\subsubsection{Getting help about \texttt{moka}'s commands}
+\label{subsubsec:moka_help}
+
+If you want help about the commands of \texttt{moka}, just use the \texttt{help} command.
+Namely, \texttt{moka help} will print on the screen the following help lines:
+%
+\begin{shellbox}
+\input{moka_help.txt}
+\end{shellbox}
+%
+You can see that commands are organized in groups. You can get help about a specific
+group by prefixing \texttt{help} to the name of the group. For instance, the
+\texttt{moka help objects} command will print:
+%
+\begin{shellbox}
+\input{moka_help_objects.txt}
+\end{shellbox}
+%
+You can print the help of a specific leaf command by prefixing \texttt{help} before it.
+For instance, the command \texttt{moka objects help show} will show information about the
+\texttt{show} subcommand of the \texttt{objects} group of commands of \texttt{moka}. It will print:
+%
+\begin{shellbox}
+\input{moka_objects_help_show.txt}
+\end{shellbox}
+
+\subsection{Mokito}\label{subsec:mokito}
+
+The \texttt{moka} tool allows one to perform a large variety of operations
+on a Hotmoka node. However, it is a technical tool, meant for developers.
+Most users will only perform simple tasks with a Hotmoka node.
+For them, it is simpler to use a mobile app, with a simpler user
+interface. Such an app, called Mokito, is currently available for Android only.
+You can download it from Google Play and install it in your device, from~\cite{mokito_google_play}.
+Its Kotlin source code is available at~\cite{mokito_github},
+together with a small Android service for connecting to a remote Hotmoka node.
+
+The first time you will use Mokito on your mobile device,
+it will connect by default to a testnet Hotmoka node
+and show the screen in Fig.~\ref{fig:mokito_start}. The server can be changed
+in the preferences section of the app, accessible through the menu in the
+top left area of the app.
+%
+\begin{figure}
+  \begin{center}
+    \includegraphics[width=6cm]{pics/mokito_start}
+  \end{center}
+  \caption{The starting screen of the Mokito app.}
+  \label{fig:mokito_start}
+\end{figure}
+%
+You can see in Fig.~\ref{fig:mokito_start} that Mokito shows a \emph{faucet account},
+that only exists in test networks and that can be used for funding the creation
+of new accounts. We will do this with \texttt{moka} in the next section, but you
+can do it from Mokito as well. In Mokito, you can also create keys, pay to keys,
+show the manifest of the contacted node, show and navigate  objects in the state of the node.
+This should all be intuitive.
+
+\section{Contacting a Hotmoka test node}\label{sec:contacting_test_node}
+
+The examples in this book must be run against a Hotmoka node,
+typically part of a Hotmoka blockchain. We will show you in a later chapter how you
+can install your own local
+node or blockchain. However, for now, it is much simpler to experiment with a node
+that is part of one of the public
+test blockchains that we provide for experimentation.
+Namely, we have installed two Hotmoka nodes for testing, of two distinct blockchains, at URIs
+\texttt{\serverMokamint{}} and \texttt{\serverTendermint{}}.
+The peculiarity of these nodes is that they include a \emph{faucet}, that is,
+an account that gives
+away small amounts of coins, when requested. This is good for experimentation
+but, of course, a real node will not include a faucet.
+In a real node, people must grasp some coins because they have been earned through mining,
+sent by some other user or bought from some exchange.
+
+You can verify that you can contact the test node by typing
+the command \texttt{moka nodes manifest show -{}-uri \serverMokamint}
+to print the \emph{manifest} of the Hotmoka node
+at \texttt{\serverMokamint}. The result should be something like:
+%
+\begin{shellbox}
+\input{moka_nodes_manifest_show.txt}
+\end{shellbox}
