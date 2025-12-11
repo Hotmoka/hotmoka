@@ -42,9 +42,10 @@ the receiver is defined.
       \draw[rounded corners] (0,0) rectangle (21,19.5) [fill=statebackgroundcolor];
 
       \draw[rounded corners] (0.5,16) rectangle +(20,2.8) [fill=jarbackgroundcolor];
-      \draw (1,18) node[right] {jar: basic Takamaka classes};
+      \draw (1,18) node[right] {jar: classes of the Takamaka runtime,};
       \draw (1,17) node[right] {including \ldots\texttt{ExternallyOwnedAccountED25519}};
-      \draw (-2,17.5) node[left] {at \texttt{\takamakaCodeShort{}\ldots}};
+      \draw (-2,18.2) node[left] {Takamaka code};
+      \draw (-2,17.1) node[left] {at \texttt{\takamakaCodeShort{}}};
       \draw[->,thick] (-2,17.5) -- +(2.5,0);
 
       \draw[->,thick] (6,13.3) -- +(0,2.7);
@@ -65,13 +66,13 @@ the receiver is defined.
       \draw[rounded corners] (0.5,0.5) rectangle +(20,4.3) [fill=objectbackgroundcolor];
       \draw (1,3.9) node[right] {class tag: \texttt{\ldots ExternallyOwnedAccountED25519}};
       \draw (1,2.65) node[right] {balance: \texttt{\accountOneBalance{}}};
-      \draw (1,1.3) node[right] {publicKey: \texttt{\accountOnePublicKeyBaseSixtyfourShort{}\ldots}};
+      \draw (1,1.3) node[right] {publicKey: \texttt{\accountOnePublicKeyBaseSixtyfourShort{}}};
 
       \draw[->,thick] (17,4.8) -- +(0,11.2);
       \draw (17,12) node[left] {classpath};
 
       \draw (-2,3) node[left] {payer (account)};
-      \draw (-2,2) node[left] {at \texttt{\accountOneShort{}\ldots}};
+      \draw (-2,2) node[left] {at \texttt{\accountOneShort{}}};
       \draw[->,thick] (-2,2.5) -- +(2.5,0);
 
     \end{tikzpicture}
@@ -365,7 +366,7 @@ can do it from Mokito as well. In Mokito, you can also create keys, pay to keys,
 show the manifest of the contacted node, show and navigate  objects in the state of the node.
 This should all be intuitive.
 
-\section{Contacting a Hotmoka test node}\label{sec:contacting_test_node}
+\section{Contacting a Hotmoka node}\label{sec:contacting_node}
 
 The examples in this book must be run against a Hotmoka node,
 typically part of a Hotmoka blockchain. We will show you in a later chapter how you
@@ -374,7 +375,7 @@ node or blockchain. However, for now, it is much simpler to experiment with a no
 that is part of one of the public
 test blockchains that we provide for experimentation.
 Namely, we have installed two Hotmoka nodes for testing, of two distinct blockchains, at URIs
-\texttt{\serverMokamint{}} and \texttt{\serverTendermint{}}.
+\texttt{\serverMokamint{}} and \texttt{\serverTendermint{}}, respectively.
 The peculiarity of these nodes is that they include a \emph{faucet}, that is,
 an account that gives
 away small amounts of coins, when requested. This is good for experimentation
@@ -390,3 +391,122 @@ at \texttt{\serverMokamint}. The result should be something like:
 \begin{shellbox}
 \input{moka_nodes_manifest_show.txt}
 \end{shellbox}
+%
+The details of this information are irrelevant for now, but something must be
+clarified, to better understand the following sections.
+Namely, the \texttt{moka nodes manifest show} command reports information
+that tells us that the node
+already contains some code and some Java objects, as shown in
+Fig.~\ref{fig:manifest}.
+%
+\begin{figure}
+  \begin{center}
+    \begin{tikzpicture}[scale=0.5,>=Stealth]
+      \draw[rounded corners] (0,-4.5) rectangle (21,19.5) [fill=statebackgroundcolor];
+
+      \draw[rounded corners] (0.5,16) rectangle +(20,2.8) [fill=jarbackgroundcolor];
+      \draw (1,18) node[right] {jar: classes of the Takamaka runtime, such as};
+      \draw (1,17) node[right] {\texttt{Contract}, \texttt{Storage}, \texttt{@View}, \texttt{@FromContract}\ldots};
+      \draw (-2,18.2) node[left] {Takamaka code};
+      \draw (-2,17.1) node[left] {at \texttt{\takamakaCodeShort{}}};
+      \draw[->,thick] (-2,17.5) -- +(2.5,0);
+
+      \draw[->,thick] (6,13.3) -- +(0,2.7);
+      \draw (6,14.8) node[left] {classpath};
+      \draw (-2,12.8) node[left] {manifest};
+      \draw (-2,11.7) node[left] {at \texttt{\manifestShort{}}};
+      \draw[->,thick] (-2,12.3) -- +(2.5,0);
+
+      \draw[rounded corners] (0.5,10.8) rectangle +(11,2.8) [fill=objectbackgroundcolor];
+      \draw (1,12.7) node[right] {chainId: \chainId{}};
+      \draw (1,11.7) node[right] {signature: ed25519};
+
+      \draw[<-,thick] (4,8.1) -- +(0,2.7);
+      \draw (4,9.5) node[right] {gamete};
+      \draw[->,thick] (2,10.8) .. controls (2,5) .. node[very near start,sloped,above] {\small gas station} (3,3.8);
+      \draw[->,thick] (1,10.8) .. controls (1,2) .. node[near end,sloped,below] {\small validators} (1.5,-1.2);
+
+      \draw[rounded corners] (3,5.3) rectangle +(8,2.8) [fill=objectbackgroundcolor];
+      \draw (3.5,6.7) node[right] {balance: 9999\ldots};
+      \draw (-2,7.2) node[left] {gamete};
+      \draw (-2,6.1) node[left] {at \texttt{\gameteShort{}}};
+      \draw[->,thick] (-2,6.7) -- +(5,0);
+      \draw[->,thick] (10,8.1) .. controls (14,13) .. node[near end,sloped,below] {classpath} (14,16.1);
+
+      \draw[rounded corners] (2,1) rectangle +(8,2.8) [fill=objectbackgroundcolor];
+      \draw (2.5,2.5) node[right] {gasPrice: 1};
+      \draw (-2,3) node[left] {gas station};
+      \draw (-2,2) node[left] {at \texttt{\gasStationShort{}}};
+      \draw[->,thick] (-2,2.5) -- +(4,0);
+      \draw[->,thick] (9,3.8) .. controls (15,8) .. node[near end,sloped,below] {classpath} (16,16.1);
+
+      \draw[rounded corners] (0.5,-4) rectangle +(10.5,2.8) [fill=objectbackgroundcolor];
+      \draw (1,-2) node[right] {number of validators: 0};
+      \draw (1,-3.1) node[right] {current supply: 1209\ldots};
+      \draw (-2,-2) node[left] {validators};
+      \draw (-2,-3) node[left] {at \texttt{\validatorsShort{}}};
+      \draw[->,thick] (-2,-2.5) -- +(2.5,0);
+      \draw[->,thick] (9.5,-1.2) .. controls (17,8) .. node[near end,sloped,below] {classpath} (18,16.1);
+
+    \end{tikzpicture}
+  \end{center}
+
+  \caption{Manifest, gamete, gas station and validators.}
+  \label{fig:manifest}
+\end{figure}
+%
+The Takamaka code reference is the pointer to a jar, installed in blockchain, that contains
+the classes of the Takamaka language runtime. All programs that we will write in Takamaka
+will depend on that jar, directly or indirectly, since they will use classes such
+as \texttt{io.takamaka.code.lang.Contract} or annotations such as
+\texttt{io.takamaka.code.lang.View}.
+The manifest reference, instead, points to a Java object that publishes
+information about the node. Namely, it reports its chain identifier and
+the signature algorithm that, by default, is used to sign the transactions
+for the node. The manifest refers
+to another object, called \emph{gamete}, that is an account holding all the initial
+coins, if any. Consequently, the gamete may have a rich balance property,
+but also another interesting property, called \emph{max faucet}, that states how much coins
+it is willing to give up for free at each transaction. In a real node, and differently from here,
+that value should be zero. In this test network, instead, it is a non-zero value
+that we will exploit for creating our first account, in
+a minute. The manifest refers also to a gas station, that it, to another Java object that provides
+information about the gas, such as its current price. Finally, the manifest refers
+to another Java object, called \emph{validators}, that keeps information about
+the validator nodes of the network, if the network has validators:
+in the case of \texttt{\serverMokamint{}} there are no validators, since that network
+is based on a completely decentralized proof of space consensus, without special validator nodes.
+The validators object contains, in any case, also the initial,
+current and final supply of cryptocurrency
+(how much cryptocurrency was minted at the beginning of the network,
+has much has been minted up to now, and how much will exist eventually).
+
+As we said before, Java objects in the Hotmoka node are identified by their
+storage reference, such as \texttt{\gasStation}.
+You can think at a storage reference as a machine-independent pointer inside the
+memory, or state, of the node.
+
+We have used the \texttt{moka} command to see the manifest of a node. You can also use the
+Mokito app for that. Namely, tap on the app menu icon on the top-left corner of the screen
+and select \emph{Manifest} from the menu that will appear (see Fig.~\ref{fig:mokito_menu}).
+%
+\begin{figure}[t]
+  \begin{center}
+    \includegraphics[width=6cm]{pics/mokito_menu}
+  \end{center}
+  \caption{The menu of the Mokito app.}
+  \label{fig:mokito_menu}
+\end{figure}
+%
+After tapping on \emph{Manifest}, a new screen will appear, containing the same information
+that we saw with the command \texttt{moka nodes manifest show} (see Fig.~\ref{fig:mokito_manifest}).
+%
+\begin{figure}[t]
+  \begin{center}
+    \includegraphics[width=6cm]{pics/mokito_manifest}
+  \end{center}
+  \caption{The manifest of the Hotmoka node, shown in the Mokito app.}
+  \label{fig:mokito_manifest}
+\end{figure}
+
+\section{Creation of a first account}\label{sec:creation_account}

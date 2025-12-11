@@ -109,33 +109,33 @@ public class UpdateForNewNode2 {
 		/**
 		 * The path where files get created.
 		 */
-		private final Path dir;
+		private final Path outputDir;
 
-		private Experiments(URI mokamintURI, URI tendermintURI, PrintWriter writer, Path dir) throws Exception {
+		private Experiments(URI mokamintURI, URI tendermintURI, PrintWriter writer, Path outputDir) throws Exception {
 			this.writer = writer;
-			this.dir = dir;
+			this.outputDir = outputDir;
 			this.tempDir = Files.createTempDirectory("tmp");
-			System.out.println("Generating all files inside the directory " + dir);
+			System.out.println("Generating all files inside the directory " + outputDir);
 
-			Path outputFilePath = dir.resolve("moka_help.txt");
+			Path outputFilePath = outputDir.resolve("moka_help.txt");
 			try (PrintWriter writer2 = new PrintWriter(outputFilePath.toFile())) {
 				writer2.write(Moka.help(""));
 				System.out.println("Created " + outputFilePath);
 			}
 
-			outputFilePath = dir.resolve("moka_help_objects.txt");
+			outputFilePath = outputDir.resolve("moka_help_objects.txt");
 			try (PrintWriter writer2 = new PrintWriter(outputFilePath.toFile())) {
 				writer2.write(Moka.help("objects"));
 				System.out.println("Created " + outputFilePath);
 			}
 
-			outputFilePath = dir.resolve("moka_objects_help_show.txt");
+			outputFilePath = outputDir.resolve("moka_objects_help_show.txt");
 			try (PrintWriter writer2 = new PrintWriter(outputFilePath.toFile())) {
 				writer2.write(Moka.objectsHelp("show"));
 				System.out.println("Created " + outputFilePath);
 			}
 
-			outputFilePath = dir.resolve("moka_nodes_manifest_show.txt");
+			outputFilePath = outputDir.resolve("moka_nodes_manifest_show.txt");
 			try (PrintWriter writer2 = new PrintWriter(outputFilePath.toFile())) {
 				writer2.write(Moka.nodesManifestShow("--uri " + mokamintURI));
 				System.out.println("Created " + outputFilePath);
@@ -150,24 +150,28 @@ public class UpdateForNewNode2 {
 
 			var output1 = NodesTakamakaAddressOutputs.from(Moka.nodesTakamakaAddress("--uri=" + mokamintURI + " --json --timeout=" + TIMEOUT));
 			TransactionReference takamakaCode = output1.getTakamakaCode();
-			report("takamakaCode", takamakaCode.toString());
-			report("takamakaCodeShort", takamakaCode.toString().substring(0, 15));
+			report("takamakaCode", takamakaCode);
+			reportShort("takamakaCode", takamakaCode);
 
 			var output2 = NodesManifestAddressOutputs.from(Moka.nodesManifestAddress("--uri=" + mokamintURI + " --json --timeout=" + TIMEOUT));
 			StorageReference manifest = output2.getManifest();
-			report("manifest", manifest.toString().replace("#", "\\#"));
+			report("manifest", manifest);
+			reportShort("manifest", manifest);
 
 			var output3 = ObjectsCallOutputs.from(Moka.objectsCall(manifest + " " + Constants.MANIFEST_NAME + " getGamete --receiver=" + manifest + " --uri=" + mokamintURI + " --json --timeout=" + TIMEOUT));
 			StorageReference gamete = output3.getResult().get().asReference(value -> new IllegalStateException("The gamete should be a storage reference"));
-			report("gamete", gamete.toString().replace("#", "\\#"));
+			report("gamete", gamete);
+			reportShort("gamete", gamete);
 
 			var output4 = ObjectsCallOutputs.from(Moka.objectsCall(manifest + " " + Constants.MANIFEST_NAME + " getGasStation --receiver=" + manifest + " --uri=" + mokamintURI + " --json --timeout=" + TIMEOUT));
 			StorageReference gasStation = output4.getResult().get().asReference(value -> new IllegalStateException("The gas station should be a storage reference"));
-			report("gasStation", gasStation.toString().replace("#", "\\#"));
+			report("gasStation", gasStation);
+			reportShort("gasStation", gasStation);
 
 			var output5 = ObjectsCallOutputs.from(Moka.objectsCall(manifest + " " + Constants.MANIFEST_NAME + " getValidators --receiver=" + manifest + " --uri=" + mokamintURI + " --json --timeout=" + TIMEOUT));
 			StorageReference validators = output5.getResult().get().asReference(value -> new IllegalStateException("The validators should be a storage reference"));
-			report("validators", validators.toString().replace("#", "\\#"));
+			report("validators", validators);
+			reportShort("validators", validators);
 
 			var output6 = ObjectsCallOutputs.from(Moka.objectsCall(manifest + " " + Constants.GAMETE_NAME + " getMaxFaucet --receiver=" + gamete + " --uri=" + mokamintURI + " --json --timeout=" + TIMEOUT));
 			BigInteger maxFaucet = output6.getResult().get().asBigInteger(value -> new IllegalStateException("The max faucet threshold should be a BigInteger"));
@@ -177,7 +181,7 @@ public class UpdateForNewNode2 {
 			String chainId = output7.getResult().get().asString(value -> new IllegalStateException("The chain identifier should be a String"));
 			report("chainId", chainId);
 
-			var output8 = KeysCreateOutputs.from(Moka.keysCreate("--name account1.pem --output-dir=" + dir + " --password=chocolate --json"));
+			var output8 = KeysCreateOutputs.from(Moka.keysCreate("--name account1.pem --output-dir=" + tempDir + " --password=chocolate --json"));
 			report("accountOnePublicKeyBaseFiftyeight", output8.getPublicKeyBase58());
 			String publicKeyAccount1Base64 = output8.getPublicKeyBase64();
 			report("accountOnePublicKeyBaseSixtyfour", publicKeyAccount1Base64);
@@ -187,11 +191,11 @@ public class UpdateForNewNode2 {
 
 			var account1Balance = 50000000000000L;
 			report("accountOneBalance", Long.toString(account1Balance));
-			var output9 = AccountsCreateOutputs.from(Moka.accountsCreate("faucet " + account1Balance + " " + dir.resolve("account1.pem") + " --dir=" + dir + " --output-dir=" + dir + " --password=chocolate --uri=" + mokamintURI + " --json --timeout=" + TIMEOUT));
+			var output9 = AccountsCreateOutputs.from(Moka.accountsCreate("faucet " + account1Balance + " " + tempDir.resolve("account1.pem") + " --dir=" + tempDir + " --output-dir=" + tempDir + " --password=chocolate --uri=" + mokamintURI + " --json --timeout=" + TIMEOUT));
 			StorageReference account1 = output9.getAccount().get();
 			report("accountOneTransaction", output9.getTransaction().toString());
-			report("accountOne", account1.toString().replace("#", "\\#"));
-			report("accountOneShort", output9.getTransaction().toString().substring(0, 16));
+			report("accountOne", account1);
+			reportShort("accountOne", account1);
 
 			/*
 			String account1String = account1.toString();
@@ -424,6 +428,22 @@ public class UpdateForNewNode2 {
 
 		private void report(String command, String implementation) {
 			report("\\newcommand{\\" + command + "}{{" + implementation + "}}");
+		}
+
+		private void report(String command, StorageReference reference) {
+			report(command, reference.toString().replace("#", "\\#"));
+		}
+
+		private void reportShort(String command, StorageReference reference) {
+			report(command + "Short", reference.getTransaction().toString().substring(0, 16) + "\\ldots\\#" + reference.getProgressive());
+		}
+	
+		private void report(String command, TransactionReference reference) {
+			report(command, reference.toString());
+		}
+
+		private void reportShort(String command, TransactionReference reference) {
+			report(command + "Short", reference.toString().substring(0, 16));
 		}
 
 		private interface Command {
