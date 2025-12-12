@@ -44,6 +44,7 @@
 \usepackage{amsfonts}
 \usepackage{cmap} % Improves copy-paste functionality
 \usepackage{alltt}
+\usepackage{fancyvrb}
 
 \usepackage[pdftex]{graphicx}
 
@@ -109,12 +110,23 @@
 \definecolor{statebackgroundcolor}{rgb}{0.6,0.6,1.0}
 
 \definecolor{commentboxbackgroundcolor}{rgb}{0.9,0.85,1.0}
-\newmdenv[linecolor=black,leftmargin=2em,rightmargin=2em,innertopmargin=1em,innerbottommargin=1em,backgroundcolor={commentboxbackgroundcolor}]{commentbox}
+\newmdenv[linecolor=black,leftmargin=1em,rightmargin=1em,innertopmargin=1em,innerbottommargin=1em,backgroundcolor={commentboxbackgroundcolor}]{commentbox}
 
 \definecolor{shellboxbackgroundcolor}{rgb}{0.8,1.0,0.8}
-\newmdenv[linecolor=black,leftmargin=2em,rightmargin=2em,innertopmargin=1em,innerbottommargin=1em,backgroundcolor={shellboxbackgroundcolor}]{shellboxmd}
+\newmdenv[linecolor=black,leftmargin=1em,rightmargin=1em,backgroundcolor={shellboxbackgroundcolor}]{shellbox}
 
-\newenvironment{shellbox}{\begin{alltt}\small}{\end{alltt}}
+\definecolor{shellcommandboxbackgroundcolor}{rgb}{1.0,0.9,0.9}
+\newmdenv[linecolor=black,leftmargin=1em,rightmargin=1em,backgroundcolor={shellcommandboxbackgroundcolor}]{shellcommandbox}
+
+\usepackage{listings} 
+
+\lstset{% 
+  basicstyle=\ttfamily\small, 
+  breaklines=true,
+  columns=fullflexible,
+  escapeinside = ||,
+  breakindent=0pt} 
+\lstnewenvironment{ttlst}{}{} 
 
 \newcommand{\ie}{\emph{i.e.}\@}
 

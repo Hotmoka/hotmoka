@@ -21,6 +21,7 @@ import static io.takamaka.code.constants.Constants.TAKAMAKA_VERSION;
 
 import java.io.BufferedWriter;
 import java.io.ByteArrayOutputStream;
+import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintStream;
@@ -115,36 +116,25 @@ public class UpdateForNewNode2 {
 			this.writer = writer;
 			this.outputDir = outputDir;
 			this.tempDir = Files.createTempDirectory("tmp");
+			String hotmokaRepo = "git@github.com:Hotmoka/hotmoka.git";
 			System.out.println("Generating all files inside the directory " + outputDir);
+			System.out.println("Saving temporary files inside the directory " + tempDir);
 
-			Path outputFilePath = outputDir.resolve("moka_help.txt");
-			try (PrintWriter writer2 = new PrintWriter(outputFilePath.toFile())) {
-				writer2.write(Moka.help(""));
-				System.out.println("Created " + outputFilePath);
-			}
-
-			outputFilePath = outputDir.resolve("moka_help_objects.txt");
-			try (PrintWriter writer2 = new PrintWriter(outputFilePath.toFile())) {
-				writer2.write(Moka.help("objects"));
-				System.out.println("Created " + outputFilePath);
-			}
-
-			outputFilePath = outputDir.resolve("moka_objects_help_show.txt");
-			try (PrintWriter writer2 = new PrintWriter(outputFilePath.toFile())) {
-				writer2.write(Moka.objectsHelp("show"));
-				System.out.println("Created " + outputFilePath);
-			}
-
-			outputFilePath = outputDir.resolve("moka_nodes_manifest_show.txt");
-			try (PrintWriter writer2 = new PrintWriter(outputFilePath.toFile())) {
-				writer2.write(Moka.nodesManifestShow("--uri " + mokamintURI));
-				System.out.println("Created " + outputFilePath);
-			}
-
+			createCommandFile("git_clone_hotmoka", "git clone --branch v" + HOTMOKA_VERSION + " " + hotmokaRepo);
+			createOutputFile("moka_help", Moka.help(""));
+			createCommandFile("moka_version", "moka --version");
+			createOutputFile("moka_help_objects", Moka.help("objects"));
+			createOutputFile("moka_objects_help_show", Moka.objectsHelp("show"));
+			createOutputFile("moka_nodes_manifest_show", Moka.nodesManifestShow("--uri " + mokamintURI));
+			createCommandFile("docker_run_moka", "docker run -it --rm hotmoka/mokamint-node:" + HOTMOKA_VERSION + " moka --version");
+			createCommandFile("install_moka", "mkdir -p ~/Gits\ncd ~/Gits\ngit clone --branch v" + HOTMOKA_VERSION + " " + hotmokaRepo + "\ncd hotmoka\nmvn clean install -DskipTests");
+			createCommandFile("export_path_moka", "export PATH=~/Gits/hotmoka/io-hotmoka-moka/src/main/bash:$PATH");
+			
 			report("hotmokaVersion", HOTMOKA_VERSION);
 			report("takamakaVersion", TAKAMAKA_VERSION);
 			report("faustoEmail", "\\email{fausto.spoto@hotmoka.io}");
-			report("hotmokaRepo", "git@github.com:Hotmoka/hotmoka.git");
+			report("hotmokaRepo", hotmokaRepo);
+			report("hotmokaTutorialDir", "hotmoka\\_tutorial");
 			report("serverMokamint", mokamintURI.toString());
 			report("serverTendermint", tendermintURI.toString());
 
@@ -182,20 +172,29 @@ public class UpdateForNewNode2 {
 			report("chainId", chainId);
 
 			var output8 = KeysCreateOutputs.from(Moka.keysCreate("--name account1.pem --output-dir=" + tempDir + " --password=chocolate --json"));
+			createCommandFile("moka_keys_create_account1", "moka keys create --name=account1.pem --password");
+			createOutputFile("moka_keys_create_account1", "Enter value for --password (the password that will be needed later to use the key pair): chocolate\n" + output8);
 			report("accountOnePublicKeyBaseFiftyeight", output8.getPublicKeyBase58());
 			String publicKeyAccount1Base64 = output8.getPublicKeyBase64();
 			report("accountOnePublicKeyBaseSixtyfour", publicKeyAccount1Base64);
 			report("accountOneTendermintAddress", output8.getTendermintAddress());
-			String publicKeyAccount1Base64Short = publicKeyAccount1Base64.substring(0, 16);
+			String publicKeyAccount1Base64Short = publicKeyAccount1Base64.substring(0, 16) + "\\ldots";
 			report("accountOnePublicKeyBaseSixtyfourShort", publicKeyAccount1Base64Short);
 
 			var account1Balance = 50000000000000L;
 			report("accountOneBalance", Long.toString(account1Balance));
 			var output9 = AccountsCreateOutputs.from(Moka.accountsCreate("faucet " + account1Balance + " " + tempDir.resolve("account1.pem") + " --dir=" + tempDir + " --output-dir=" + tempDir + " --password=chocolate --uri=" + mokamintURI + " --json --timeout=" + TIMEOUT));
+			createCommandFile("moka_accounts_create_account1", "moka accounts create faucet " + account1Balance + " account1.pem --password --uri " + mokamintURI);
+			createOutputFile("moka_accounts_create_account1", "Enter value for --password (the password of the key pair): chocolate\n" + output9);
 			StorageReference account1 = output9.getAccount().get();
 			report("accountOneTransaction", output9.getTransaction().toString());
 			report("accountOne", account1);
 			reportShort("accountOne", account1);
+
+			createCommandFile("docker_run_moka_objects_show_account1", "docker run -it --rm hotmoka/mokamint-node:" + HOTMOKA_VERSION + " moka objects show " + account1 + " --uri " + mokamintURI);
+			// we actually run the following locally, not inside docker...
+			createOutputFile("docker_run_moka_objects_show_account1", Moka.objectsShow(account1 + " --uri " + mokamintURI));
+			createCommandFile("moka_objects_show_account1", "moka objects show " + account1 + " --uri " + mokamintURI);
 
 			/*
 			String account1String = account1.toString();
@@ -444,6 +443,30 @@ public class UpdateForNewNode2 {
 
 		private void reportShort(String command, TransactionReference reference) {
 			report(command + "Short", reference.toString().substring(0, 16));
+		}
+
+		private void createCommandFile(String filename, String content) throws FileNotFoundException {
+			Path outputFilePath = outputDir.resolve(filename + "_command.tex");
+			try (PrintWriter writer = new PrintWriter(outputFilePath.toFile())) {
+				writer.write("\\begin{shellcommandbox}\\begin{ttlst}\n");
+				// we erase the temp directory, since the tutorial assumes that temporary
+				// files get saved in the current directory
+				writer.write(content.replace(tempDir + "/", ""));
+				writer.write("\\end{ttlst}\\end{shellcommandbox}\n");
+				System.out.println("Created " + outputFilePath);
+			}
+		}
+		
+		private void createOutputFile(String filename, String content) throws FileNotFoundException {
+			Path outputFilePath = outputDir.resolve(filename + "_output.tex");
+			try (PrintWriter writer = new PrintWriter(outputFilePath.toFile())) {
+				writer.write("\\begin{shellbox}\\begin{ttlst}\n");
+				// we erase the temp directory, since the tutorial assumes that temporary
+				// files get saved in the current directory
+				writer.write(content.replace(tempDir + "/", ""));
+				writer.write("\\end{ttlst}\\end{shellbox}\n");
+				System.out.println("Created " + outputFilePath);
+			}
 		}
 
 		private interface Command {
