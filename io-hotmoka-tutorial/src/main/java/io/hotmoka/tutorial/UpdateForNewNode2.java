@@ -193,8 +193,10 @@ public class UpdateForNewNode2 {
 
 			createCommandFile("docker_run_moka_objects_show_account1", "docker run -it --rm hotmoka/mokamint-node:" + HOTMOKA_VERSION + " moka objects show " + account1 + " --uri " + mokamintURI);
 			// we actually run the following locally, not inside docker...
-			createOutputFile("docker_run_moka_objects_show_account1", Moka.objectsShow(account1 + " --uri " + mokamintURI));
+			String mokaObjectShowAccount1Output = Moka.objectsShow(account1 + " --uri " + mokamintURI);
+			createOutputFile("docker_run_moka_objects_show_account1", mokaObjectShowAccount1Output);
 			createCommandFile("moka_objects_show_account1", "moka objects show " + account1 + " --uri " + mokamintURI);
+			createOutputFile("moka_objects_show_account1", mokaObjectShowAccount1Output);
 
 			/*
 			String account1String = account1.toString();

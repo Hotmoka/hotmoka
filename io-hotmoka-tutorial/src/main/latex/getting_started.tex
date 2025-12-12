@@ -3,9 +3,10 @@
 \section{Hotmoka in a nutshell}\label{hotmoka_in_a_nutshell}
 
 Hotmoka is the abstract definition of a device that can store
-objects (data structures) in its persistent memory (its \emph{state} or \emph{storage})
+objects (data structures) in its persistent memory
+(its \emph{state}\index{state} or \emph{storage}\index{storage})
 and can execute, on those objects,
-code written in a subset of Java called Takamaka. Such a device is
+code written in a subset of Java called Takamaka\index{Takamaka}. Such a device is
 called a \emph{Hotmoka node} and such programs are known as
 \emph{smart contracts}, taking that terminology from programs that run inside
 a blockchain. It is well true that Hotmoka nodes can be different from the nodes
@@ -17,7 +18,7 @@ Every Hotmoka node has its own persistent state, that contains code and
 objects. Since Hotmoka nodes are made for running Java code, the code
 inside their state is kept in the standard jar format used by Java, while objects
 are just a collection of values for their fields, with a class tag that identifies
-whose class they belong to and a reference (the \emph{classpath})
+whose class they belong to and a reference (the \emph{classpath}\index{classpath})
 to the jar where that class is defined.
 While a device of an Internet of Thing network is the sole responsible
 for its own state, things are different if a Hotmoka node that is part of a blockchain.
@@ -26,7 +27,7 @@ There, the state is synchronized and identical across all nodes of the blockchai
 In object-oriented programming, the units of code that can be run
 on an object are called \emph{methods}.
 When a method must be run on an object,
-that object is identified as the \emph{receiver} of the execution of the method.
+that object is identified as the \emph{receiver}\index{receiver} of the execution of the method.
 The same happens in Hotmoka. That is, when one wants to run a method
 on an object, that object must have been already allocated
 in the state of the node and must be marked as the receiver of the execution
@@ -36,7 +37,7 @@ The code of the method is contained in a jar, previously installed in the state
 of the node, and referred to as \emph{classpath}. This is the jar where the class of
 the receiver is defined.
 
-\begin{figure}
+\begin{figure}[t]
   \begin{center}
     \begin{tikzpicture}[scale=0.5,>=Stealth]
       \draw[rounded corners] (0,0) rectangle (21,19.5) [fill=statebackgroundcolor];
@@ -81,11 +82,11 @@ the receiver is defined.
 \end{figure}
 
 The main difference with standard object-oriented programming is that Hotmoka requires one
-to specify a further object, called \emph{payer}. This is because a Hotmoka node is
+to specify a further object, called \emph{payer}\index{payer}. This is because a Hotmoka node is
 a public service, that can be used by everyone has an internet connection
 that can reach the node. Therefore, that service must be paid with the
 internal cryptocurrency of the node, by providing a measure of execution
-effort known as \emph{gas}. The payer is therefore a sort of bank account, whose
+effort known as \emph{gas}\index{gas}. The payer is therefore a sort of bank account, whose
 balance gets decreased in order to pay for the gas needed for the execution of the method.
 The payer is accessible inside the method as its \emph{caller}.
 
@@ -103,7 +104,7 @@ and are referenced through the untyped \texttt{address} type.
 
 Receiver and payer have different roles but same treatment in Hotmoka:
 they are objects in state, stored at their respective state locations or
-\emph{storage references}. For instance, the payer
+\emph{storage references}\index{storage reference}. For instance, the payer
 might be allocated at \texttt{\accountOne}\linebreak
 (Fig.~\ref{fig:receiver_payer}). A storage reference has two parts, separated
 by a \texttt{\#} sign. The first part are 64 hexadecimal digits (\ie, 32 bytes)
@@ -115,14 +116,14 @@ one, and so on. When a method is called on a Hotmoka node, what is actually spec
 in the call request are the storage references of the receiver and of the payer
 (plus the actual arguments to the method, if any).
 
-Each object in the state of a Hotmoka node knows its \emph{classpath},
+Each object in the state of a Hotmoka node knows its \emph{classpath}\index{classpath},
 that is, it holds a reference to the jar, already installed in the node,
 that contains the compiled bytecode of the class of the object. For instance,
 in Fig.~\ref{fig:receiver_payer}, the payer account is a Java object whose
 class \texttt{io.takamaka.code.lang.ExternallyOwnedAccountED25519}
-is defined in a jar referenced by the \emph{transaction reference}
+is defined in a jar referenced by the \emph{transaction reference}\index{transaction reference}
 \texttt{\takamakaCode{}}.
-Namely, in Hotmoka, a transaction is either
+Namely, in Hotmoka, a transaction\index{transaction} is either
 %
 \begin{enumerate}
 \item the installation of a jar, that modifies the state of the node, and is paid by a payer account, or
@@ -144,7 +145,7 @@ The key used for an account is typically computed by hashing the public key deri
 the private key of the account. In some sense, accounts, in those blockchains, exist
 independently from the state of the blockchain and can be computed offline: just
 create a random private key, compute the associated public key and hence its hash.
-Hotmoka is radically different: an account is an object that must be allocated in
+Hotmoka is radically different: an account\index{account} is an object that must be allocated in
 state by an explicit construction transaction (that must be paid, as every transaction).
 The public key is explicitly stored inside the constructed object
 (base64-encoded in its \texttt{publicKey} field, see Fig.~\ref{fig:receiver_payer}).
@@ -156,7 +157,7 @@ It is also possible to rotate the key of an account
 \texttt{publicKey} field is not \texttt{final}.
 
 This has a major consequence. In Bitcoin and Ethereum, an account is identified by
-twelve words and a password, by using the BIP39 encoding
+twelve words and a password, by using the BIP39 encoding\index{BIP39}
 (see Fig.~5 and~6 of~\cite{Antonopoulos23}). These twelve words are just
 a mnemonic representation of 132 bits: 128 bits for the random entropy used to derive the
 private key of the account and four bits of checksum. In Hotmoka, these 128 bits are
@@ -185,7 +186,7 @@ known as Takamaka. This is done in a way completely different from other blockch
   must take care of all these details, which is difficult, boring and error-prone. If this is done
   incorrectly, those blockchains will hang.
 \item In Hotmoka, the code installed in the node passes
-  a preliminary verification, that checks the correct
+  a preliminary verification\index{code verification}, that checks the correct
   use of some primitives, that we will introduce in the subsequent chapters, and guarantees that the
   code is deterministic. This excludes an array of errors in Hotmoka, while other blockchains
   will hang if, for instance, the code is non-deterministic.
@@ -195,16 +196,16 @@ known as Takamaka. This is done in a way completely different from other blockch
 
 In order to query a Hotmoka node, handle accounts and run transactions on the node,
 one needs a client application. Currently, there is a command-line client, called
-moka and a mobile client for Android, called Mokito. Mokito provides
+moka\index{moka} and a mobile client for Android, called Mokito\index{Mokito}. Mokito provides
 basic functionalities only (handling accounts, querying the state of the objects in the node,
 running simple transactions), while moka is the most complete solution.
 
 \subsection{Moka}\label{subsec:moka}
 
 You can use the \texttt{moka} command to interact with an existing Hotmoka node,
-install code in the node and run transactions. There are two ways of using \texttt{moka}.
-You can either use \texttt{moka} inside a docker container provided by the Hotmoka developers.
-Or you can download its source code, compile it and add the \texttt{moka} executable to
+install code in the node and run transactions. There are two ways of using moka.
+You can either use moka inside a docker container provided by the Hotmoka developers.
+Or you can download its source code, compile it and add the moka executable to
 the command path of your machine. This latter approach is more flexible but requires to have
 Java JDK version 21 (or higher) installed in your
 computer, along with a recent version of Maven. The former approach avoids to install
@@ -212,20 +213,20 @@ and compile software on your machine, beyond having docker installed of course.
 Moreover, many operations become ackward with docker, because, for instance, files
 created inside a docker container remain there, unless explicitly copied out of there.
 Both alternatives are described in the following paragraphs, but
-our suggested solution is to compile and install \texttt{moka} in your machine.
+our suggested solution is to compile and install moka in your machine.
 
-\subsubsection{Invoking \texttt{moka} from inside a docker container}
+\subsubsection{Invoking moka from inside a docker container}
 \label{subsubsec:moka_inside_docker}
 
-There are a few docker containers providing \texttt{moka} and all the machinery
+There are a few docker containers\index{docker!Hotmoka containers} providing moka and all the machinery
 for running Hotmoka nodes. They are maintained in DockerHub~\cite{hotmoka_dockerhub}.
-For instance, you can query the provided version of \texttt{moka} as follows:
+For instance, you can query the provided version of moka as follows:
 %
 \input{docker_run_moka_command}
 %
 You should see \texttt{\hotmokaVersion{}} answered on the screen.
 You do need Java nor Maven for this, nor to compile anything: docker will take care
-of downloading the image of the container and run \texttt{moka} inside it.
+of downloading the image of the container and run moka inside it.
 
 You can also contact an existing Hotmoka node and query the current state of an object,
 allocated at a given storage reference, such as the payer account
@@ -244,7 +245,7 @@ property of an object.
 \subsubsection{Invoking \texttt{moka} in the local machine}
 \label{subsubsec:moka_local}
 
-In order to invoke \texttt{moka} directly, in the local machine, one needs to download
+In order to invoke moka directly, in the local machine, one needs to download
 its code, compile it and extend the path of the shell so that it finds the compiled code.
 Below, it is shown how to perform this on a Linux machine.
 
@@ -259,7 +260,7 @@ the following command, that expands the command path of the shell:
 %
 \input{export_path_moka_command}
 %
-Exit the terminal and spawn a new one. You should be able to run \texttt{moka} directly now.
+Exit the terminal and spawn a new one. You should be able to run moka directly now.
 For instance, you can run the same commands of Sec.~\ref{subsubsec:moka_inside_docker}, but
 without the help of docker:
 %
@@ -270,13 +271,13 @@ and
 \input{moka_objects_show_account1_command}
 
 In the rest of this book, we will normally show direct invocations
-of \texttt{moka}, outside of a docker container.
+of moka, outside of a docker container.
 Remember, however, that you can also run it from inside its docker container if you prefer.
 
-\subsubsection{Getting help about \texttt{moka}'s commands}
+\subsubsection{Getting help about moka's commands}
 \label{subsubsec:moka_help}
 
-If you want help about the commands of \texttt{moka}, just use the \texttt{help} command.
+If you want help about the commands of moka, just use the \texttt{help} command.
 Namely, \texttt{moka help} will print on the screen the following help lines:
 %
 \input{moka_help_output}
@@ -289,17 +290,17 @@ group by prefixing \texttt{help} to the name of the group. For instance, the
 %
 You can print the help of a specific leaf command by prefixing \texttt{help} before it.
 For instance, the command \texttt{moka objects help show} will show information about the
-\texttt{show} subcommand of the \texttt{objects} group of commands of \texttt{moka}. It will print:
+\texttt{show} subcommand of the \texttt{objects} group of commands of moka. It will print:
 %
 \input{moka_objects_help_show_output}
 
 \subsection{Mokito}\label{subsec:mokito}
 
-The \texttt{moka} tool allows one to perform a large variety of operations
+The moka tool allows one to perform a large variety of operations
 on a Hotmoka node. However, it is a technical tool, meant for developers.
 Most users will only perform simple tasks with a Hotmoka node.
 For them, it is simpler to use a mobile app, with a simpler user
-interface. Such an app, called Mokito, is currently available for Android only.
+interface. Such an app, called Mokito\index{Mokito}, is currently available for Android only.
 You can download it from Google Play and install it in your device, from~\cite{mokito_google_play}.
 Its Kotlin source code is available at~\cite{mokito_github},
 together with a small Android service for connecting to a remote Hotmoka node.
@@ -310,7 +311,7 @@ and show the screen in Fig.~\ref{fig:mokito_start}. The server can be changed
 in the preferences section of the app, accessible through the menu in the
 top left area of the app.
 %
-\begin{figure}
+\begin{figure}[t]
   \begin{center}
     \includegraphics[width=6cm]{pics/mokito_start}
   \end{center}
@@ -318,9 +319,9 @@ top left area of the app.
   \label{fig:mokito_start}
 \end{figure}
 %
-You can see in Fig.~\ref{fig:mokito_start} that Mokito shows a \emph{faucet account},
+You can see in Fig.~\ref{fig:mokito_start} that Mokito shows a \emph{faucet account}\index{faucet},
 that only exists in test networks and that can be used for funding the creation
-of new accounts. We will do this with \texttt{moka} in the next section, but you
+of new accounts. We will do this with moka in the next section, but you
 can do it from Mokito as well. In Mokito, you can also create keys, pay to keys,
 show the manifest of the contacted node, show and navigate  objects in the state of the node.
 This should all be intuitive.
@@ -335,7 +336,7 @@ that is part of one of the public
 test blockchains that we provide for experimentation.
 Namely, we have installed two Hotmoka nodes for testing, of two distinct blockchains, at URIs
 \texttt{\serverMokamint{}} and \texttt{\serverTendermint{}}, respectively.
-The peculiarity of these nodes is that they include a \emph{faucet}, that is,
+The peculiarity of these nodes is that they include a \emph{faucet}\index{faucet}, that is,
 an account that gives
 away small amounts of coins, when requested. This is good for experimentation
 but, of course, a real node will not include a faucet.
@@ -344,7 +345,7 @@ sent by some other user or bought from some exchange.
 
 You can verify that you can contact the test node by typing
 the command \texttt{moka nodes manifest show -{}-uri \serverMokamint}
-to print the \emph{manifest} of the Hotmoka node
+to print the \emph{manifest}\index{manifest} of the Hotmoka node
 at \texttt{\serverMokamint}. The result should be something like:
 %
 \input{moka_nodes_manifest_show_output}
@@ -353,8 +354,7 @@ The details of this information are irrelevant for now, but something must be
 clarified, to better understand the following sections.
 Namely, the \texttt{moka nodes manifest show} command reports information
 that tells us that the node
-already contains some code and some Java objects, as shown in
-Fig.~\ref{fig:manifest}.
+already contains some code and some Java objects, as shown in Fig.~\ref{fig:manifest}.
 %
 \begin{figure}[t]
   \begin{center}
@@ -407,7 +407,7 @@ Fig.~\ref{fig:manifest}.
     \end{tikzpicture}
   \end{center}
 
-  \caption{Manifest, gamete, gas station and validators.}
+  \caption{Manifest, gamete, gas station and validators.\index{gamete}\index{manifest}\index{gas station}\index{validators}}
   \label{fig:manifest}
 \end{figure}
 %
@@ -420,15 +420,17 @@ The manifest reference, instead, points to a Java object that publishes
 information about the node. Namely, it reports its chain identifier and
 the signature algorithm that, by default, is used to sign the transactions
 for the node. The manifest refers
-to another object, called \emph{gamete}, that is an account holding all the initial
+to another object, called \emph{gamete}\index{gamete}, that is an account holding all the initial
 coins, if any. Consequently, the gamete may have a rich balance property,
 but also another interesting property, called \emph{max faucet}, that states how much coins
-it is willing to give up for free at each transaction. In a real node, and differently from here,
+the faucet
+is willing to give up for free at each transaction. In a real node, and differently from here,
 that value should be zero. In this test network, instead, it is a non-zero value
 that we will exploit for creating our first account, in
-a minute. The manifest refers also to a gas station, that it, to another Java object that provides
-information about the gas, such as its current price. Finally, the manifest refers
-to another Java object, called \emph{validators}, that keeps information about
+a moment. The manifest refers also to a gas station\index{gas station},
+that it, to another Java object that provides
+information about the gas\index{gas}, such as its current price. Finally, the manifest refers
+to another Java object, called \emph{validators}\index{validators}, that keeps information about
 the validator nodes of the network, if the network has validators:
 in the case of \texttt{\serverMokamint{}} there are no validators, since that network
 is based on a completely decentralized proof of space consensus, without special validator nodes.
@@ -442,7 +444,7 @@ storage reference, such as \texttt{\gasStation}.
 You can think at a storage reference as a machine-independent pointer inside the
 memory, or state, of the node.
 
-We have used the \texttt{moka} command to see the manifest of a node. You can also use the
+We have used the moka command to see the manifest of a node. You can also use the
 Mokito app for that. Namely, tap on the app menu icon on the top-left corner of the screen
 and select \emph{Manifest} from the menu that will appear (see Fig.~\ref{fig:mokito_menu}).
 %
@@ -467,7 +469,7 @@ that we saw with the command \texttt{moka nodes manifest show} (see Fig.~\ref{fi
 
 \section{Creation of a first account}\label{sec:creation_account}
 
-We need an account in the test network, that we will use later to pay for
+We need an account\index{account} in the test network, that we will use later to pay for
 installing code in blockchain and for running transactions. An account in Hotmoka
 is something completely different from an account in other blockchains.
 For instance, in Bitcoin and Ethereum, accounts do not really exist, in the sense
@@ -483,13 +485,13 @@ Currently, we have no accounts and consequently
 no coins for paying the creation of a new object. We could
 earn coins by mining for the network, or as payment for some activity,
 or by buying coins at an exchange.
-Since this is a test network, we can more simply use the faucet of the gamete instead,
+Since this is a test network, we can more simply use the faucet\index{faucet} of the gamete instead,
 that is willing
-to send us up to \maxFaucet coins, for free. Namely, you can run the
+to send us up to \maxFaucet{} coins, for free. Namely, you can run the
 following commands in order to create a key pair and then ask the faucet
 to create your first externally owned account for that key pair,
 funded with 50000000000000 coins, initially, paid by the faucet. Execute the following commands
-inside a \texttt{\hotmokaTutorialDir} directory of your home, so that \texttt{moka}
+inside a \texttt{\hotmokaTutorialDir{}} directory of your home, so that moka
 will save the key pair of your account
 there, which will simplify your subsequent work:
 %
@@ -513,4 +515,43 @@ Storage reference \texttt{\accountOne} refers to the newly created account objec
 \begin{commentbox}
   This reference will be different in your machine.
 \end{commentbox}
+%
+This storage reference is a machine-independent pointer to your account Java object, inside
+the node. Moreover, a random sequence of bits, called \emph{entropy}, has been generated
+and saved into a \texttt{.pem} file. From that entropy, and the chosen password, it is possible
+to derive private and (hence) public key of the account. This is why we use
+\emph{key pair} to refer to such \texttt{.pem} file.
+You should keep the \texttt{.pem} file secret since, together with the
+password of the account (in our case, we have chosen \texttt{chocolate}),
+it allows its owner to control your account and spend its coins.
+Note that the password is not written anywhere: if you lose it, it cannot be recovered.
 
+Let us check that our account really exists at its address,
+by querying the node about the state of the object allocated at \texttt{\accountOne}:
+%
+\input{moka_objects_show_account1_command}
+\input{moka_objects_show_account1_output}
+%
+Note that the balance and the public key of the account are
+fields of the account object. Moreover, note that Hotmoka knows
+which is the class of the object at that address
+(it is a class named \texttt{io.takamaka.code.lang.ExternallyOwnedAccountED25519})
+and where that class is defined: inside the jar
+at \texttt{\takamakaCode}, that is, the jar that defines
+the basic Takamaka classes (Fig.~\ref{fig:manifest}).
+We will call \emph{Takamaka code} that address.
+
+\begin{commentbox}
+This is completely different from what happens, for instance,
+in Ethereum, where externally owned accounts and contract references and untyped at run time,
+so that it is not possible to reconstruct their class in a reliable way.
+Moreover, note that we have been able to create an object in blockchain
+without sending the bytecode for its code: that bytecode was
+already installed, at Takamaka code, and we do not
+need to repeat it every time we instantiate an object. Instead, the new object
+will refer to the jar that contains its bytecode.
+\end{commentbox}
+
+In the following, you can use the \texttt{moka objects show} command on any object,
+not just on your own accounts, whenever you want to inspect its state
+(that includes the state inherited from its superclasses).
