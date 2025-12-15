@@ -313,7 +313,7 @@ top left area of the app.
 %
 \begin{figure}[t]
   \begin{center}
-    \includegraphics[width=6cm]{pics/mokito_start}
+    \includegraphics[width=5cm]{pics/mokito_start}
   \end{center}
   \caption{The starting screen of the Mokito app.}
   \label{fig:mokito_start}
@@ -407,7 +407,7 @@ already contains some code and some Java objects, as shown in Fig.~\ref{fig:mani
     \end{tikzpicture}
   \end{center}
 
-  \caption{Manifest, gamete, gas station and validators.\index{gamete}\index{manifest}\index{gas station}\index{validators}}
+  \caption{Manifest, gamete, gas station and validators.}
   \label{fig:manifest}
 \end{figure}
 %
@@ -448,24 +448,25 @@ We have used the moka command to see the manifest of a node. You can also use th
 Mokito app for that. Namely, tap on the app menu icon on the top-left corner of the screen
 and select \emph{Manifest} from the menu that will appear (see Fig.~\ref{fig:mokito_menu}).
 %
-\begin{figure}[t]
-  \begin{center}
-    \includegraphics[width=6cm]{pics/mokito_menu}
-  \end{center}
+\begin{figure}
+\centering
+\begin{subfigure}{.5\textwidth}
+  \centering
+  \includegraphics[width=.45\linewidth]{pics/mokito_menu}
   \caption{The menu of the Mokito app.}
   \label{fig:mokito_menu}
+\end{subfigure}%
+\begin{subfigure}{.5\textwidth}
+  \centering
+  \includegraphics[width=.45\linewidth]{pics/mokito_manifest}
+  \caption{The manifest of the Hotmoka node.}
+  \label{fig:mokito_manifest}
+\end{subfigure}
+\caption{From the top-level corner menu of Mokito, it is possible to select the \emph{Manifest} item to show the manifest of the Hotmoka node.}
 \end{figure}
 %
 After tapping on \emph{Manifest}, a new screen will appear, containing the same information
 that we saw with the command \texttt{moka nodes manifest show} (see Fig.~\ref{fig:mokito_manifest}).
-%
-\begin{figure}[t]
-  \begin{center}
-    \includegraphics[width=6cm]{pics/mokito_manifest}
-  \end{center}
-  \caption{The manifest of the Hotmoka node, shown in the Mokito app.}
-  \label{fig:mokito_manifest}
-\end{figure}
 
 \section{Creation of a first account}\label{sec:creation_account}
 
@@ -526,7 +527,7 @@ password of the account (in our case, we have chosen \texttt{chocolate}),
 it allows its owner to control your account and spend its coins.
 Note that the password is not written anywhere: if you lose it, it cannot be recovered.
 
-Let us check that our account really exists at its address,
+Let us check that our account really exists,
 by querying the node about the state of the object allocated at \texttt{\accountOne}:
 %
 \input{moka_objects_show_account1_command}
@@ -555,3 +556,184 @@ will refer to the jar that contains its bytecode.
 In the following, you can use the \texttt{moka objects show} command on any object,
 not just on your own accounts, whenever you want to inspect its state
 (that includes the state inherited from its superclasses).
+
+\begin{figure}[t]
+  \begin{center}
+    \begin{tikzpicture}[scale=0.5,>=Stealth]
+      \draw[rounded corners] (0,-9) rectangle (21,19.3) [fill=statebackgroundcolor];
+
+      \draw[rounded corners] (0.5,16) rectangle +(20,2.8) [fill=jarbackgroundcolor];
+      \draw (1,18) node[right] {jar: classes of the Takamaka runtime, such as};
+      \draw (1,17) node[right] {\texttt{Contract}, \texttt{Storage}, \texttt{@View}, \texttt{@FromContract}\ldots};
+      \draw (-2,18.2) node[left] {Takamaka code};
+      \draw (-2,17.1) node[left] {at \texttt{\takamakaCodeShort{}}};
+      \draw[->,thick] (-2,17.5) -- +(2.5,0);
+
+      \draw[->,thick] (6,13.3) -- +(0,2.7);
+      \draw (6,14.8) node[left] {classpath};
+      \draw (-2,12.8) node[left] {manifest};
+      \draw (-2,11.7) node[left] {at \texttt{\manifestShort{}}};
+      \draw[->,thick] (-2,12.3) -- +(2.5,0);
+
+      \draw[rounded corners] (0.5,10.8) rectangle +(11,2.8) [fill=objectbackgroundcolor];
+      \draw (1,12.7) node[right] {chainId: \chainId{}};
+      \draw (1,11.7) node[right] {signature: ed25519};
+
+      \draw[<-,thick] (4,8.1) -- +(0,2.7);
+      \draw (4,9.5) node[right] {gamete};
+      \draw[->,thick] (2,10.8) .. controls (2,5) .. node[very near start,sloped,above] {\small gas station} (3,3.8);
+      \draw[->,thick] (1,10.8) .. controls (1,2) .. node[near end,sloped,below] {\small validators} (1.5,-1.2);
+
+      \draw[rounded corners] (3,5.3) rectangle +(8,2.8) [fill=objectbackgroundcolor];
+      \draw (3.5,6.7) node[right] {balance: 9999\ldots};
+      \draw (-2,7.2) node[left] {gamete};
+      \draw (-2,6.1) node[left] {at \texttt{\gameteShort{}}};
+      \draw[->,thick] (-2,6.7) -- +(5,0);
+      \draw[->,thick] (10,8.1) .. controls (14,13) .. node[near end,sloped,below] {classpath} (14,16.1);
+
+      \draw[rounded corners] (2,1) rectangle +(8,2.8) [fill=objectbackgroundcolor];
+      \draw (2.5,2.5) node[right] {gasPrice: 1};
+      \draw (-2,3) node[left] {gas station};
+      \draw (-2,2) node[left] {at \texttt{\gasStationShort{}}};
+      \draw[->,thick] (-2,2.5) -- +(4,0);
+      \draw[->,thick] (9,3.8) .. controls (15,8) .. node[near end,sloped,below] {classpath} (16,16.1);
+
+      \draw[rounded corners] (0.5,-4) rectangle +(10.5,2.8) [fill=objectbackgroundcolor];
+      \draw (1,-2) node[right] {number of validators: 0};
+      \draw (1,-3.1) node[right] {current supply: 1209\ldots};
+      \draw (-2,-2) node[left] {validators};
+      \draw (-2,-3) node[left] {at \texttt{\validatorsShort{}}};
+      \draw[->,thick] (-2,-2.5) -- +(2.5,0);
+      \draw[->,thick] (9.5,-1.2) .. controls (17,8) .. node[near end,sloped,below] {classpath} (18,16.1);
+
+      \draw[rounded corners] (3,-8.5) rectangle +(11,2.8) [fill=objectbackgroundcolor];
+      \draw (3.5,-7) node[right] {balance: \accountOneBalance};
+      \draw (-2,-6.6) node[left] {account1};
+      \draw (-2,-7.7) node[left] {at \texttt{\accountOneShort{}}};
+      \draw[->,thick] (-2,-7) -- +(5,0);
+      \draw[->,thick] (10,-5.7) .. controls (18,0) .. node[near end,sloped,below] {classpath} (20,16.1);
+    \end{tikzpicture}
+  \end{center}
+
+  \caption{The state of the network nodes after the creation of our new account.}
+  \label{fig:state_with_account}
+\end{figure}
+
+Fig.~\ref{fig:state_with_account}
+shows the state of the network nodes after the creation of our new account.
+Since out test node is part of a blockchain, it is not only its state that has been modified,
+but also that of all nodes that are part of that blockchain.
+
+Whenever your account will run out of coins, you can recharge it with the
+\texttt{moka send} command, by using, again, the faucet as source of coins. Namely,
+if you want to recharge your account with \accountOneRecharge{} extra coins, you can type:
+%
+\input{moka_accounts_send_account1_command}
+\input{moka_accounts_send_account1_output}
+%
+You can then use the \texttt{moka objects show} command to verify that the balance of
+your account has been actually increased with \accountOneRecharge{} extra coins.
+
+The creation of a new account from the faucet is possible from the Mokito app as well.
+Namely, use the menu of the app to tap on the \emph{Accounts} item to see the
+list of available accounts (Fig.~\ref{fig:mokito_start}). From there, tap on the
+menu icon on the right of the \emph{Faucet} account and select \emph{Create a new account}
+(see Fig.~\ref{fig:mokito_new_account}).
+%
+\begin{figure}
+\centering
+\begin{subfigure}{.5\textwidth}
+  \centering
+  \includegraphics[width=.45\linewidth]{pics/mokito_new_account}
+  \caption{The menu for creating a new account.}
+  \label{fig:mokito_new_account}
+\end{subfigure}%
+\begin{subfigure}{.5\textwidth}
+  \centering
+  \includegraphics[width=.45\linewidth]{pics/mokito_elvis_new_account}
+  \caption{The form specifying a new account Elvis.}
+  \label{fig:mokito_elvis_new_account}
+\end{subfigure}
+\caption{From the contextual menu of the faucet account in Mokito, it is possible to require the creation of a new account, by specifying its name, password and initial balance.}
+\end{figure}
+%
+A form will appear, where you can specify the
+name for the account, its password and the initial balance (that will be paid by the faucet).
+For instance, you can fill it as in Fig.~\ref{fig:mokito_elvis_new_account}.
+%
+\begin{commentbox}
+The name of the accounts is a feature of Mokito to simplify the identification
+of the accounts. However, keep in mind that accounts have no name in Hotmoka: they
+are just identified by their storage reference. For instance, moka currently does not
+allow one to associate names to accounts.
+\end{commentbox}
+%
+After tapping on the \emph{Create new account} button, the new account will be created and
+its information will be shown, as in Fig.~\ref{fig:mokito_show_elvis}.
+Note, in this screen, the storage reference of the new account
+and the presence of a 36 words passphrase.
+%
+\begin{figure}
+\centering
+\begin{subfigure}{.5\textwidth}
+  \centering
+  \includegraphics[width=.45\linewidth]{pics/mokito_show_elvis}
+  \caption{The new account Elvis.}
+  \label{fig:mokito_show_account}
+\end{subfigure}%
+\begin{subfigure}{.5\textwidth}
+  \centering
+  \includegraphics[width=.45\linewidth]{pics/mokito_added_elvis}
+  \caption{Elvis added to the list of accounts.}
+  \label{fig:mokito_added_elvis}
+\end{subfigure}
+\caption{The new account is identified by its BIP39 passphrase. After its creation, it is added to the list of accounts in Mokito.}
+\end{figure}
+%
+If you go back to the accounts screen (by using the top-left menu of Mokito),
+you will see that Elvis
+has been added to your accounts (see Fig.~\ref{fig:mokito_added_elvis}).
+
+\section{Importing accounts}\label{sec:importing_accounts}
+
+We have created \texttt{\accountOneShort{}} with moka and
+\texttt{\accountMokitoShort{}} with Mokito. We might want to \emph{import} the former in Mokito
+and the latter in moka, so that we can operate on both accounts with both tools. In order to import
+\texttt{\accountMokitoShort{}} in moka, we can use the \texttt{moka accounts import} command
+and insert its 36 words passphrase from Fig.~\ref{fig:mokito_show_elvis}:
+%
+\input{moka_accounts_import_account_mokito_command}
+\input{moka_accounts_import_account_mokito_output}
+%
+After that, it is possible to control that account with moka (if we remember
+its password, that is, \texttt{chocolate}).
+
+Vice versa, in order to import into Mokito the account that was created with moka,
+first export the 36 words of that account:
+
+\begin{figure}[t]
+\centering
+\begin{subfigure}{.5\textwidth}
+  \centering
+  \includegraphics[width=.45\linewidth]{pics/mokito_accounts_menu}
+  \caption{The menu of the accounts screen.}
+  \label{fig:mokito_accounts_menu}
+\end{subfigure}%
+\begin{subfigure}{.5\textwidth}
+  \centering
+  \includegraphics[width=.45\linewidth]{pics/mokito_insert_passphrase}
+  \caption{Inserting the 36 words passphrase in Mokito.}
+  \label{fig:mokito_insert_passphrase}
+\end{subfigure}
+\caption{In order to import an account in Mokito the top-right menu of the accounts screen allows one to insert the passphrase that identifies the account to import and its password.}
+\end{figure}
+
+\begin{figure}[t]
+  \begin{center}
+    \includegraphics[width=5cm]{pics/mokito_added_the_boss}
+  \end{center}
+  \caption{The new account The Boss has been imported.}
+  \label{fig:mokito_added_the_boss}
+\end{figure}
+
+

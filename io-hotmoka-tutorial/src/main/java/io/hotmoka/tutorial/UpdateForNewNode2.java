@@ -198,16 +198,21 @@ public class UpdateForNewNode2 {
 			createCommandFile("moka_objects_show_account1", "moka objects show " + account1 + " --uri " + mokamintURI);
 			createOutputFile("moka_objects_show_account1", mokaObjectShowAccount1Output);
 
+			var recharge = 200000;
+			report("accountOneRecharge", String.valueOf(recharge));
+			createCommandFile("moka_accounts_send_account1", "moka accounts send faucet " + recharge + " " + account1 + " --uri=" + mokamintURI);
+			var output10 = Moka.accountsSend("faucet " + recharge + " " + account1 + " --uri=" + mokamintURI + " --timeout=" + TIMEOUT);
+			createOutputFile("moka_accounts_send_account1", output10);
+
+			var accountMokito = StorageValues.reference("826b150ccd5bf7ac6d8b07a7d3d12eba2c0eada93a91318e3b8a61397c702412#0");
+			report("accountMokito", accountMokito);
+			reportShort("accountMokito", accountMokito);
+
+			createCommandFile("moka_accounts_import_account_mokito", "moka accounts import bench cradle hat deer game nation stage extra elite alarm pupil eight sudden amused uniform clip catch apart alpha autumn fat away theme ski excuse truly gospel clay silent stairs route pyramid exile find outside decade");
+			var output11 = Moka.accountsImport("bench cradle hat deer game nation stage extra elite alarm pupil eight sudden amused uniform clip catch apart alpha autumn fat away theme ski excuse truly gospel clay silent stairs route pyramid exile find outside decade");
+			createOutputFile("moka_accounts_import_account_mokito", output11);
+
 			/*
-			String account1String = account1.toString();
-			int account1ProgressivePos = account1String.lastIndexOf('#');
-			String account1Short = account1String.substring(0, 11) + "..." + account1String.substring(account1ProgressivePos);
-			report("sed -i 's/@short_account1/" + account1Short + "/g' target/pics/state2.fig");
-			report("sed -i 's/@short_account1/" + account1Short + "/g' target/pics/state3.fig");
-
-			var output10 = AccountsSendOutputs.from(Moka.accountsSend("faucet 200000 " + account1 + " --uri=" + mokamintURI + " --json --timeout=" + TIMEOUT));
-			report("sed -i 's/@transaction_recharge_account1/" + output10.getTransaction() + "/g' target/Tutorial.md");
-
 			var output11 = AccountsExportOutputs.from(Moka.accountsExport(account1 + " --dir=" + dir + " --json"));
 			var ai = new AtomicInteger(1);
 			String words = output11.getBip39Words().map(s -> String.format("%2d: %s", ai.getAndIncrement(), s)).collect(Collectors.joining("\\n"));
@@ -444,7 +449,7 @@ public class UpdateForNewNode2 {
 		}
 
 		private void reportShort(String command, TransactionReference reference) {
-			report(command + "Short", reference.toString().substring(0, 16));
+			report(command + "Short", reference.toString().substring(0, 16) + "\\ldots\\#");
 		}
 
 		private void createCommandFile(String filename, String content) throws FileNotFoundException {
