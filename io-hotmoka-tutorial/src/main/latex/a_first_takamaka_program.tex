@@ -1,0 +1,171 @@
+\chapter{A first Takamaka program}\label{ch:a_first_takamaka_program}
+
+Takamaka\index{Takamaka} is the language that can be used to write
+smart contracts for Hotmoka nodes. Hotmoka
+nodes and Takamaka code have exactly the same
+relation as Ethereum nodes and Solidity code.
+
+Let us start from a simple example of Takamaka code. Since we are
+writing Java code, there is nothing special to learn or install
+before starting writing programs in Takamaka. Just use your
+preferred integrated development environment (IDE) for Java. Or even
+do everything from command-line, if you prefer. Our examples below will be
+shown for the Eclipse IDE, using Java 21 or later, but you can perfectly well
+use the IntelliJ IDE instead.
+
+Our goal will be to create a Java class that we will instantiate
+and use in blockchain. Namely, we will learn how to create an object
+of that class, that will be persisted in blockchain, and how we can later
+call the \texttt{toString()} method on that instance in blockchain.
+
+\section{Creation of the Eclipse project}\label{sec:creation_first_eclipse_project}
+
+\begin{center}
+(See the \texttt{io-hotmoka-tutorial-examples-family} project in \texttt{\hotmokaRepo{}})
+\end{center}
+
+Let us create a Maven project \texttt{io-hotmoka-tutorial-examples-family} inside Eclipse,
+in the \texttt{\hotmokaTutorialDir} directory.
+For that, in the Eclipse's Maven wizard
+(\emph{New}$\rightarrow$\emph{Maven project}) specify the options
+\emph{Create a simple project (skip archetype selection)}
+and deselect the \emph{Use default Workspace directory} option,
+specifying a subdirectory \texttt{io-hotmoka-tutorial-examples-family}
+of the \texttt{\hotmokaTutorialDir{}} directory as \emph{Location} instead.
+Hence, \emph{Location} should be something that ends
+with \texttt{\ldots/\hotmokaTutorialDir{}/io-hotmoka-tutorial-examples-family}.
+Do not add the project to any working set. Use \texttt{io.hotmoka}
+as \emph{Group Id} and use the directory name
+\texttt{io-hotmoka-tutorial-examples-family} as \emph{Artifact Id}.
+
+\begin{commentbox}
+The \emph{Group Id} can be changed as you prefer, but we will stick
+to \texttt{io.hotmoka} to show the exact files that you will see in the provided code.
+\end{commentbox}
+
+By clicking \emph{Finish} in the Eclipse's Maven wizard, you should see
+a new Maven project in the Eclipse's explorer.
+Currently, Eclipse creates a default \texttt{pom.xml} file that uses Java 5
+and has no dependencies. Replace hence
+the content of the \texttt{pom.xml} file that has been created in the
+\texttt{io-hotmoka-tutorial-examples-family} project with the following code:
+%
+\begin{codebox}\begin{xmllst}
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>io.hotmoka</groupId>
+  <artifactId>io-hotmoka-tutorial-examples-family</artifactId>
+  <version>|\hotmokaVersion{}|</version>
+
+  <properties>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <maven.compiler.release>21</maven.compiler.release>
+  </properties>
+
+  <dependencies>
+    <dependency>
+      <groupId>io.hotmoka</groupId>
+      <artifactId>io-takamaka-code</artifactId>
+      <version>|\takamakaVersion{}|</version>
+    </dependency>
+  </dependencies>
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <version>3.11.0</version>
+      </plugin>
+    </plugins>
+  </build>
+
+</project>
+\end{xmllst}\end{codebox}
+%
+It specifies to use Java 21 and provides the dependency
+to \texttt{io-takamaka-code}, that is, the run-time classes of the Takamaka smart contracts.
+
+\begin{commentbox}
+We are using \texttt{\takamakaVersion{}} here, as version of the Takamaka runtime
+project. You can replace that, if needed, with the latest version of the project.
+\end{commentbox}
+
+Since the \texttt{pom.xml} file has changed, Eclipse will normally show an error
+in the project. To solve it,
+you need to update the Maven dependencies of the project:
+right-click on the project then \emph{Maven}$\rightarrow$\emph{Update Project}.
+The imported dependency \texttt{io-takamaka-code},
+that contains the Takamaka runtime, should be downloaded
+and everything should compile without errors.
+The result in Eclipse should look similar to what is
+shown in Fig.~\ref{fig:family}.
+%
+\begin{figure}[t]
+  \begin{center}
+    \includegraphics[width=5cm]{pics/family}
+  \end{center}
+  \caption{The family Eclipse project.}
+  \label{fig:family}
+\end{figure}
+
+Create a \texttt{module-info.java} file inside \texttt{src/main/java}
+(right-click on the project, then \emph{Configure}$\rightarrow$\emph{Create module-info.java}$\rightarrow$\emph{Create}),
+to state that this project depends on the module containing the runtime of Takamaka:
+%
+\begin{codebox}\begin{javalst}
+module family {
+  requires io.takamaka.code;
+}
+\end{javalst}\end{codebox}
+
+Create a package \texttt{io.hotmoka.tutorial.examples.family}
+inside \texttt{src/main/java}. Inside that package,
+create a Java source \texttt{Person.java}, by copying and pasting the following code:
+%
+\begin{codebox}\begin{javalst}
+package io.hotmoka.tutorial.examples.family;
+
+import io.takamaka.code.lang.StringSupport;
+
+public class Person {
+  private final String name;
+  private final int day;
+  private final int month;
+  private final int year;
+  public final Person parent1;
+  public final Person parent2;
+
+  public Person(String name, int day, int month, int year, Person parent1, Person parent2) {
+    this.name = name;
+    this.day = day;
+    this.month = month;
+    this.year = year;
+    this.parent1 = parent1;
+    this.parent2 = parent2;
+  }
+
+  public Person(String name, int day, int month, int year) {
+    this(name, day, month, year, null, null);
+  }
+
+  @Override
+  public String toString() {
+    return StringSupport.concat(name, " (", day, "/", month, "/", year, ")");
+  }
+}
+\end{javalst}\end{codebox}
+
+This is a plain old Java class and should not need any comment.
+The only observation is that we concat strings
+with the support class \texttt{StringSupport}\index{StringSupport},
+since the standard string concatenation
+of Java would end up
+calling methods whose computational cost is not foreseeable in advance. In general,
+a very small portion of the
+Java library can be used directly in Takamaka,
+and support classes\index{support class} are used to replace some common functionalities,
+such as string concatenation.

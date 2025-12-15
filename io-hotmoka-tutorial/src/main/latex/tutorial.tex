@@ -120,6 +120,9 @@
 \definecolor{shellcommandboxbackgroundcolor}{rgb}{1.0,0.9,0.9}
 \newmdenv[linecolor=black,leftmargin=1em,rightmargin=1em,backgroundcolor={shellcommandboxbackgroundcolor}]{shellcommandbox}
 
+\definecolor{codeboxbackgroundcolor}{rgb}{0.9,0.9,0.9}
+\newmdenv[linecolor=black,leftmargin=1em,rightmargin=1em,backgroundcolor={codeboxbackgroundcolor}]{codebox}
+
 \usepackage{listings} 
 
 \lstset{% 
@@ -129,6 +132,44 @@
   escapeinside = ||,
   breakindent=0pt} 
 \lstnewenvironment{ttlst}{}{} 
+
+\lstdefinestyle{myJava}{
+tabsize = 4, %% set tab space width
+showstringspaces = false, %% prevent space marking in strings, string is defined as the text that is generally printed directly to the console
+%numbers = left, %% display line numbers on the left
+commentstyle = \color{green}, %% set comment color
+keywordstyle = \color{blue}, %% set keyword color
+stringstyle = \color{red}, %% set string color
+rulecolor = \color{black}, %% set frame color to avoid being affected by text color
+basicstyle = \small \ttfamily , %% set listing font and size
+breaklines = true, %% enable line breaking
+%numberstyle = \tiny,
+escapeinside = ||,
+language = Java,
+showstringspaces=false,
+morekeywords={module,requires,exports,provides}
+%frame = trBL,
+%firstnumber = last
+}
+
+\lstnewenvironment{javalst}[1][]{
+  \lstset{style=myJava, #1} % Apply the style and any extra options
+}{}
+
+\lstdefinestyle{myXML}{
+  language=XML,
+  showstringspaces=false,
+  commentstyle = \color{green}, %% set comment color
+  keywordstyle = \color{blue}, %% set keyword color
+  stringstyle = \color{red}, %% set string color
+  rulecolor = \color{black}, %% set frame color to avoid being affected by text color
+  basicstyle = \small \ttfamily , %% set listing font and size
+  morekeywords={encoding,project,modelVersion,groupId,artifactId,properties,dependencies,dependency,build,plugins,plugin,maven,compiler,release,sourceEncoding,xs:schema,xs:element,xs:complexType,xs:sequence,xs:attribute}
+}
+
+\lstnewenvironment{xmllst}[1][]{
+  \lstset{style=myXML, #1} % Apply the style and any extra options
+}{}
 
 \newcommand{\ie}{\emph{i.e.}\@}
 
@@ -143,6 +184,7 @@
 
 \input{introduction}
 \input{getting_started}
+\input{a_first_takamaka_program}
 
 \bibliographystyle{plain}
 
