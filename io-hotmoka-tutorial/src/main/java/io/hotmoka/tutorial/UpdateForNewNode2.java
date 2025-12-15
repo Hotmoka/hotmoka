@@ -121,6 +121,7 @@ public class UpdateForNewNode2 {
 			System.out.println("Saving temporary files inside the directory " + tempDir);
 
 			createCommandFile("git_clone_hotmoka", "git clone --branch v" + HOTMOKA_VERSION + " " + hotmokaRepo);
+			createCommandFile("mvn_clean_install", "mvn clean install");
 			createOutputFile("moka_help", Moka.help(""));
 			createCommandFile("moka_version", "moka --version");
 			createOutputFile("moka_help_objects", Moka.help("objects"));
@@ -209,28 +210,32 @@ public class UpdateForNewNode2 {
 			reportShort("accountMokito", accountMokito);
 
 			createCommandFile("moka_accounts_import_account_mokito", "moka accounts import bench cradle hat deer game nation stage extra elite alarm pupil eight sudden amused uniform clip catch apart alpha autumn fat away theme ski excuse truly gospel clay silent stairs route pyramid exile find outside decade");
-			var output11 = Moka.accountsImport("bench cradle hat deer game nation stage extra elite alarm pupil eight sudden amused uniform clip catch apart alpha autumn fat away theme ski excuse truly gospel clay silent stairs route pyramid exile find outside decade");
+			var output11 = Moka.accountsImport("bench cradle hat deer game nation stage extra elite alarm pupil eight sudden amused uniform clip catch apart alpha autumn fat away theme ski excuse truly gospel clay silent stairs route pyramid exile find outside decade --output-dir=" + tempDir);
 			createOutputFile("moka_accounts_import_account_mokito", output11);
 
-			/*
-			var output11 = AccountsExportOutputs.from(Moka.accountsExport(account1 + " --dir=" + dir + " --json"));
-			var ai = new AtomicInteger(1);
-			String words = output11.getBip39Words().map(s -> String.format("%2d: %s", ai.getAndIncrement(), s)).collect(Collectors.joining("\\n"));
-			report("sed -i 's/@36words_of_account1/" + words + "/g' target/Tutorial.md");
+			createCommandFile("moka_accounts_export_account1", "moka account export " + account1);
+			createOutputFile("moka_accounts_export_account1", Moka.accountsExport(account1 + " --dir=" + tempDir));
 
-			var output12 = KeysCreateOutputs.from(Moka.keysCreate("--name anonymous.pem --output-dir=" + dir + " --password=kiwis --json"));
+			createCommandFile("moka_keys_create_anonymous", "moka keys create --name=anonymous.pem --password");
+			var output12 = KeysCreateOutputs.from(Moka.keysCreate("--name anonymous.pem --output-dir=" + tempDir + " --password=kiwis --json"));
 			String anonymousPublicKeyBase58 = output12.getPublicKeyBase58();
-			report("sed -i 's/@publickeybase58anonymous/" + anonymousPublicKeyBase58 + "/g' target/Tutorial.md");
-			// we replace the / character of Base64 encodings with the (escaped) escape sequence \/ for "sed"
-			report("sed -i \"s/@publickeyanonymous/" + output12.getPublicKeyBase64().replace("/", "\\/") + "/g\" target/Tutorial.md");
-			report("sed -i 's/@tendermintaddressanonymous/" + output12.getTendermintAddress() + "/g' target/Tutorial.md");
+			createOutputFile("moka_keys_create_anonymous", "Enter value for --password (the password that will be needed later to use the key pair): kiwis\n" + output12);
+			report("publicKeyBaseFifthyeightAnonymous", anonymousPublicKeyBase58);
 
-			var output13 = AccountsSendOutputs.from(Moka.accountsSend(account1 + " 10000 " + anonymousPublicKeyBase58 + " --password-of-payer=chocolate --dir=" + dir + " --uri=" + mokamintURI + " --json --timeout=" + TIMEOUT));
-			report("sed -i 's/@transactionsendanonymous/" + output13.getTransaction() + "/g' target/Tutorial.md");
-			report("sed -i 's/@account_anonymous/" + output13.getDestinationInAccountsLedger().get() + "/g' target/Tutorial.md");
+			var amountSendToAnonymous = 10000;
+			report("sentToAnonymous", String.valueOf(amountSendToAnonymous));
+			createCommandFile("moka_accounts_send_account1_anonymous", "moka accounts send " + account1 + " " + amountSendToAnonymous + " " + anonymousPublicKeyBase58 + " --password-of-sender --uri=" + mokamintURI);
+			var output13 = AccountsSendOutputs.from(Moka.accountsSend(account1 + " " + amountSendToAnonymous + " " + anonymousPublicKeyBase58 + " --password-of-sender=chocolate --dir=" + tempDir + " --uri=" + mokamintURI + " --json --timeout=" + TIMEOUT));
+			createOutputFile("moka_accounts_send_account1_anonymous", "Enter value for --password-of-sender (the password of the sender): chocolate\n" + output13);
+			report("accountAnonymous", output13.getDestinationInAccountsLedger().get());
 
-			KeysBindOutputs.from(Moka.keysBind(dir.resolve("anonymous.pem") + " --password=kiwis --uri=" + mokamintURI + " --output-dir=" + dir + " --json --timeout=" + TIMEOUT));
-
+			createCommandFile("moka_keys_bind_anonymous", "moka keys bind anonymous.pem --password --uri=" + mokamintURI);
+			// we use a wrong password to simulate the fact that the key has not been bound yet
+			createOutputFile("moka_keys_bind_anonymous_not_yet", Moka.keysBind(tempDir.resolve("anonymous.pem") + " --password=wrong --uri=" + mokamintURI + " --output-dir=" + tempDir + " --timeout=" + TIMEOUT));
+			var output14 = Moka.keysBind(tempDir.resolve("anonymous.pem") + " --password=kiwis --uri=" + mokamintURI + " --output-dir=" + tempDir + " --timeout=" + TIMEOUT);
+			createOutputFile("moka_keys_bind_anonymous", "Enter value for --password (the password of the key pair): kiwis\n" + output14);
+			
+			/*
 			Path jar = Paths.get(System.getProperty("user.home") + "/.m2/repository/io/hotmoka/io-hotmoka-tutorial-examples-family/" + HOTMOKA_VERSION + "/io-hotmoka-tutorial-examples-family-" + HOTMOKA_VERSION + ".jar");
 			var output14 = JarsInstallOutputs.from(Moka.jarsInstall(account1 + " " + jar + " --password-of-payer=chocolate --dir=" + dir + " --uri=" + mokamintURI + " --json --timeout=" + TIMEOUT));
 			report("sed -i 's/@transactioninstallfamily/" + output14.getTransaction() + "/g' target/Tutorial.md");
@@ -459,7 +464,7 @@ public class UpdateForNewNode2 {
 				// we erase the temp directory, since the tutorial assumes that temporary
 				// files get saved in the current directory
 				writer.write(content.replace(tempDir + "/", ""));
-				writer.write("\\end{ttlst}\\end{shellcommandbox}\n");
+				writer.write("\n\\end{ttlst}\\end{shellcommandbox}\n");
 				System.out.println("Created " + outputFilePath);
 			}
 		}

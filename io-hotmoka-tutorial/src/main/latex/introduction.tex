@@ -136,7 +136,7 @@ over Hotmoka is missing at the moment (that is, applications, typically web-base
 use Hotmoka as their backend storage). Hotmoka is open-source and non-proprietary,
 licensed under the terms of the Apache~2.0 License. Therefore, feel free to clone and fork the code.
 
-\section{The example projects of this book}
+\section{The example projects of this book}\label{sec:example_projects}
 
 The experiments that we will perform in this book will
 require one to create Java projects. We suggest that you create and
@@ -153,6 +153,41 @@ You can clone the code as follows:
 %
 The examples will be inside the Maven module
 \texttt{io-hotmoka-tutorial-examples}.
+
+\section{Installing the source code of Hotmoka}\label{sec:installing_source_code}
+
+You do \emph{not} need to install to source code of Hotmoka to follow this
+book. Nevertheless, an important aspect of blockchain technology is that
+trust is based also on the public availability of the source code.
+Moreover, you will need to download the source code if you want to understand
+the inner details of Hotmoka, or contribute to the development of the project or
+fork the project.
+
+Assuming that you have already downloaded the source code of Hotmoka, as shown
+in Sec.~\ref{sec:example_projects}, you can \texttt{cd} to the \texttt{hotmoka}
+directory and compile, package, test and install the Hotmoka jars:
+%
+\input{mvn_clean_install}
+%
+All tests should pass and all projects should be successfully compiled and packaged.
+
+\begin{commentbox}
+  If you are not interested in running the tests, append \texttt{-DskipTests} at the end
+  of the previous command.
+\end{commentbox}
+
+If you want to edit the source code inside an IDE, you can import it in Eclipse\index{Eclipse},
+NetBeans\index{NetBeans} or IntelliJ\index{IntelliJ}.
+In Eclipse, use the \emph{File$\rightarrow$Import$\rightarrow$Existing Maven Projects}
+menu item and import
+the parent Maven project contained in the \texttt{hotmoka} directory that you cloned from
+GitHub. This should create, inside Eclipse, also its submodules.
+You will then be able to compile, package, test and install the Hotmoka jars inside
+Eclipse itself, by right-clicking on the parent project and selecting
+\emph{Run As} and then the \emph{Maven install} target. You will also be able
+to run the tests inside
+the Eclipse JUnit runner, by right-clicking on the \texttt{io-hotmoka-tests} subproject
+and selecting \emph{Run As} and then the \emph{JUnit Test} target.
 
 \section{Acknowledgments}
 

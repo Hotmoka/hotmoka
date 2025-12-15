@@ -496,7 +496,7 @@ inside a \texttt{\hotmokaTutorialDir{}} directory of your home, so that moka
 will save the key pair of your account
 there, which will simplify your subsequent work:
 %
-\input{moka_keys_create_account1_command}
+\input{moka_keys_create_account1_command}\index{key!creation}
 \input{moka_keys_create_account1_output}
 %
 \begin{commentbox}
@@ -506,9 +506,9 @@ there, which will simplify your subsequent work:
   when we'll use the key pair.
 \end{commentbox}
 %
-We can now create an account that uses the key pair, letting the faucet pay for it:
+We can now create an account that uses the key pair, letting the faucet pay for it:\index{faucet}
 %
-\input{moka_accounts_create_account1_command}
+\input{moka_accounts_create_account1_command}\index{accoun!creation}
 \input{moka_accounts_create_account1_output}
 %
 Storage reference \texttt{\accountOne} refers to the newly created account object.
@@ -694,7 +694,7 @@ If you go back to the accounts screen (by using the top-left menu of Mokito),
 you will see that Elvis
 has been added to your accounts (see Fig.~\ref{fig:mokito_added_elvis}).
 
-\section{Importing accounts}\label{sec:importing_accounts}
+\section{Importing accounts}\label{sec:importing_accounts}\index{account!import}
 
 We have created \texttt{\accountOneShort{}} with moka and
 \texttt{\accountMokitoShort{}} with Mokito. We might want to \emph{import} the former in Mokito
@@ -707,10 +707,7 @@ and insert its 36 words passphrase from Fig.~\ref{fig:mokito_show_elvis}:
 %
 After that, it is possible to control that account with moka (if we remember
 its password, that is, \texttt{chocolate}).
-
-Vice versa, in order to import into Mokito the account that was created with moka,
-first export the 36 words of that account:
-
+%
 \begin{figure}[t]
 \centering
 \begin{subfigure}{.5\textwidth}
@@ -727,7 +724,7 @@ first export the 36 words of that account:
 \end{subfigure}
 \caption{In order to import an account in Mokito the top-right menu of the accounts screen allows one to insert the passphrase that identifies the account to import and its password.}
 \end{figure}
-
+%
 \begin{figure}[t]
   \begin{center}
     \includegraphics[width=5cm]{pics/mokito_added_the_boss}
@@ -736,4 +733,148 @@ first export the 36 words of that account:
   \label{fig:mokito_added_the_boss}
 \end{figure}
 
+Vice versa, in order to import into Mokito the account that was created with moka,
+first export\index{account!export} the 36 words of that account:
+%
+\input{moka_accounts_export_account1_command}
+\input{moka_accounts_export_account1_output}
+%
+Then go to the accounts page of Mokito and show the
+top-right menu of the accounts page; select \emph{Import account}
+(see Fig.~\ref{fig:mokito_accounts_menu}).
+In the screen that will appear, insert the name that you want to give to the account,
+its password and its 36 words passphrase
+(Fig.~\ref{fig:mokito_insert_passphrase}).
+Tap on the \emph{Import Account} button\index{account!import}.
+The new account will show in the list of
+available accounts (Fig.~\ref{fig:mokito_added_the_boss}). From this moment,
+it will be possible to control the account from Mokito.
 
+\begin{commentbox}
+The 36 words of an account are enough for moving accounts around
+different clients. Note that clients do not \emph{contain} accounts
+but only the cryptographic information
+needed to access the accounts. If a client is uninstalled,
+the accounts that it used still exist in the remote
+Hotmoka node and can still be re-imported and used
+in some other client, if we have written down their 36 words.
+\end{commentbox}
+
+\section{Anonymous payments}\label{sec:anonymous_payments}
+
+The fact that accounts in Hotmoka are not just identified by their public key, but also by their
+storage reference inside the state of a node, makes it a bit more difficult, but not impossible,
+to execute anonymous transactions. We do not advocate the use of anonymity here, but it is true
+that, sometimes, one wants to remain anonymous and still receive a payment.\index{payment!anonymous}
+
+\begin{commentbox}
+Anonymity is often used for illegal actions such as ransomware and blackmailing.
+We are against such actions. This section simply shows that anonymity can be achieved
+in Hotmoka as well, although it is a bit harder than with other blockchains.
+\end{commentbox}
+
+Suppose for instance that somebody, whom we call Anonymous, wants to receive from us a payment
+of $\sentToAnonymous{}$ coins,
+but still wants to remain unknown. He can receive the payment in many ways:
+
+\begin{enumerate}
+\item\label{enum:anonymous_1} He could send us an anonymous email asking us to pay to a specific account, already existing
+   in the state of the node. But this is not anonymous, since, in Hotmoka, an account is an object
+   and there must have been a transaction that created that object, whose payer is likely to be
+   Anonymous or somebody in his clique. That is, this allows one to infer something
+   about the identity of Anonymous. Therefore, Anonymous would probably discard this possibility.
+ \item\label{enum:anonymous_2} He could send us an anonymous email asking
+   us to create a new account with a given public key, whose associated
+   private key he controls, and to charge it with $\sentToAnonymous{}$ coins.
+   After that, we are expected
+   to send him an email where we notify him the storage reference where
+   \texttt{moka accounts create} has allocated the account. But this means that we must know his
+   email address, which is definitely against the idea of anonymity. Therefore,
+   Anonymous discards this possibility as well.
+\item He could send us an anonymous email asking us \emph{to pay to a given public key}\index{payment!to key}, whose
+   associated private key he controls.
+   After we pay to that key, he autonomously and anonymously recovers the storage reference of the
+   resulting account, without any interaction with us. This is definitely anonymous and that is
+   the technique that Anonymous will choose.
+\end{enumerate}
+
+Let us show how the third possibility works. Anonymous starts by creating a new private/public key,
+exactly as we did before:
+%
+\input{moka_keys_create_anonymous_command}
+\input{moka_keys_create_anonymous_output}
+%
+\begin{commentbox}
+  Note that there is no \texttt{-{}-uri} part in the \texttt{moka keys create} command,
+  since this operation
+  runs completely off-line: no object gets created in the state of any Hotmoka node for now.
+\end{commentbox}
+%
+Anonymous pastes the new key into an anonymous email message and sends it to us:
+%
+\begin{center}
+  {\small\begin{alltt}
+    Please pay \sentToAnonymous{} coins to the key \publicKeyBaseFifthyeightAnonymous{}.    
+  \end{alltt}}
+\end{center}
+%
+Once we receive that email, we use (for instance) our previous account
+to send $\sentToAnonymous{}$ coins to that key:
+%
+\input{moka_accounts_send_account1_anonymous_command}\index{account!payment}\index{payment!to account}
+\input{moka_accounts_send_account1_anonymous_output}
+%
+And that's all! No interaction is needed with Anonymous. He will check
+from time to time to see if we have paid, by running the command \texttt{moka keys bind}\index{key!binding}
+until it succeeds. First attempt:
+%
+\input{moka_keys_bind_anonymous_command}
+\input{moka_keys_bind_anonymous_not_yet_output}
+%
+Second attempt:
+%
+\input{moka_keys_bind_anonymous_command}
+\input{moka_keys_bind_anonymous_not_yet_output}
+%
+The command finally succeds at the third attempt (for instance):
+%
+\input{moka_keys_bind_anonymous_command}
+\input{moka_keys_bind_anonymous_output}
+%
+Once \texttt{moka keys bind} succeeds, Anonymous can enjoy his brand new account, that he
+can control with the \texttt{kiwis} password.
+
+So how does that work? The answer is that the \texttt{moka accounts send} command
+creates the account \texttt{\accountAnonymous{}} with the public key of
+Anonymous inside it, so that Anonymous will be able to control that account.
+But there is more: that command
+also associates the public key of the account to the account itself,
+inside a hash map contained in the manifest of the node,
+called \emph{accounts ledger}\index{accounts ledger}.
+The \texttt{moka keys bind} command simply consults the
+accounts ledger, to see if somebody has already bound an account to that public key.
+
+\begin{commentbox}
+If, inside the accounts ledger, there is an account \emph{A} already associated to the
+public key chosen by Anonymous,
+then the \texttt{moka accounts send} command will not create a new account but will increase the
+balance of \emph{A} and the \texttt{moka keys bind} command will consequently yield \emph{A}.
+This is a security measure in order
+to avoid payment disruptions due to the association of dummy accounts to some keys
+or to repeated payments to the same key.
+In any case, the public key of \emph{A} can only be that chosen by Anonymous,
+since the accounts ledger
+enforces that constraint when it gets populated with accounts:
+if somebody associates a key \emph{K} to an account \emph{A}, then the public key
+contained inside \emph{A} must be \emph{K}.
+\end{commentbox}
+
+Anonymous payments are possible with Mokito as well. Namely, that client
+allows one to create a key and pay to a key. We do not show the details here, but the
+app interface should be simple enough to perform such operation.
+
+Should one use anonymous payments, always? The answer is no, since
+anonymity comes with an extra gas cost: that for modifying the accounts ledger.
+If there is no explicit need for anonymity, it is cheaper to receive payments
+as described in points~\ref{enum:anonymous_1}
+and~\ref{enum:anonymous_2} above, probably without the need of anonymous emails.
