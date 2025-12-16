@@ -235,13 +235,15 @@ public class UpdateForNewNode2 {
 			var output14 = Moka.keysBind(tempDir.resolve("anonymous.pem") + " --password=kiwis --uri=" + mokamintURI + " --output-dir=" + tempDir + " --timeout=" + TIMEOUT);
 			createOutputFile("moka_keys_bind_anonymous", "Enter value for --password (the password of the key pair): kiwis\n" + output14);
 			
-			/*
+			createCommandFile("moka_jars_install", "moka jars install " + account1 + " io-hotmoka-tutorial-examples-family/target/io-hotmoka-tutorial-examples-family-" + HOTMOKA_VERSION + ".jar --password-of-payer --uri=" + mokamintURI);
 			Path jar = Paths.get(System.getProperty("user.home") + "/.m2/repository/io/hotmoka/io-hotmoka-tutorial-examples-family/" + HOTMOKA_VERSION + "/io-hotmoka-tutorial-examples-family-" + HOTMOKA_VERSION + ".jar");
-			var output14 = JarsInstallOutputs.from(Moka.jarsInstall(account1 + " " + jar + " --password-of-payer=chocolate --dir=" + dir + " --uri=" + mokamintURI + " --json --timeout=" + TIMEOUT));
-			report("sed -i 's/@transactioninstallfamily/" + output14.getTransaction() + "/g' target/Tutorial.md");
-			TransactionReference familyAddress = output14.getJar().get();
-			report("sed -i 's/@family_address/" + familyAddress + "/g' target/Tutorial.md");
-			report("sed -i 's/@short_family_address/" + familyAddress.toString().substring(0, 10) + ".../g' target/pics/state3.fig");
+			var output15 = JarsInstallOutputs.from(Moka.jarsInstall(account1 + " " + jar + " --password-of-payer=chocolate --dir=" + tempDir + " --uri=" + mokamintURI + " --json --timeout=" + TIMEOUT));
+			createOutputFile("moka_jars_install", "Enter value for --password-of-payer (the password of the key pair of the payer account): chocolate\n" + output15);
+			TransactionReference familyAddress = output15.getJar().get();
+			report("familyAddress", familyAddress);
+			reportShort("familyAddress", familyAddress);
+
+			/*
 			String runFamilyMain = run(() -> Family.main(new String[] { mokamintURI.toString(), dir.toString(), account1.toString(), "chocolate" }));
 			int start = "jar installed at ".length();
 			var codeFamilyAddress = TransactionReferences.of(runFamilyMain.substring(start, start + 64));

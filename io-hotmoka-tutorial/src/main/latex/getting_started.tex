@@ -104,7 +104,7 @@ and are referenced through the untyped \texttt{address} type.
 
 Receiver and payer have different roles but same treatment in Hotmoka:
 they are objects in state, stored at their respective state locations or
-\emph{storage references}\index{storage reference}. For instance, the payer
+\emph{storage references}\index{storage!reference}. For instance, the payer
 might be allocated at \texttt{\accountOne}\linebreak
 (Fig.~\ref{fig:receiver_payer}). A storage reference has two parts, separated
 by a \texttt{\#} sign. The first part are 64 hexadecimal digits (\ie, 32 bytes)
@@ -121,7 +121,7 @@ that is, it holds a reference to the jar, already installed in the node,
 that contains the compiled bytecode of the class of the object. For instance,
 in Fig.~\ref{fig:receiver_payer}, the payer account is a Java object whose
 class \texttt{io.takamaka.code.lang.ExternallyOwnedAccountED25519}
-is defined in a jar referenced by the \emph{transaction reference}\index{transaction reference}
+is defined in a jar referenced by the \emph{transaction reference}\index{transaction!reference}
 \texttt{\takamakaCode{}}.
 Namely, in Hotmoka, a transaction\index{transaction} is either
 %

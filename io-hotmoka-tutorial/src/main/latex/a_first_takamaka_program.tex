@@ -169,3 +169,63 @@ a very small portion of the
 Java library can be used directly in Takamaka,
 and support classes\index{support class} are used to replace some common functionalities,
 such as string concatenation.
+
+Package the project into a jar and install it in the local Maven repository,
+by running the Maven command \texttt{mvn install} inside
+the directory of the project (that is, inside the subdirectory
+\texttt{\hotmokaTutorialDir{}/io-hotmoka-tutorial-examples-family}).
+This should generate a file named
+\texttt{io-hotmoka-tutorial-examples-family-\hotmokaVersion{}.jar},
+inside the \texttt{target} directory. Only the compiled
+class files will be relevant: Hotmoka nodes will ignore source files, manifest
+and any resources in the jar; the same compiled
+\texttt{module-info.class} is irrelevant for Hotmoka.
+All such files can be removed from the jar, to reduce the gas cost of their
+installation in the store of a node, but we do not care about this optimization here.
+The result should look as in Fig.~\ref{fig:family_jar}.
+%
+\begin{figure}[t]
+  \begin{center}
+    \includegraphics[width=5cm]{pics/family_jar}
+  \end{center}
+  \caption{The family Eclipse project, exported in jar.}
+  \label{fig:family_jar}
+\end{figure}
+
+\section{Installation of the Jar in a Hotmoka node}\label{sec:jar_installation}
+
+\begin{center}
+(See the \texttt{io-hotmoka-tutorial-examples-runs} project in \texttt{\hotmokaRepo{}})
+\end{center}
+
+We have generated the jar containing our code and we want to send it now to a Hotmoka node,
+where it will be installed. This means that it will become available to programmers
+who want to use its classes, directly or as dependencies of their programs.
+In order to install a jar in the Hotmoka node that we have used in the previous chapter,
+we can use the moka command-line tool, specifying which account will pay for the
+installation of the jar. The cost of the installation depends on the size of the
+jar and on the number of its dependencies. The moka tool uses a heuristics to
+foresee this cost, that can be overridden if needed.
+
+Move inside the \texttt{\hotmokaTutorialDir{}} directory, if you are not
+there already, so that
+moka will find your saved key pair there, and run the \texttt{moka jars install} command:
+%
+\input{moka_jars_install_command}\index{jar!install}
+\input{moka_jars_install_output}
+%
+As you can see above, the jar has been installed at a reference
+\texttt{\familyAddressShort{}}, that can be used
+later to refer to that jar. This has costed some gas, paid by our account.
+You can verify that the balance of the account has been decreased, through the
+\texttt{moka objects show} command.
+
+The state of the Hotmoka nodes of the network is now as in Fig.~\ref{fig:state3}.
+As shown there, a dependency has been automatically created\index{jar!dependency}
+from \texttt{io-hotmoka-tutorial-examples-family-\hotmokaVersion{}.jar} to
+\texttt{io-takamaka-code-\takamakaVersion{}.jar}. This is because all Takamaka code
+will use the run-time classes of the Takamaka language,
+hence the \texttt{moka jars install} command adds them, by default.
+That command allows to explicitly specify other dependencies, for more complicated uses.
+Note that a dependency must already be installed in the node
+before it can be used as dependency of other jars.
