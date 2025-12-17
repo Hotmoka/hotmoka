@@ -254,11 +254,10 @@ public class UpdateForNewNode2 {
 			reportShort("familyTwoAddress", family2Address);
 
 			createCommandFile("moka_objects_create_person", "moka objects create " + account1 + " io.hotmoka.tutorial.examples.family.Person Einstein 14 4 1879 null null --classpath=" + family2Address + " --password-of-payer --uri=" + mokamintURI);
-			String temp = Moka.objectsCreate(account1 + " io.hotmoka.tutorial.examples.family.Person Einstein 14 4 1879 null null --classpath=" + family2Address + " --uri=" + mokamintURI + " --timeout=" + TIMEOUT + " --dir=" + tempDir + " --password-of-payer=chocolate");
+			String temp = Moka.objectsCreate(account1 + " io.hotmoka.tutorial.examples.family.Person Einstein 14 4 1879 null null --classpath=" + family2Address + " --uri=" + mokamintURI + " --timeout=" + TIMEOUT + " --dir=" + tempDir + " --json --password-of-payer=chocolate");
 			System.out.println(temp);
 			var output18 = ObjectsCreateOutputs.from(temp);
 			createOutputFile("moka_objects_create_person", "Enter value for --password-of-payer (the password of the key pair of the payer account): chocolate\nDo you really want to call constructor\n  public ...Person(java.lang.String,int,int,int,...Person,...Person)\n  spending up to 1000000 gas units at the price of 1 pana per unit (that is, up to 1000000 panas) [Y/N] Y\n" + output18);
-
 			StorageReference person = output18.getObject().get();
 			report("personObject", person);
 			reportShort("personObject", person);
