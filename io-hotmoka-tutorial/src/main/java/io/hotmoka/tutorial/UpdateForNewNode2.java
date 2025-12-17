@@ -19,10 +19,8 @@ package io.hotmoka.tutorial;
 import static io.hotmoka.constants.Constants.HOTMOKA_VERSION;
 import static io.takamaka.code.constants.Constants.TAKAMAKA_VERSION;
 
-import java.io.BufferedWriter;
 import java.io.ByteArrayOutputStream;
 import java.io.FileNotFoundException;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.io.PrintWriter;
@@ -31,33 +29,22 @@ import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.LogManager;
-import java.util.stream.Collectors;
 
 import io.hotmoka.crypto.cli.keys.KeysCreateOutputs;
 import io.hotmoka.moka.AccountsCreateOutputs;
-import io.hotmoka.moka.AccountsExportOutputs;
 import io.hotmoka.moka.AccountsSendOutputs;
 import io.hotmoka.moka.JarsInstallOutputs;
-import io.hotmoka.moka.KeysBindOutputs;
 import io.hotmoka.moka.Moka;
 import io.hotmoka.moka.NodesManifestAddressOutputs;
 import io.hotmoka.moka.NodesTakamakaAddressOutputs;
 import io.hotmoka.moka.ObjectsCallOutputs;
 import io.hotmoka.moka.ObjectsCreateOutputs;
-import io.hotmoka.moka.ObjectsShowOutputs;
-import io.hotmoka.moka.api.jars.JarsInstallOutput;
 import io.hotmoka.node.StorageValues;
 import io.hotmoka.node.TransactionReferences;
 import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.api.values.StorageReference;
-import io.hotmoka.node.api.values.StorageValue;
-import io.hotmoka.tutorial.examples.runs.Auction;
-import io.hotmoka.tutorial.examples.runs.Events;
 import io.hotmoka.tutorial.examples.runs.Family;
-import io.hotmoka.tutorial.examples.runs.FamilyExported;
-import io.hotmoka.tutorial.examples.runs.FamilyStorage;
 import io.takamaka.code.constants.Constants;
 
 /**
@@ -135,7 +122,8 @@ public class UpdateForNewNode2 {
 			report("takamakaVersion", TAKAMAKA_VERSION);
 			report("faustoEmail", "\\email{fausto.spoto@hotmoka.io}");
 			report("hotmokaRepo", hotmokaRepo);
-			report("hotmokaTutorialDir", "hotmoka\\_tutorial");
+			var hotmokaTutorialDir = "hotmoka_tutorial";
+			report("hotmokaTutorialDir", hotmokaTutorialDir.replace("_", "\\_"));
 			report("serverMokamint", mokamintURI.toString());
 			report("serverTendermint", tendermintURI.toString());
 
@@ -243,24 +231,41 @@ public class UpdateForNewNode2 {
 			report("familyAddress", familyAddress);
 			reportShort("familyAddress", familyAddress);
 
-			/*
-			String runFamilyMain = run(() -> Family.main(new String[] { mokamintURI.toString(), dir.toString(), account1.toString(), "chocolate" }));
+			createCommandFile("mvn_exec_family_1", "mvn compile exec:java -Dexec.mainClass=\"io.hotmoka.tutorial.examples.runs.Family\" -Dexec.args=\""
+					+ mokamintURI + " " + hotmokaTutorialDir + " " + account1 + " chocolate\"");
+			String runFamilyMain = run(() -> Family.main(new String[] { mokamintURI.toString(), tempDir.toString(), account1.toString(), "chocolate" }));
+			createOutputFile("mvn_exec_family_1", runFamilyMain);
 			int start = "jar installed at ".length();
 			var codeFamilyAddress = TransactionReferences.of(runFamilyMain.substring(start, start + 64));
-			report("sed -i 's/@code_family_address/" + codeFamilyAddress + "/g' target/Tutorial.md");
+			report("codeFamilyAddress", codeFamilyAddress);
+			reportShort("codeFamilyAddress", codeFamilyAddress);
 
-			var output15 = ObjectsCreateOutputs.from(Moka.objectsCreate(account1 + " io.hotmoka.tutorial.examples.family.Person Einstein 14 4 1879 null null --classpath=" + familyAddress + " --uri=" + mokamintURI + " --timeout=" + TIMEOUT + " --dir=" + dir + " --json --password-of-payer=chocolate"));
-			report("sed -i 's/@family_creation_transaction_failed/" + output15.getTransaction() + "/g' target/Tutorial.md");
+			createCommandFile("moka_objects_create_person_failed", "moka objects create " + account1 + " io.hotmoka.tutorial.examples.family.Person Einstein 14 4 1879 null null --classpath=" + familyAddress + " --password-of-payer --uri=" + mokamintURI);
+			var output16 = Moka.objectsCreate(account1 + " io.hotmoka.tutorial.examples.family.Person Einstein 14 4 1879 null null --classpath=" + familyAddress + " --uri=" + mokamintURI + " --timeout=" + TIMEOUT + " --dir=" + tempDir + " --password-of-payer=chocolate");
+			createOutputFile("moka_objects_create_person_failed", "Enter value for --password-of-payer (the password of the key pair of the payer account): chocolate\nDo you really want to call constructor\n  public ...Person(java.lang.String,int,int,int,...Person,...Person)\n  spending up to 1000000 gas units at the price of 1 pana per unit (that is, up to 1000000 panas) [Y/N] Y\n" + output16);
 
+			createCommandFile("moka_jars_install_2", "cd io-takamaka-code-examples-family\nmvn clean install\ncd ..\nmoka jars install " + account1 + " io-hotmoka-tutorial-examples-family/target/io-hotmoka-tutorial-examples-family-" + HOTMOKA_VERSION + ".jar --password-of-payer --uri=" + mokamintURI);
 			Path jar2 = Paths.get(System.getProperty("user.home") + "/.m2/repository/io/hotmoka/io-hotmoka-tutorial-examples-family_storage/" + HOTMOKA_VERSION + "/io-hotmoka-tutorial-examples-family_storage-" + HOTMOKA_VERSION + ".jar");
-			var output16 = JarsInstallOutputs.from(Moka.jarsInstall(account1 + " " + jar2 + " --password-of-payer=chocolate --dir=" + dir + " --uri=" + mokamintURI + " --json --timeout=" + TIMEOUT));
-			TransactionReference family2Address = output16.getJar().get();
-			report("sed -i 's/@family2_address/" + family2Address + "/g' target/Tutorial.md");
+			var output17 = JarsInstallOutputs.from(Moka.jarsInstall(account1 + " " + jar2 + " --password-of-payer=chocolate --dir=" + tempDir + " --uri=" + mokamintURI + " --json --timeout=" + TIMEOUT));
+			createOutputFile("moka_jars_install_2", "Enter value for --password-of-payer (the password of the key pair of the payer account): chocolate\n" + output17);
+			TransactionReference family2Address = output17.getJar().get();
+			report("familyTwoAddress", family2Address);
+			reportShort("familyTwoAddress", family2Address);
 
-			var output17 = ObjectsCreateOutputs.from(Moka.objectsCreate(account1 + " io.hotmoka.tutorial.examples.family.Person Einstein 14 4 1879 null null --classpath=" + family2Address + " --uri=" + mokamintURI + " --timeout=" + TIMEOUT + " --dir=" + dir + " --json --password-of-payer=chocolate"));
-			report("sed -i 's/@family_creation_transaction_success/" + output17.getTransaction() + "/g' target/Tutorial.md");
-			StorageReference personObject = output17.getObject().get();
-			report("sed -i 's/@person_object/" + personObject + "/g' target/Tutorial.md");
+			createCommandFile("moka_objects_create_person", "moka objects create " + account1 + " io.hotmoka.tutorial.examples.family.Person Einstein 14 4 1879 null null --classpath=" + family2Address + " --password-of-payer --uri=" + mokamintURI);
+			String temp = Moka.objectsCreate(account1 + " io.hotmoka.tutorial.examples.family.Person Einstein 14 4 1879 null null --classpath=" + family2Address + " --uri=" + mokamintURI + " --timeout=" + TIMEOUT + " --dir=" + tempDir + " --password-of-payer=chocolate");
+			System.out.println(temp);
+			var output18 = ObjectsCreateOutputs.from(temp);
+			createOutputFile("moka_objects_create_person", "Enter value for --password-of-payer (the password of the key pair of the payer account): chocolate\nDo you really want to call constructor\n  public ...Person(java.lang.String,int,int,int,...Person,...Person)\n  spending up to 1000000 gas units at the price of 1 pana per unit (that is, up to 1000000 panas) [Y/N] Y\n" + output18);
+
+			StorageReference person = output18.getObject().get();
+			report("personObject", person);
+			reportShort("personObject", person);
+
+			createCommandFile("moka_objects_show_person", "moka objects show " + person + " --uri " + mokamintURI);
+			createOutputFile("moka_objects_show_person", Moka.objectsShow(person + " --uri " + mokamintURI));
+
+			/*
 			String runFamilyStorageMain = run(() -> FamilyStorage.main(new String[] { mokamintURI.toString(), dir.toString(), account1.toString(), "chocolate" }));
 			start = "new object allocated at ".length();
 			var person2Object = StorageValues.reference(runFamilyStorageMain.substring(start, start + 66));
@@ -456,7 +461,7 @@ public class UpdateForNewNode2 {
 		}
 
 		private void reportShort(String command, TransactionReference reference) {
-			report(command + "Short", reference.toString().substring(0, 16) + "\\ldots\\#");
+			report(command + "Short", reference.toString().substring(0, 16) + "\\ldots");
 		}
 
 		private void createCommandFile(String filename, String content) throws FileNotFoundException {

@@ -220,7 +220,7 @@ later to refer to that jar. This has costed some gas, paid by our account.
 You can verify that the balance of the account has been decreased, through the
 \texttt{moka objects show} command.
 
-The state of the Hotmoka nodes of the network is now as in Fig.~\ref{fig:state3}.
+The state of the Hotmoka nodes of the network is now as in Fig.~\ref{fig:jar_installed}.
 As shown there, a dependency has been automatically created\index{jar!dependency}
 from \texttt{io-hotmoka-tutorial-examples-family-\hotmokaVersion{}.jar} to
 \texttt{io-takamaka-code-\takamakaVersion{}.jar}. This is because all Takamaka code
@@ -229,3 +229,658 @@ hence the \texttt{moka jars install} command adds them, by default.
 That command allows to explicitly specify other dependencies, for more complicated uses.
 Note that a dependency must already be installed in the node
 before it can be used as dependency of other jars.
+%
+\begin{figure}[t]
+  \begin{center}
+    \begin{tikzpicture}[scale=0.45,>=Stealth]
+      \draw[rounded corners] (0,-13.5) rectangle (21,19.3) [fill=statebackgroundcolor];
+
+      \draw[rounded corners] (0.5,16) rectangle +(20,2.8) [fill=jarbackgroundcolor];
+      \draw (1,18) node[right] {jar: classes of the Takamaka runtime, such as};
+      \draw (1,17) node[right] {\texttt{Contract}, \texttt{Storage}, \texttt{@View}, \texttt{@FromContract}\ldots};
+      \draw (-2,18.2) node[left] {Takamaka code};
+      \draw (-2,17.1) node[left] {at \texttt{\takamakaCodeShort{}}};
+      \draw[->,thick] (-2,17.5) -- +(2.5,0);
+
+      \draw[->,thick] (6,13.3) -- +(0,2.7);
+      \draw (6,14.8) node[left] {classpath};
+      \draw (-2,12.8) node[left] {manifest};
+      \draw (-2,11.7) node[left] {at \texttt{\manifestShort{}}};
+      \draw[->,thick] (-2,12.3) -- +(2.5,0);
+
+      \draw[rounded corners] (0.5,10.8) rectangle +(11,2.8) [fill=objectbackgroundcolor];
+      \draw (1,12.7) node[right] {chainId: \chainId{}};
+      \draw (1,11.7) node[right] {signature: ed25519};
+
+      \draw[<-,thick] (4,8.1) -- +(0,2.7);
+      \draw (4,9.5) node[right] {gamete};
+      \draw[->,thick] (2,10.8) .. controls (2,5) .. node[very near start,sloped,above] {\small gas station} (3,3.8);
+      \draw[->,thick] (1,10.8) .. controls (1,2) .. node[near end,sloped,below] {\small validators} (1.5,-1.2);
+
+      \draw[rounded corners] (3,5.3) rectangle +(8,2.8) [fill=objectbackgroundcolor];
+      \draw (3.5,6.7) node[right] {balance: 9999\ldots};
+      \draw (-2,7.2) node[left] {gamete};
+      \draw (-2,6.1) node[left] {at \texttt{\gameteShort{}}};
+      \draw[->,thick] (-2,6.7) -- +(5,0);
+      \draw[->,thick] (10,8.1) .. controls (12,11) .. node[near end,sloped,below] {classpath} (12,16.1);
+
+      \draw[rounded corners] (2,1) rectangle +(8,2.8) [fill=objectbackgroundcolor];
+      \draw (2.5,2.5) node[right] {gasPrice: 1};
+      \draw (-2,3) node[left] {gas station};
+      \draw (-2,2) node[left] {at \texttt{\gasStationShort{}}};
+      \draw[->,thick] (-2,2.5) -- +(4,0);
+      \draw[->,thick] (9,3.8) .. controls (13,6) .. node[near end,sloped,below] {classpath} (13,16.1);
+
+      \draw[rounded corners] (0.5,-4) rectangle +(10.5,2.8) [fill=objectbackgroundcolor];
+      \draw (1,-2) node[right] {number of validators: 0};
+      \draw (1,-3.1) node[right] {current supply: 1209\ldots};
+      \draw (-2,-2) node[left] {validators};
+      \draw (-2,-3) node[left] {at \texttt{\validatorsShort{}}};
+      \draw[->,thick] (-2,-2.5) -- +(2.5,0);
+      \draw[->,thick] (9.5,-1.2) .. controls (14,5) .. node[near end,sloped,below] {classpath} (14,16.1);
+
+      \draw[rounded corners] (3,-8.5) rectangle +(11,2.8) [fill=objectbackgroundcolor];
+      \draw (3.5,-7) node[right] {balance: \accountOneBalance};
+      \draw (-2,-6.6) node[left] {account1};
+      \draw (-2,-7.7) node[left] {at \texttt{\accountOneShort{}}};
+      \draw[->,thick] (-2,-7) -- +(5,0);
+      \draw[->,thick] (10,-5.7) .. controls (15,0) .. node[near end,sloped,below] {classpath} (15,16.1);
+
+      \draw[rounded corners] (0.5,-13) rectangle +(20,2.8) [fill=jarbackgroundcolor];
+      \draw (1,-11.1) node[right] {file \texttt{io-hotmoka-\ldots-family-\hotmokaVersion{}.jar},};
+      \draw (1,-12.1) node[right] {that defines some classes, such as \texttt{Person}};
+      \draw (-2,-11.1) node[left] {jar file};
+      \draw (-2,-12.1) node[left] {at \texttt{\familyAddressShort{}}};
+      \draw[->,thick] (-2,-11.6) -- +(2.5,0);
+      \draw[->,thick] (15,-10.2) .. controls (16,-5) .. node[near end,sloped,below] {dependency} (16,16.1);
+    \end{tikzpicture}
+  \end{center}
+  \caption{The state of the network nodes after the installation of our jar.}
+  \label{fig:jar_installed}
+\end{figure}
+
+What we have done above is probably enough for most users, but sometimes you need
+to perform the same operation in code, for instance in order to implement a software
+application that connects to a Hotmoka node and runs some transactions.
+Therefore, we describe below how you can write a Java program that installs the
+same jar in the Hotmoka node, without using the \texttt{moka jars install} command.
+A similar translation in code can be performed for all examples in this tutorial,
+but we will report it only for a few of them.
+
+Let us hence create another Eclipse Maven project
+\texttt{io-hotmoka-tutorial-examples-runs}, inside
+the directory \texttt{\hotmokaTutorialDir{}},
+exactly as we did in the previous section for the \texttt{family} project.
+Specify Java 21 (or later) in its build configuration.
+Use \texttt{io.hotmoka} as \emph{Group Id} and
+\texttt{io-hotmoka-tutorial-examples-runs} as \emph{Artifact Id}.
+This is specified in the following \texttt{pom.xml}, that you should copy inside
+the \texttt{io-hotmoka-tutorial-examples-runs} project, replacing that generated by Eclipse:
+%
+\begin{codebox}\begin{xmllst}
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>io.hotmoka</groupId>
+  <artifactId>io-hotmoka-tutorial-examples-runs</artifactId>
+  <version>|\hotmokaVersion{}|</version>
+
+  <properties>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <maven.compiler.release>21</maven.compiler.release>
+  </properties>
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <version>3.11.0</version>
+      </plugin>
+    </plugins>
+  </build>
+
+  <dependencies>
+    <dependency>
+      <groupId>io.hotmoka</groupId>
+      <artifactId>io-hotmoka-node-remote</artifactId>
+      <version>|\hotmokaVersion{}|</version>
+    </dependency>
+    <dependency>
+      <groupId>io.hotmoka</groupId>
+      <artifactId>io-hotmoka-helpers</artifactId>
+      <version>|\hotmokaVersion{}|</version>
+    </dependency>
+    <dependency>
+      <groupId>io.hotmoka</groupId>
+      <artifactId>io-hotmoka-node-tendermint</artifactId>
+      <version>|\hotmokaVersion{}|</version>
+    </dependency>
+    <dependency>
+      <groupId>io.hotmoka</groupId>
+      <artifactId>io-hotmoka-node-disk</artifactId>
+      <version>|\hotmokaVersion{}|</version>
+    </dependency>
+    <dependency>
+      <groupId>io.hotmoka</groupId>
+      <artifactId>io-hotmoka-node-service</artifactId>
+      <version>|\hotmokaVersion{}|</version>
+    </dependency>
+    <dependency>
+      <groupId>io.hotmoka</groupId>
+      <artifactId>io-hotmoka-constants</artifactId>
+      <version>|\hotmokaVersion{}|</version>
+    </dependency>
+    <dependency>
+      <groupId>io.hotmoka</groupId>
+      <artifactId>io-takamaka-code-constants</artifactId>
+      <version>|\takamakaVersion{}|</version>
+    </dependency>
+  </dependencies>
+
+</project>
+\end{xmllst}\end{codebox}
+%
+This \texttt{pom.xml} specifies a few dependencies. We do not need all of them now,
+but we will need them along the next sections, hence let us insert them all already.
+These dependencies get automatically downloaded from the Maven repository.
+
+Since we have just modified the file \texttt{pom.xml}, Eclipse could show an error
+for the project \texttt{io-hotmoka-tutorial-examples-runs}. To fix it,
+you need to update the Maven dependencies of the project:
+right-click on the \texttt{io-hotmoka-tutorial-examples-runs} project
+and then select the menu \emph{Maven}$\rightarrow$\emph{Update Project\ldots}
+
+Create a \texttt{module-info.java} inside \texttt{src/main/java}, containing:
+%
+\begin{codebox}\begin{javalst}
+module io.hotmoka.tutorial.examples.runs {
+  requires io.hotmoka.helpers;
+  requires io.hotmoka.node.remote;
+  requires io.hotmoka.node.disk;
+  requires io.hotmoka.node.tendermint;
+  requires io.hotmoka.node.service;
+  requires io.hotmoka.constants;
+  requires io.takamaka.code.constants;
+}
+\end{javalst}\end{codebox}
+%
+Again, we do not need all such dependencies already, but we will need them later.
+
+Create a package \texttt{io.hotmoka.tutorial.examples.runs} inside
+\texttt{src/main/java} and add the following class \texttt{Family.java} inside it:
+%
+\begin{codebox}\begin{javalst}
+package io.hotmoka.tutorial.examples.runs;
+
+import static java.math.BigInteger.ONE;
+
+import java.math.BigInteger;
+import java.net.URI;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.security.KeyPair;
+
+import io.hotmoka.constants.Constants;
+import io.hotmoka.crypto.api.Signer;
+import io.hotmoka.helpers.GasHelpers;
+import io.hotmoka.helpers.SignatureHelpers;
+import io.hotmoka.node.Accounts;
+import io.hotmoka.node.MethodSignatures;
+import io.hotmoka.node.StorageValues;
+import io.hotmoka.node.TransactionRequests;
+import io.hotmoka.node.api.Node;
+import io.hotmoka.node.api.requests.SignedTransactionRequest;
+import io.hotmoka.node.api.transactions.TransactionReference;
+import io.hotmoka.node.api.values.StorageReference;
+import io.hotmoka.node.remote.RemoteNodes;
+
+public class Family {
+
+  public static void main(String[] args) throws Exception {
+
+    // the path of the user jar to install
+    var familyPath = Paths.get(System.getProperty("user.home")
+      + "/.m2/repository/io/hotmoka/io-hotmoka-tutorial-examples-family/"
+      + Constants.HOTMOKA_VERSION
+      + "/io-hotmoka-tutorial-examples-family-" + Constants.HOTMOKA_VERSION + ".jar");
+
+    var dir = Paths.get(args[1]);
+    var payer = StorageValues.reference(args[2]);
+    var password = args[3];
+
+    try (var node = RemoteNodes.of(new URI(args[0]), 150000)) {
+      // we get a reference to where io-takamaka-code-X.Y.Z.jar has been stored
+      TransactionReference takamakaCode = node.getTakamakaCode();
+
+      // we get the signing algorithm to use for requests
+      var signature = node.getConfig().getSignatureForRequests();
+
+      KeyPair keys = loadKeys(node, dir, payer, password);
+
+      // we create a signer that signs with the private key of our account
+      Signer<SignedTransactionRequest<?>> signer = signature.getSigner
+      (keys.getPrivate(), SignedTransactionRequest::toByteArrayWithoutSignature);
+
+      // we get the nonce of our account: we use the account itself as caller and
+      // an arbitrary nonce (ZERO in the code) since we are running
+      // a @View method of the account
+      BigInteger nonce = node
+      .runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
+      (payer, // payer
+      BigInteger.valueOf(100_000), // gas limit
+      takamakaCode, // class path for the execution of the transaction
+      MethodSignatures.NONCE, // method
+      payer)).get() // receiver of the method call
+      .asBigInteger(__ -> new ClassCastException());
+
+      // we get the chain identifier of the network
+      String chainId = node.getConfig().getChainId();
+      var gasHelper = GasHelpers.of(node);
+
+      // we install the family jar in the node: our account will pay
+      TransactionReference family = node
+      .addJarStoreTransaction(TransactionRequests.jarStore
+      (signer, // an object that signs with the payer's private key
+      payer, // payer
+      nonce, // payer's nonce: relevant since this is not a call to a @View method!
+      chainId, // chain identifier: relevant since this is not a call to a @View method!
+      BigInteger.valueOf(1_000_000), // gas limit: enough for this small jar
+      gasHelper.getSafeGasPrice(), // gas price: at least the current gas price of the network
+      takamakaCode, // class path for the execution of the transaction
+      Files.readAllBytes(familyPath), // bytes of the jar to install
+      takamakaCode)); // dependencies of the jar that is being installed
+
+      // we increase our copy of the nonce, ready for further
+      // transactions having the account as payer
+      nonce = nonce.add(ONE);
+
+      System.out.println("jar installed at " + family);
+    }
+  }
+
+  private static KeyPair loadKeys(Node node, Path dir, StorageReference account, String password) throws Exception {
+    return Accounts.of(account, dir)
+    .keys(password, SignatureHelpers.of(node).signatureAlgorithmFor(account));
+  }
+}
+\end{javalst}\end{codebox}
+%
+As you can see, the above \texttt{main} method requires four values to be provided from the caller:
+the server to contact,
+the directory \texttt{dir} where the key pair of the payer account can be found,
+the storage reference of that payer account, and the password of the key pair.
+
+The code above creates an instance of a \texttt{RemoteNode}\index{RemoteNode},
+that represents a Hotmoka
+node installed in a remote host. By specifying the URI of the host, the \texttt{RemoteNode} object
+exposes all methods of a Hotmoka node. It is an \texttt{AutoCloseable} object,
+hence it is placed inside
+a try-with-resource statement that guarantees its release at the end of the \texttt{try} block.
+By using that remote node, our code collects
+some information about the node: the reference to the \texttt{io-takamaka-code} jar already
+installed inside it (\texttt{takamakaCode}) and the \texttt{signature} algorithm used
+by the node,
+that it uses to construct a \texttt{signer} object that signs with the private key of our account,
+loaded from disk.
+
+The \texttt{loadKeys} method accesses the \texttt{.pem} file that we have previously created
+with moka, that should be inside a directory \texttt{dir}.
+
+Like every Hotmoka node, the observable state of the remote node can only evolve through
+\emph{transactions}, that modify its state in an atomic way.
+Namely, the code above performs two transactions:
+%
+\begin{enumerate}
+\item A call to the \texttt{nonce()} method of our account\index{account!nonce}:
+  this is a progressive counter of the number
+  of transactions already performed with our account. It starts from zero, but our account has been
+  already used for other transactions (through the moka tool). Hence we better ask the
+  node about it. As we will see later, this transaction calls a \texttt{@View} method. All calls
+  to \texttt{@View} methods have the nice feature of being \emph{for free}:
+  nobody will pay for them.
+  Because of that, we do not need to sign this transaction, or to provide a correct nonce,
+  or specify a gas price. The limitation of such calls is that their transactions are not
+  checked by consensus, hence we have to trust the node we ask. Moreover, they can only
+  read, never write the data in the store of the node.
+\item The addition of our jar in the node. This time the transaction has a cost and our
+  account is specified as payer. The signer of our account signs the transaction.
+  The nonce of our account and the chain identifier of the network are relevant, as well as the
+  gas price, that must at least match that of the network.
+  The code uses the \texttt{addJarStoreTransaction()} method, that executes a new transaction
+  on the node, whose goal is to install a jar inside it. The jar is provided as a sequence of bytes
+  (\texttt{Files.readAllBytes(familyPath)}, where
+  \texttt{familyPath} looks inside the local Maven repository
+  of the machine, where the jar to install in the node should already be present).
+  The request passed to \texttt{addJarStoreTransaction()}
+  specifies that the transaction can cost up
+  to $300000$ units of gas, that can be bought at the price returned by the
+  \texttt{gasHelper} object. The request
+  specifies that its class path is \texttt{node.getTakamakaCode()}: this is the reference to the
+  \texttt{io-takamaka-code} jar already installed in the node.
+  Finally, the request specifies that
+  \texttt{io-hotmoka-tutorial-examples-family-\hotmokaVersion{}.jar} has only
+  a single dependency: \texttt{io-takamaka-code}. This means that when, later, we will refer to
+  \texttt{io-hotmoka-tutorial-examples-family-\hotmokaVersion{}.jar}
+  in a class path, this class path will indirectly include its dependency
+  \texttt{io-takamaka-code} as well (see Fig.~\ref{fig:jar_installed}).
+\end{enumerate}
+
+\begin{commentbox}
+As in Ethereum, transactions in Hotmoka are paid
+in terms of gas\index{gas} consumed for their execution.
+Calls to \texttt{@View}\index{@View} methods do not actually modify the state of the node
+and are executed locally, on the
+node that receives the request of the transaction. Hence, they can be considered
+as run \emph{for free}. Instead, we have used an actual gas price for the last
+transaction that installs the jar in blockchain. This could be computed with
+a sequence of calls to \texttt{@View} methods (get the manifest, then the gas station
+inside the manifest, then the gas price inside the gas station). In order to
+simplify the code, we have used the \texttt{GasHelper} class, that does exactly that for us.
+\end{commentbox}
+
+You can run the program with Maven, specifying the server to contact,
+the directory where the key pairs can be found, the payer account and its password:
+%
+\input{mvn_exec_family_1_command}
+\input{mvn_exec_family_1_output}
+%
+The exact address where the jar gets installed
+will change in your machine. In any case, note that this reference
+to the jar is functionally equivalent to that
+obtained before with the \texttt{moka jars install} command: they point to equivalent jars.
+
+\section{Creation of an object of our class}\label{sec:creation_object}
+
+\begin{center}
+  (See the \texttt{io-hotmoka-tutorial-examples-family-storage} and the
+  \texttt{io-hotmoka-tutorial-examples-runs} projects in \texttt{\hotmokaRepo{}})
+\end{center}
+
+The jar of our program is in the store of the node now: the \texttt{moka jars install} command
+has installed it at \texttt{\familyAddressShort{}} and our code at
+\texttt{\codeFamilyAddressShort{}}.
+We can use either of them, interchangeably, as class path for the execution of a transaction that
+tries to run the constructor of our class \texttt{Person} and add a brand
+new \texttt{Person} object into the store of the node. We can perform this through the moka tool:
+%
+\input{moka_objects_create_person_failed_command}
+\input{moka_objects_create_person_failed_output}
+%
+The \texttt{moka objects create}\index{object!creation}
+command requires to specify who pays for the object creation
+(our account \texttt{\accountOneShort{}}),
+then the fully-qualified name of the class that we want to instantiate
+(\texttt{io.hotmoka.tutorial.examples.Person})
+followed by the actual arguments passed to its constructor.
+The classpath refers to the jar that we have installed previously.
+The \texttt{moka objects create} command
+asks for the password of the payer account and
+checks if we really want to proceed (and pay). But then it ends up in failure
+(\texttt{SerializationException}). Note that all offered gas has been spent.
+This is a sort of \emph{penalty}\index{gas!penalty} for running a transaction that fails.
+The rationale is that this penalty should discourage
+potential denial-of-service attacks, when a huge number of failing transactions are thrown at a
+node. At least, that attack will cost a lot. Moreover, note that the transaction, although
+failed, does exist. Indeed, the nonce of the caller has been increased, as you can check
+with \texttt{moka objects show} on our account.
+
+But we still have not understood why the transaction failed. The reason is in the exception
+message: \texttt{An object of class ...Person cannot be serialized into a storage value since it does not implement io.takamaka.code.lang.Storage}\index{Storage}.
+Takamaka requires
+that all objects stored in a node extend the \texttt{io.takamaka.code.lang.Storage} class.
+That superclass
+provides all the machinery needed in order to keep track of updates to such objects and persist
+them in the store of the node, automatically.
+
+\begin{commentbox}
+Do not get confused here. Takamaka does \emph{not} require all objects to extend
+the class \texttt{io.takamaka.code.lang.Storage}.
+You can use objects that do not extend that superclass in your
+Takamaka code, both instances of your classes and instances of library classes
+from the \texttt{java.*} hierarchy, for instance.
+What Takamaka does require, instead, is that objects
+\emph{that must be kept in the store of a node} do extend
+\texttt{io.takamaka.code.lang.Storage}. This
+must be the case, for instance, for objects created by the constructor invoked through the
+\texttt{moka objects create} command.
+\end{commentbox}
+
+Let us then modify the \texttt{io.hotmoka.tutorial.examples.Person.java}
+source code, inside the \texttt{io-hotmoka-tutorial-examples-family} project:
+%
+\begin{codebox}\begin{javalst}
+package io.hotmoka.tutorial.examples.family;
+
+import io.takamaka.code.lang.Storage;
+
+public class Person extends Storage {
+  ... unchanged code ...
+}
+\end{javalst}\end{codebox}
+%
+\begin{commentbox}
+  Extending \texttt{io.takamaka.code.lang.Storage}
+  is all a programmer needs to do in order to let instances
+  of a class be stored in the store of a node. There is no explicit method to call to keep track
+  of updates to such objects and persist them in the store of the node:
+  Hotmoka nodes will automatically deal with them.
+\end{commentbox}
+%
+\begin{commentbox}
+  We can use the \texttt{io.takamaka.code.lang.Storage} class
+  and we can run the resulting compiled code
+  since that class is inside \texttt{io-takamaka-code}, that has been included in the
+  class path as a dependency of \texttt{io-hotmoka-tutorial-examples-family-\hotmokaVersion{}.jar}
+  (Fig.~\ref{fig:jar_installed}).
+\end{commentbox}
+
+Since class \texttt{Person} has been modified, regenerate
+\texttt{io-hotmoka-tutorial-examples-family-\hotmokaVersion{}.jar},
+by running \texttt{mvn install} again
+inside the \texttt{io-hotmoka-tutorial-examples-family} project.
+Install this new version in blockchain:
+%
+\input{moka_jars_install_2_command}
+\input{moka_jars_install_2_output}
+%
+then run the \texttt{moka objects create} command again. This time, the execution should
+complete without exception:
+%
+\input{moka_objects_create_person_command}
+\input{moka_objects_create_person_output}
+%
+The new object has been allocated at a storage reference \texttt{\personObejctShort{}}
+that can be used to refer to it, also in the future.
+You can verify that it is actually there and that its fields are correctly initialized,
+by using the \texttt{moka objects show} command:
+%
+\begin{commandbox}
+  Compared with Solidity, where contracts and accounts are just untyped \emph{addresses},
+  objects (and hence accounts) are strongly-typed in Takamaka.
+  This means that they are tagged with their run-time type (see the output
+  of \texttt{moka objects show} above), in a boxed representation,
+  so that it is possible to check that they are used correctly, \ie{}, in accordance
+  with the declared type of variables, or to check their run-time type with checked casts
+  and the \texttt{instanceof} operator. Moreover, Takamaka has information to check
+  that such objects have been created by using the same
+  jar that stays in the class path later, every time an object gets used
+  (see the information \texttt{from jar installed at} in the output of
+  \texttt{moka objects show} above).
+\end{commandbox}
+
+We can perform the same object creation in code, instead of using the
+\texttt{moka objects create} command.
+Namely, the following code builds on the previous example and installs a jar by adding
+a further transaction that calls the constructor of \texttt{Person}:
+%
+\begin{codebox}\begin{javalst}
+package io.hotmoka.tutorial.examples.runs;
+
+import static io.hotmoka.helpers.Coin.panarea;
+import static io.hotmoka.node.StorageTypes.INT;
+import static java.math.BigInteger.ONE;
+
+import java.math.BigInteger;
+import java.net.URI;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.security.KeyPair;
+
+import io.hotmoka.constants.Constants;
+import io.hotmoka.crypto.api.Signer;
+import io.hotmoka.helpers.GasHelpers;
+import io.hotmoka.helpers.SignatureHelpers;
+import io.hotmoka.node.Accounts;
+import io.hotmoka.node.ConstructorSignatures;
+import io.hotmoka.node.MethodSignatures;
+import io.hotmoka.node.StorageTypes;
+import io.hotmoka.node.StorageValues;
+import io.hotmoka.node.TransactionRequests;
+import io.hotmoka.node.api.Node;
+import io.hotmoka.node.api.requests.SignedTransactionRequest;
+import io.hotmoka.node.api.transactions.TransactionReference;
+import io.hotmoka.node.api.types.ClassType;
+import io.hotmoka.node.api.values.StorageReference;
+import io.hotmoka.node.remote.RemoteNodes;
+
+public class FamilyStorage {
+
+  private final static ClassType PERSON = StorageTypes.classNamed("io.hotmoka.tutorial.examples.family.Person");
+
+  public static void main(String[] args) throws Exception {
+    // the path of the user jar to install
+    var familyPath = Paths.get(System.getProperty("user.home")
+    + "/.m2/repository/io/hotmoka/io-hotmoka-tutorial-examples-family/"
+    + Constants.HOTMOKA_VERSION
+    + "/io-hotmoka-tutorial-examples-family-" + Constants.HOTMOKA_VERSION + ".jar");
+
+    var dir = Paths.get(args[1]);
+    var payer = StorageValues.reference(args[2]);
+    var password = args[3];
+
+    try (var node = RemoteNodes.of(new URI(args[0]), 150000)) {
+      // we get a reference to where io-takamaka-code-X.Y.Z.jar has been stored
+      TransactionReference takamakaCode = node.getTakamakaCode();
+
+      // we get the signing algorithm to use for requests
+      var signature = node.getConfig().getSignatureForRequests();
+
+      KeyPair keys = loadKeys(node, dir, payer, password);
+
+      // we create a signer that signs with the private key of our account
+      Signer<SignedTransactionRequest<?>> signer = signature.getSigner
+      (keys.getPrivate(), SignedTransactionRequest::toByteArrayWithoutSignature);
+
+      // we get the nonce of our account: we use the account itself as caller and
+      // an arbitrary nonce (ZERO in the code) since we are running
+      // a @View method of the account
+      BigInteger nonce = node
+      .runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
+      (payer, // payer
+      BigInteger.valueOf(100_000), // gas limit
+      takamakaCode, // class path for the execution of the transaction
+      MethodSignatures.NONCE, // method
+      payer)).get() // receiver of the method call
+      .asBigInteger(__ -> new ClassCastException());
+
+      // we get the chain identifier of the network
+      String chainId = node.getConfig().getChainId();
+
+      var gasHelper = GasHelpers.of(node);
+
+      // we install the family jar in the node: our account will pay
+      TransactionReference family = node
+      .addJarStoreTransaction(TransactionRequests.jarStore
+      (signer, // an object that signs with the payer's private key
+      payer, // payer
+      nonce, // payer's nonce: relevant since this is not a call to a @View method!
+      chainId, // chain identifier: relevant since this is not a call to a @View method!
+      BigInteger.valueOf(1_000_000), // gas limit: enough for this small jar
+      gasHelper.getSafeGasPrice(), // gas price: at least the current gas price of the network
+      takamakaCode, // class path for the execution of the transaction
+      Files.readAllBytes(familyPath), // bytes of the jar to install
+      takamakaCode)); // dependencies of the jar that is being installed
+      
+      // we increase our copy of the nonce, ready for further
+      // transactions having the account as payer
+      nonce = nonce.add(ONE);
+
+      // call the constructor of Person and store in einstein the new object in blockchain
+      StorageReference einstein = node.addConstructorCallTransaction
+      (TransactionRequests.constructorCall
+      (signer, // an object that signs with the payer's private key
+      payer, // payer
+      nonce, // payer's nonce: relevant since this is not a call to a @View method!
+      chainId, // chain identifier: relevant since this is not a call to a @View method!
+      BigInteger.valueOf(300_000), // gas limit: enough for a small object
+      panarea(gasHelper.getSafeGasPrice()), // gas price, in panareas
+      family, // class path for the execution of the transaction
+      
+      // constructor Person(String,int,int,int)
+      ConstructorSignatures.of(PERSON, StorageTypes.STRING, INT, INT, INT),
+
+      // actual arguments
+      StorageValues.stringOf("Einstein"), StorageValues.intOf(14),
+      StorageValues.intOf(4), StorageValues.intOf(1879)
+      ));
+
+      System.out.println("new object allocated at " + einstein);
+
+      // we increase our copy of the nonce, ready for further
+      // transactions having the account as payer
+      nonce = nonce.add(ONE);
+    }
+  }
+
+  private static KeyPair loadKeys(Node node, Path dir, StorageReference account, String password) throws Exception {
+    return Accounts.of(account, dir)
+    .keys(password, SignatureHelpers.of(node).signatureAlgorithmFor(account));
+  }
+}
+\end{javalst}\end{codebox}
+%
+The new transaction is triggered by the
+\texttt{addConstructorCallTransaction()} call,
+that expands the node with a new transaction that calls
+a constructor. We use our account as payer for the transaction, hence we sign
+the request with its private key.
+The class path includes \texttt{io-hotmoka-tutorial-examples-family-\hotmokaVersion{}.jar}
+and its dependency \texttt{io-takamaka-code}.
+The signature of the constructor specifies that we are referring to the second
+constructor of \texttt{Person}, the one that assumes \texttt{null} as parents.
+The actual parameters
+are provided; they must be instances of the \texttt{io.hotmoka.node.api.values.StorageValue}
+interface.
+We provide $300000$ units of gas, which should be enough for a constructor
+that just initializes a few fields.
+We are ready to pay \texttt{panarea(gasHelper.getSafeGasPrice())}
+units of coin for each unit of gas.
+This price could have been specified simply as \texttt{gasHelper.getSafeGasPrice()},
+but we used the static method \texttt{io.hotmoka.helpers.Coin.panarea()}
+to generate a Java \texttt{BigInteger} corresponding to the smallest coin unit of Hotmoka nodes,
+a \emph{panarea}.
+Namely, Hotmoka uses the units of coin shown in Fig.~\ref{fig:units}.
+%
+\begin{figure}[t]
+  \begin{center}
+    \begin{tabular}{|c||c|c|c|
+        value (in panas) & exponent & name & short name\\\hline\hline
+        $1$ & $1$ & panarea & pana\\\hline
+        $1000$ & $10^3$ & alicudi & ali\\\hline
+        $1000000$ & $10^6$ & filicudi & fili\\\hline
+        $1000000000$ & $10^9$ & stromboli & strom\\\hline
+        $1000000000000$ & $10^{12}$ & vulcano & vul\\\hline
+        $1000000000000000$ & $10^{15}$ & salina & sali\\\hline
+        $1000000000000000000$ & $10^{18}$ & lipari & lipa\\\hline
+        $1000000000000000000000$ & $10^{21}$ & moka & moka\\\hline
+    \end{tabular}
+  \end{center}
+  \caption{The coin units of Hotmoka.}\label{fig:units}
+\end{figure}
+%
+with corresponding static methods in \texttt{io.hotmoka.helpers.Coin}.
