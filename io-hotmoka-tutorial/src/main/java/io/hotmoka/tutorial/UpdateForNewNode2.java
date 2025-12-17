@@ -45,6 +45,7 @@ import io.hotmoka.node.TransactionReferences;
 import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.tutorial.examples.runs.Family;
+import io.hotmoka.tutorial.examples.runs.FamilyStorage;
 import io.takamaka.code.constants.Constants;
 
 /**
@@ -265,14 +266,18 @@ public class UpdateForNewNode2 {
 			createCommandFile("moka_objects_show_person", "moka objects show " + person + " --uri " + mokamintURI);
 			createOutputFile("moka_objects_show_person", Moka.objectsShow(person + " --uri " + mokamintURI));
 
-			/*
-			String runFamilyStorageMain = run(() -> FamilyStorage.main(new String[] { mokamintURI.toString(), dir.toString(), account1.toString(), "chocolate" }));
+			createCommandFile("mvn_exec_family_storage", "mvn compile exec:java -Dexec.mainClass=\"io.hotmoka.tutorial.examples.runs.Family\" -Dexec.args=\""
+					+ mokamintURI + " " + hotmokaTutorialDir + " " + account1 + " chocolate\"");
+			String runFamilyStorageMain = run(() -> FamilyStorage.main(new String[] { mokamintURI.toString(), tempDir.toString(), account1.toString(), "chocolate" }));
+			createOutputFile("mvn_exec_family_storage", runFamilyStorageMain);
 			start = "new object allocated at ".length();
 			var person2Object = StorageValues.reference(runFamilyStorageMain.substring(start, start + 66));
-			report("sed -i 's/@person2_object/" + person2Object + "/g' target/Tutorial.md");
-			var output18 = ObjectsCallOutputs.from(Moka.objectsCall(account1 + " io.hotmoka.tutorial.examples.family.Person toString --uri=" + mokamintURI + " --timeout=" + TIMEOUT + " --dir=" + dir + " --json --password-of-payer=chocolate --receiver=" + personObject));
+			report("personObjectTwo", person2Object);
+			reportShort("personObjectTwo", person2Object);
+			
+			/*
+			var output19 = ObjectsCallOutputs.from(Moka.objectsCall(account1 + " io.hotmoka.tutorial.examples.family.Person toString --uri=" + mokamintURI + " --timeout=" + TIMEOUT + " --dir=" + dir + " --json --password-of-payer=chocolate --receiver=" + personObject));
 			report("sed -i 's/@family_transaction_non_exported_failure/" + output18.getTransaction() + "/g' target/Tutorial.md");
-
 			Path jar3 = Paths.get(System.getProperty("user.home") + "/.m2/repository/io/hotmoka/io-hotmoka-tutorial-examples-family_exported/" + HOTMOKA_VERSION + "/io-hotmoka-tutorial-examples-family_exported-" + HOTMOKA_VERSION + ".jar");
 			var output19 = JarsInstallOutputs.from(Moka.jarsInstall(account1 + " " + jar3 + " --password-of-payer=chocolate --dir=" + dir + " --uri=" + mokamintURI + " --json --timeout=" + TIMEOUT));
 			TransactionReference familyExportedAddress = output19.getJar().get();
