@@ -693,12 +693,12 @@ complete without exception:
 \input{moka_objects_create_person_command}
 \input{moka_objects_create_person_output}
 %
-The new object has been allocated at a storage reference \texttt{\personObejctShort{}}
+The new object has been allocated at a storage reference \texttt{\personObjectShort{}}
 that can be used to refer to it, also in the future.
 You can verify that it is actually there and that its fields are correctly initialized,
 by using the \texttt{moka objects show} command:
 %
-\begin{commandbox}
+\begin{commentbox}
   Compared with Solidity, where contracts and accounts are just untyped \emph{addresses},
   objects (and hence accounts) are strongly-typed in Takamaka.
   This means that they are tagged with their run-time type (see the output
@@ -710,7 +710,7 @@ by using the \texttt{moka objects show} command:
   jar that stays in the class path later, every time an object gets used
   (see the information \texttt{from jar installed at} in the output of
   \texttt{moka objects show} above).
-\end{commandbox}
+\end{commentbox}
 
 We can perform the same object creation in code, instead of using the
 \texttt{moka objects create} command.
@@ -862,13 +862,14 @@ We are ready to pay \texttt{panarea(gasHelper.getSafeGasPrice())}
 units of coin for each unit of gas.
 This price could have been specified simply as \texttt{gasHelper.getSafeGasPrice()},
 but we used the static method \texttt{io.hotmoka.helpers.Coin.panarea()}
-to generate a Java \texttt{BigInteger} corresponding to the smallest coin unit of Hotmoka nodes,
+to generate a \texttt{BigInteger} corresponding to the smallest coin unit of Hotmoka nodes,
 a \emph{panarea}.
 Namely, Hotmoka uses the units of coin shown in Fig.~\ref{fig:units}.
 %
 \begin{figure}[t]
   \begin{center}
-    \begin{tabular}{|c||c|c|c|
+    \begin{tabular}{|c||c|c|c|}
+      \hline
         value (in panas) & exponent & name & short name\\\hline\hline
         $1$ & $1$ & panarea & pana\\\hline
         $1000$ & $10^3$ & alicudi & ali\\\hline
@@ -891,4 +892,4 @@ the object of class \texttt{Person} gets created in blockchain:
 \input{mvn_exec_family_storage_command}
 \input{mvn_exec_family_storage_output}
 %
-The exact address where the \texttt{Person} object gets alocated will change at each run.
+The exact address where the \texttt{Person} object gets allocated will change at each run.
