@@ -45,6 +45,7 @@ import io.hotmoka.node.TransactionReferences;
 import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.tutorial.examples.runs.Family;
+import io.hotmoka.tutorial.examples.runs.FamilyExported;
 import io.hotmoka.tutorial.examples.runs.FamilyStorage;
 import io.takamaka.code.constants.Constants;
 
@@ -242,7 +243,7 @@ public class UpdateForNewNode2 {
 			reportShort("codeFamilyAddress", codeFamilyAddress);
 
 			createCommandFile("moka_objects_create_person_failed", "moka objects create " + account1 + " io.hotmoka.tutorial.examples.family.Person Einstein 14 4 1879 null null --classpath=" + familyAddress + " --password-of-payer --uri=" + mokamintURI);
-			var output16 = Moka.objectsCreate(account1 + " io.hotmoka.tutorial.examples.family.Person Einstein 14 4 1879 null null --classpath=" + familyAddress + " --uri=" + mokamintURI + " --timeout=" + TIMEOUT + " --dir=" + tempDir + " --password-of-payer=chocolate");
+			var output16 = Moka.objectsCreate(account1 + " io.hotmoka.tutorial.examples.family.Person Einstein 14 4 1879 null null --classpath=" + familyAddress + " --uri=" + mokamintURI + " --timeout=" + TIMEOUT + " --dir=" + tempDir + " --yes --password-of-payer=chocolate");
 			createOutputFile("moka_objects_create_person_failed", "Enter value for --password-of-payer (the password of the key pair of the payer account): chocolate\nDo you really want to call constructor\n  public ...Person(java.lang.String,int,int,int,...Person,...Person)\n  spending up to 1000000 gas units at the price of 1 pana per unit (that is, up to 1000000 panas) [Y/N] Y\n" + output16);
 
 			createCommandFile("moka_jars_install_2", "cd io-takamaka-code-examples-family\nmvn clean install\ncd ..\nmoka jars install " + account1 + " io-hotmoka-tutorial-examples-family/target/io-hotmoka-tutorial-examples-family-" + HOTMOKA_VERSION + ".jar --password-of-payer --uri=" + mokamintURI);
@@ -263,7 +264,7 @@ public class UpdateForNewNode2 {
 			createCommandFile("moka_objects_show_person", "moka objects show " + person + " --uri " + mokamintURI);
 			createOutputFile("moka_objects_show_person", Moka.objectsShow(person + " --uri " + mokamintURI));
 
-			createCommandFile("mvn_exec_family_storage", "mvn compile exec:java -Dexec.mainClass=\"io.hotmoka.tutorial.examples.runs.Family\" -Dexec.args=\""
+			createCommandFile("mvn_exec_family_storage", "mvn compile exec:java -Dexec.mainClass=\"io.hotmoka.tutorial.examples.runs.FamilyStorage\" -Dexec.args=\""
 					+ mokamintURI + " " + hotmokaTutorialDir + " " + account1 + " chocolate\"");
 			String runFamilyStorageMain = run(() -> FamilyStorage.main(new String[] { mokamintURI.toString(), tempDir.toString(), account1.toString(), "chocolate" }));
 			createOutputFile("mvn_exec_family_storage", runFamilyStorageMain);
@@ -272,23 +273,35 @@ public class UpdateForNewNode2 {
 			report("personObjectTwo", person2Object);
 			reportShort("personObjectTwo", person2Object);
 			
-			/*
-			var output19 = ObjectsCallOutputs.from(Moka.objectsCall(account1 + " io.hotmoka.tutorial.examples.family.Person toString --uri=" + mokamintURI + " --timeout=" + TIMEOUT + " --dir=" + dir + " --json --password-of-payer=chocolate --receiver=" + personObject));
-			report("sed -i 's/@family_transaction_non_exported_failure/" + output18.getTransaction() + "/g' target/Tutorial.md");
-			Path jar3 = Paths.get(System.getProperty("user.home") + "/.m2/repository/io/hotmoka/io-hotmoka-tutorial-examples-family_exported/" + HOTMOKA_VERSION + "/io-hotmoka-tutorial-examples-family_exported-" + HOTMOKA_VERSION + ".jar");
-			var output19 = JarsInstallOutputs.from(Moka.jarsInstall(account1 + " " + jar3 + " --password-of-payer=chocolate --dir=" + dir + " --uri=" + mokamintURI + " --json --timeout=" + TIMEOUT));
-			TransactionReference familyExportedAddress = output19.getJar().get();
-			report("sed -i 's/@family_exported_address/" + familyExportedAddress + "/g' target/Tutorial.md");
-			var output20 = ObjectsCreateOutputs.from(Moka.objectsCreate(account1 + " io.hotmoka.tutorial.examples.family.Person Einstein 14 4 1879 null null --classpath=" + familyExportedAddress + " --uri=" + mokamintURI + " --timeout=" + TIMEOUT + " --dir=" + dir + " --json --password-of-payer=chocolate"));
-			report("sed -i 's/@family_exported_creation_transaction_success/" + output20.getTransaction() + "/g' target/Tutorial.md");
-			StorageReference person3Object = output20.getObject().get();
-			report("sed -i 's/@person3_object/" + person3Object + "/g' target/Tutorial.md");
-			var output21 = ObjectsCallOutputs.from(Moka.objectsCall(account1 + " io.hotmoka.tutorial.examples.family.Person toString --uri=" + mokamintURI + " --timeout=" + TIMEOUT + " --dir=" + dir + " --json --password-of-payer=chocolate --receiver=" + person3Object));
-			report("sed -i 's/@family_exported_call_toString_transaction_success/" + output21.getTransaction() + "/g' target/Tutorial.md");
-			String runFamilyExportedMain = run(() -> FamilyExported.main(new String[] { mokamintURI.toString(), dir.toString(), account1.toString(), "chocolate" }));
-			// the output contains a new line, to remove, and slashes, that must be escaped
-			report("sed -i 's/@family_exported_call_toString_output/" + runFamilyExportedMain.trim().replace("/", "\\/") + "/g' target/Tutorial.md");
+			createCommandFile("moka_objects_call_toString", "moka objects call " + account1 + " io.hotmoka.tutorial.examples.family.Person toString --uri=" + mokamintURI + " --password-of-payer --receiver=" + person2Object);
+			var output19 = Moka.objectsCall(account1 + " io.hotmoka.tutorial.examples.family.Person toString --uri=" + mokamintURI + " --timeout=" + TIMEOUT + " --dir=" + tempDir + " --yes --password-of-payer=chocolate --receiver=" + person2Object);
+			createOutputFile("moka_objects_call_toString", output19);
 
+			createCommandFile("moka_jars_install_3", "cd io-takamaka-code-examples-family\nmvn clean install\ncd ..\nmoka jars install " + account1 + " io-hotmoka-tutorial-examples-family/target/io-hotmoka-tutorial-examples-family-" + HOTMOKA_VERSION + ".jar --password-of-payer --uri=" + mokamintURI);
+			Path jar3 = Paths.get(System.getProperty("user.home") + "/.m2/repository/io/hotmoka/io-hotmoka-tutorial-examples-family_exported/" + HOTMOKA_VERSION + "/io-hotmoka-tutorial-examples-family_exported-" + HOTMOKA_VERSION + ".jar");
+			var output20 = JarsInstallOutputs.from(Moka.jarsInstall(account1 + " " + jar3 + " --password-of-payer=chocolate --dir=" + tempDir + " --uri=" + mokamintURI + " --json --timeout=" + TIMEOUT));
+			createOutputFile("moka_jars_install_3", "Enter value for --password-of-payer (the password of the key pair of the payer account): chocolate\n" + output20);
+			TransactionReference familyExportedAddress = output20.getJar().get();
+			report("familyExportedAddress", familyExportedAddress);
+			reportShort("familyExportedAddress", familyExportedAddress);
+
+			createCommandFile("moka_objects_create_person_exported", "moka objects create " + account1 + " io.hotmoka.tutorial.examples.family.Person Einstein 14 4 1879 null null --classpath=" + familyExportedAddress + " --password-of-payer --uri=" + mokamintURI);
+			var output21 = ObjectsCreateOutputs.from(Moka.objectsCreate(account1 + " io.hotmoka.tutorial.examples.family.Person Einstein 14 4 1879 null null --classpath=" + familyExportedAddress + " --uri=" + mokamintURI + " --timeout=" + TIMEOUT + " --dir=" + tempDir + " --json --password-of-payer=chocolate"));
+			createOutputFile("moka_objects_create_person_exported", "Enter value for --password-of-payer (the password of the key pair of the payer account): chocolate\nDo you really want to call constructor\n  public ...Person(java.lang.String,int,int,int,...Person,...Person)\n  spending up to 1000000 gas units at the price of 1 pana per unit (that is, up to 1000000 panas) [Y/N] Y\n" + output21);
+			StorageReference personExported = output21.getObject().get();
+			report("personExportedObject", personExported);
+			reportShort("personExportedObject", personExported);
+
+			createCommandFile("moka_objects_call_toString_exported", "moka objects call " + account1 + " io.hotmoka.tutorial.examples.family.Person toString --uri=" + mokamintURI + " --password-of-payer --receiver=" + personExported);
+			var output22 = Moka.objectsCall(account1 + " io.hotmoka.tutorial.examples.family.Person toString --uri=" + mokamintURI + " --timeout=" + TIMEOUT + " --dir=" + tempDir + " --yes --password-of-payer=chocolate --receiver=" + personExported);
+			createOutputFile("moka_objects_call_toString_exported", output22);
+
+			createCommandFile("mvn_exec_family_exported", "mvn compile exec:java -Dexec.mainClass=\"io.hotmoka.tutorial.examples.runs.FamilyExported\" -Dexec.args=\""
+					+ mokamintURI + " " + hotmokaTutorialDir + " " + account1 + " chocolate\"");
+			String runFamilyExportedMain = run(() -> FamilyExported.main(new String[] { mokamintURI.toString(), tempDir.toString(), account1.toString(), "chocolate" }));
+			createOutputFile("mvn_exec_family_exported", runFamilyExportedMain);
+
+			/*
 			Path jar4 = Paths.get(System.getProperty("user.home") + "/.m2/repository/io/hotmoka/io-hotmoka-tutorial-examples-ponzi_gradual/" + HOTMOKA_VERSION + "/io-hotmoka-tutorial-examples-ponzi_gradual-" + HOTMOKA_VERSION + ".jar");
 			var output22 = JarsInstallOutputs.from(Moka.jarsInstall(account1 + " " + jar4 + " --password-of-payer=chocolate --dir=" + dir + " --uri=" + mokamintURI + " --json --timeout=" + TIMEOUT));
 			TransactionReference gradualPonziAddress = output22.getJar().get();

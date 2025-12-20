@@ -678,7 +678,7 @@ public class Person extends Storage {
   (Fig.~\ref{fig:jar_installed}).
 \end{commentbox}
 
-Since class \texttt{Person} has been modified, regenerate
+Since class \texttt{Person} has been modified, you need to regenerate the jar file
 \texttt{io-hotmoka-tutorial-examples-family-\hotmokaVersion{}.jar},
 by running \texttt{mvn install} again
 inside the \texttt{io-hotmoka-tutorial-examples-family} project.
@@ -852,7 +852,8 @@ The new transaction is triggered by the
 that expands the node with a new transaction that calls
 a constructor. We use our account as payer for the transaction, hence we sign
 the request with its private key.
-The class path includes \texttt{io-hotmoka-tutorial-examples-family-\hotmokaVersion{}.jar}
+The class path includes path jars
+\texttt{io-hotmoka-tutorial-examples-family-\hotmokaVersion{}.jar}
 and its dependency \texttt{io-takamaka-code}.
 The signature of the constructor specifies that we are referring to the second
 constructor of \texttt{Person}, the one that assumes \texttt{null} as parents.
@@ -896,3 +897,481 @@ the object of class \texttt{Person} gets created in blockchain:
 \input{mvn_exec_family_storage_output}
 %
 The exact address where the \texttt{Person} object gets allocated will change at each run.
+
+\section{Calling a method on an Object in a Hotmoka node}\label{sec:calling_method}
+
+\begin{center}
+  (See the \texttt{io-hotmoka-tutorial-examples-family-exported} and the
+  \texttt{io-hotmoka-tutorial-examples-runs} projects in \texttt{\hotmokaRepo{}})
+\end{center}
+
+In the previous section, we have created an object of class \texttt{Person} in the store
+of the node. Let us invoke the
+\texttt{toString()} method on that object now. For that, we can use the
+\texttt{moka objects call} command, specifying our `Person` object as \emph{receiver}.
+
+\begin{commentbox}
+In object-oriented languages, the \emph{receiver}\index{receiver} of a call to a non-\texttt{static}
+method is the object over which the method is executed, that is accessible
+as \texttt{this} inside the code of the method. In our case, we want to invoke
+\texttt{einstein.toString()}, where \texttt{einstein} is the object that we have created
+previously, hence the receiver of the call.
+The receiver can be seen as an implicit actual argument passed to a (non-\texttt{static}) method.
+\end{commentbox}
+%
+\input{moka_objects_call_toString_command}
+\input{moka_objects_call_toString_output}
+%
+Command \texttt{moka objects call} requires to specify, as its first arguments,
+the payer of the call, that is, our account, followed by the name of the class whose
+method is called and the name of that method. The receiver of the call is specified through
+\texttt{-{}-receiver}.
+
+As you can see above, the result is deceiving.
+
+This exception occurs when we try to pass the \texttt{Person} object
+as receiver of \texttt{toString()} (the receiver is a particular case of an actual
+argument). That object has been created in store, has escaped the node
+and is available through its storage reference \texttt{\personObjectTwoShort}.
+However, it cannot be passed back
+into the node as argument of a call since it is not \emph{exported}. This is a security feature of
+Hotmoka. Its reason is that the store of a node is public and can be read freely.
+Everybody can see the objects created in the store of a Hotmoka node
+and their storage references can be used to invoke their methods and modify their state.
+This is true also for objects meant to be private state components of other objects and that
+are not expected to be freely modifiable from outside the node. Because of this,
+Hotmoka requires that classes, whose instances can be passed into the node as
+arguments to methods or constructors,
+must be annotated as \texttt{@Exported}\index{Exported}.
+This means that the programmer acknowledges the
+use of these instances from outside the node.
+%
+\begin{commentbox}
+Note that all objects can be passed, from \emph{inside} the blockchain, as arguments to methods
+of code in the node. The above limitation applies to objects passed from \emph{outside}
+the node only.
+\end{commentbox}
+
+Let us modify the \texttt{Person} class again:
+%
+\begin{codebox}\begin{javalst}
+...
+import io.takamaka.code.lang.Exported;
+...
+
+@Exported
+public class Person extends Storage {
+  ...
+}
+\end{javalst}\end{codebox}
+%
+Package the project \texttt{io-hotmoka-tutorial-examples-family}:
+%
+\input{moka_jars_install_3_command}
+\input{moka_jars_install_3_output}
+%
+then create a new \texttt{Person} object:
+%
+\input{moka_objects_create_person_exported_command}
+\input{moka_objects_create_person_exported_output}
+%
+and finally call \texttt{toString()} on that new object:
+%
+\input{moka_objects_call_toString_exported_command}
+\input{moka_objects_call_toString_exported_output}
+%
+This time, the correct answer \texttt{Einstein (14/4/1879)} appears on the screen.
+%
+\begin{commentbox}
+In Ethereum, the only objects that can be passed, from outside the blockchain,
+as argument to method calls into blockchain are contracts. Namely, in Solidity
+it is possible to pass such objects as their untyped \emph{address} that can only
+be cast to contract classes. Takamaka allows more, since \emph{any} object can be passed as
+argument, not only contracts, as long as its class is annotated as \texttt{@Exported}.
+This includes all contracts since the class \texttt{io.takamaka.code.lang.Contract}, that
+we will present later, is annotated as \texttt{@Exported} and \texttt{@Exported} is an
+inherited Java annotation.
+\end{commentbox}
+
+We can do the same in code, instead of using the \texttt{moka objects call} command.
+Namely, we can expand
+the \texttt{FamilyStorage} class seen before in order to run a further transaction,
+that calls \texttt{toString()}.
+For that, copy then the following \texttt{FamilyExported} class inside
+the package \texttt{io.hotmoka.tutorial.examples.runs}
+of the \texttt{io-hotmoka-tutorial-examples-runs} project:
+%
+\begin{codebox}\begin{javalst}
+package io.hotmoka.tutorial.examples.runs;
+
+import static io.hotmoka.helpers.Coin.panarea;
+import static io.hotmoka.node.StorageTypes.INT;
+import static java.math.BigInteger.ONE;
+
+import java.math.BigInteger;
+import java.net.URI;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.security.KeyPair;
+
+import io.hotmoka.constants.Constants;
+import io.hotmoka.crypto.api.Signer;
+import io.hotmoka.helpers.GasHelpers;
+import io.hotmoka.helpers.SignatureHelpers;
+import io.hotmoka.node.Accounts;
+import io.hotmoka.node.ConstructorSignatures;
+import io.hotmoka.node.MethodSignatures;
+import io.hotmoka.node.StorageTypes;
+import io.hotmoka.node.StorageValues;
+import io.hotmoka.node.TransactionRequests;
+import io.hotmoka.node.api.Node;
+import io.hotmoka.node.api.requests.SignedTransactionRequest;
+import io.hotmoka.node.api.transactions.TransactionReference;
+import io.hotmoka.node.api.types.ClassType;
+import io.hotmoka.node.api.values.StorageReference;
+import io.hotmoka.node.api.values.StorageValue;
+import io.hotmoka.node.remote.RemoteNodes;
+
+public class FamilyExported {
+
+  private final static ClassType PERSON = StorageTypes.classNamed
+    ("io.hotmoka.tutorial.examples.family.Person");
+
+  public static void main(String[] args) throws Exception {
+
+    // the path of the user jar to install
+    var familyPath = Paths.get(System.getProperty("user.home")
+    + "/.m2/repository/io/hotmoka/io-hotmoka-tutorial-examples-family/"
+    + Constants.HOTMOKA_VERSION
+    + "/io-hotmoka-tutorial-examples-family-" + Constants.HOTMOKA_VERSION + ".jar");
+
+    var dir = Paths.get(args[1]);
+    var payer = StorageValues.reference(args[2]);
+    var password = args[3];
+
+    try (var node = RemoteNodes.of(new URI(args[0]), 150000)) {
+      // we get a reference to where io-takamaka-code-X.Y.Z.jar has been stored
+      TransactionReference takamakaCode = node.getTakamakaCode();
+
+      // we get the signing algorithm to use for requests
+      var signature = node.getConfig().getSignatureForRequests();
+
+      KeyPair keys = loadKeys(node, dir, payer, password);
+
+      // we create a signer that signs with the private key of our account
+      Signer<SignedTransactionRequest<?>> signer = signature.getSigner
+      (keys.getPrivate(), SignedTransactionRequest::toByteArrayWithoutSignature);
+
+      // we get the nonce of our account: we use the account itself as caller and
+      // an arbitrary nonce (ZERO in the code) since we are running
+      // a @View method of the account
+      BigInteger nonce = node
+      .runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
+      (payer, // payer
+      BigInteger.valueOf(100_000), // gas limit
+      takamakaCode, // class path for the execution of the transaction
+      MethodSignatures.NONCE, // method
+      payer)).get() // receiver of the method call
+      .asBigInteger(__ -> new ClassCastException());
+
+      // we get the chain identifier of the network
+      String chainId = node.getConfig().getChainId();
+
+      var gasHelper = GasHelpers.of(node);
+
+      // we install the family jar in the node: our account will pay
+      TransactionReference family = node
+      .addJarStoreTransaction(TransactionRequests.jarStore
+      (signer, // an object that signs with the payer's private key
+      payer, // payer
+      nonce, // payer's nonce: relevant since this is not a call to a @View method!
+      chainId, // chain identifier: relevant since this is not a call to a @View method!
+      BigInteger.valueOf(1_000_000), // gas limit: enough for this small jar
+      gasHelper.getSafeGasPrice(), // gas price: at least the current gas price of the network
+      takamakaCode, // class path for the execution of the transaction
+      Files.readAllBytes(familyPath), // bytes of the jar to install
+      takamakaCode)); // dependencies of the jar that is being installed
+
+      // we increase our copy of the nonce, ready for further
+      // transactions having the account as payer
+      nonce = nonce.add(ONE);
+
+      // call the constructor of Person and store in einstein the new object in blockchain
+      StorageReference einstein = node.addConstructorCallTransaction
+      (TransactionRequests.constructorCall
+      (signer, // an object that signs with the payer's private key
+      payer, // payer
+      nonce, // payer's nonce: relevant since this is not a call to a @View method!
+      chainId, // chain identifier: relevant since this is not a call to a @View method!
+      BigInteger.valueOf(300_000), // gas limit: enough for a small object
+      panarea(gasHelper.getSafeGasPrice()), // gas price, in panareas
+      family, // class path for the execution of the transaction
+
+      // constructor Person(String,int,int,int)
+      ConstructorSignatures.of(PERSON, StorageTypes.STRING, INT, INT, INT),
+
+      // actual arguments
+      StorageValues.stringOf("Einstein"), StorageValues.intOf(14),
+      StorageValues.intOf(4), StorageValues.intOf(1879)
+      ));
+
+      // we increase our copy of the nonce, ready for further
+      // transactions having the account as payer
+      nonce = nonce.add(ONE);
+
+      StorageValue s = node.addInstanceMethodCallTransaction
+      (TransactionRequests.instanceMethodCall
+      (signer, // an object that signs with the payer's private key
+      payer, // payer
+      nonce, // payer's nonce: relevant since this is not a call to a @View method!
+      chainId, // chain identifier: relevant since this is not a call to a @View method!
+      BigInteger.valueOf(100_000), // gas limit: enough for a simple call
+      panarea(gasHelper.getSafeGasPrice()), // gas price, in panareas
+      family, // class path for the execution of the transaction
+
+      // method to call: String Person.toString()
+      MethodSignatures.ofNonVoid(PERSON, "toString", StorageTypes.STRING),
+
+      // receiver of the method to call
+      einstein
+      )).get();
+
+      // we increase our copy of the nonce, ready for further
+      // transactions having the account as payer
+      nonce = nonce.add(ONE);
+
+      // print the result of the call
+      System.out.println(s);
+    }
+  }
+
+  private static KeyPair loadKeys(Node node, Path dir, StorageReference account, String password) throws Exception {
+    return Accounts.of(account, dir)
+    .keys(password, SignatureHelpers.of(node).signatureAlgorithmFor(account));
+  }
+}
+\end{javalst}\end{codebox}
+%
+The interesting part is the call to \texttt{addInstanceMethodCallTransaction()}
+at the end of the previous listing.
+It requires to resolve method \texttt{Person.toString()} by using \texttt{einstein} as receiver
+(the type \texttt{StorageTypes.STRING} is the return type of the method) and
+to run the resolved method. It stores the result in
+\texttt{s}, that subsequently prints on the standard output.
+You can run class \texttt{FamilyExported}. You will obtain the same result as
+with \texttt{moka objects call}:
+%
+\input{mvn_exec_family_exported_command}
+\input{mvn_exec_family_exported_output}
+
+As we have shown, method \texttt{addInstanceMethodCallTransaction()} can be used to
+invoke an instance method on an object in the store of the node. This requires some
+clarification. First of all, note that the signature of the method to
+call is resolved and the resolved method is then invoked. If
+such resolved method is not found (for instance, if we tried to call \texttt{tostring()} instead
+of \texttt{toString()}), then \texttt{addInstanceMethodCallTransaction()} would end up in
+a failed transaction. Moreover, the usual resolution mechanism of Java methods applies.
+If, for instance, we invoked
+\texttt{MethodSignatures.ofNonVoid(StorageTypes.OBJECT, "toString", StorageTypes.STRING)}\linebreak
+instead of
+\texttt{MethodSignatures.ofNonVoid(PERSON, "toString", StorageTypes.STRING)},
+then method \texttt{toString()} would have be resolved from the run-time class of
+\texttt{einstein}, looking for the most specific implementation of \texttt{toString()},
+up to the \texttt{java.lang.Object} class, which would anyway end up in
+running \texttt{Person.toString()}.
+
+Method \texttt{addInstanceMethodCallTransaction()} can be used to invoke instance
+methods with parameters. If a \texttt{toString(int)} method existed in class \texttt{Person},
+then we could call it and pass 2019 as its argument, by writing:
+%
+\begin{codebox}\begin{javalst}
+StorageValue s = node.addInstanceMethodCallTransaction
+(TransactionRequests.instanceMethodCall(
+...
+
+// method to call: String Person.toString(int)
+MethodSignatures.ofNonVoid(PERSON, "toString", StorageTypes.STRING, StorageTypes.INT),
+
+// receiver of the method to call
+einstein,
+  
+// actual argument(s)
+StorageValues.intOf(2019)
+)).get();
+\end{javalst}\end{codebox}
+%
+where we have added the formal parameter \texttt{StorageTypes.INT}
+and the corresponding
+actual argument \texttt{StorageValues.intOf(2019)}. Note that method calls yields
+an optional value in Hotmoka, since methods returning \texttt{void} actually return non value.
+Consequently, we need the final call to \texttt{get()} above to get the actual
+value returned by the method.
+
+Method \texttt{addInstanceMethodCallTransaction()} cannot be used to call a \texttt{static}
+method. For that, use \texttt{addStaticMethodCallTransaction()} instead, that accepts
+a request similar to that for \texttt{addInstanceMethodCallTransaction()}, but without a receiver.
+
+\section{Storage types and constraints on storage classes}\label{sec:storage}
+
+We have seen how to invoke a constructor of a class to build an object in
+the store of a node or to invoke a method on an object in the store of a node.
+Both constructors and
+methods can receive arguments. Constructors yield a reference to a new
+object, freshly allocated; methods might yield a returned value, if they are
+not declared as \texttt{void}. This means that there is a bidirectional
+exchange of data from outside the node to inside it, and back. But not any
+kind of data can be exchanged:
+%
+\begin{enumerate}
+\item The values that can be exchanged from inside the node to
+  outside the node are called \emph{storage values}\index{storage value}.
+\item The values that can be exchanged from outside the node to
+  inside the node are the same storage values as above, with the extra constraint
+  that objects must belong to an \texttt{@Exported} class.\index{Exported}
+\end{enumerate}
+
+The set of storage value is the union of
+%
+\begin{enumerate}
+\item primitive values of Java (characters, bytes, shorts, integers, longs, floats,
+  doubles and booleans);
+\item reference values whose class extends \texttt{io.takamaka.code.lang.Storage}
+  (that is, \emph{storage objects})\index{storage object};
+\item \texttt{null};
+\item a few special reference values: \texttt{java.math.BigInteger}s and
+  \texttt{java.lang.String}s.
+\end{enumerate}
+
+Storage values cross the
+node's boundary inside wrapper objects. For instance the integer 2019
+is first wrapped into \texttt{StorageValues.intOf(2019)} and then passed
+as a parameter to a method or constructor. In our previous example,
+when we called \texttt{Person.toString()}, the result \texttt{s} was actually a wrapper
+of a \texttt{java.lang.String} object. Boxing and unboxing into/from wrapper objects
+is automatic in Takamaka: our class \texttt{Person} does not show that machinery.
+
+What should be retained of the above discussion is that constructors and
+methods of Takamaka classes, if we want them to be called from outside the
+node, must receive storage values as parameters and must return storage
+values (if they are not \texttt{void} methods). A method that expects a parameter of
+type \texttt{java.util.HashSet}, for instance, can be defined and called
+from Takamaka code, inside the node, but cannot be called from outside the node,
+such as, for instance, from the moka tool or from our \texttt{Family} class. The same
+occurs if the method returns a \texttt{java.util.HashSet}.
+
+We conclude this section with a formal definition of storage objects.
+We have already said that storage objects can be kept in the store of a node
+and that their class must extend the library class
+\texttt{io.takamaka.code.lang.Storage}. But there are extra constraints. Namely,
+fields of a storage objects are part of the representation of such
+objects and must, themselves, be kept in store. Hence, a storage object:
+%
+\begin{enumerate}
+\item has a class that extends (directly or indirectly) \texttt{io.takamaka.code.lang.Storage}, and
+\item all its fields hold storage values (primitives, storage objects,
+  \texttt{null}, a \texttt{java.math.BigInteger} or a \texttt{java.lang.String}).
+\end{enumerate}
+%
+Note that the above conditions hold for the class \texttt{Person} defined above. Instead,
+the following are examples of what is \emph{not} allowed in a field of a storage object:
+%
+\begin{enumerate}
+\item arrays
+\item collections from \texttt{java.util.*}
+\end{enumerate}
+%
+We will see later how to overcome these limitations.
+
+\begin{commentbox}
+Again, we stress that such limitations only apply to storage objects.
+Other objects, that needn't be kept in the store of a node but are useful for
+the implementation of Takamaka code, can be defined in a completely free way
+and used in code that runs in the node.
+\end{commentbox}
+
+\section{Transactions can be added, posted and run}\label{sec:add_post_run}
+
+We have executed transactions on a Hotmoka node with methods
+\texttt{addJarStoreTransaction()}, \texttt{addConstructorCallTransaction()}
+and \texttt{addInstanceMethodCallTransaction()}. These methods, whose name
+starts with \texttt{add}\index{transaction!add},
+are \emph{synchronous}, meaning that they block until the transaction is
+executed (or fails). If they are invoked on a node with a notion of
+commit, such as a blockchain, they guarantee to block until
+the transaction is actually committed.
+In many cases, when we immediately need the result of a transaction
+before continuing with the execution of the
+subsequent statements,
+these methods are the right choice. In many other cases, however,
+it is unnecessary to wait until the transaction has completed
+its execution and has been committed. In those cases, it can
+be faster to execute a transaction through a method whose name
+starts with \texttt{post}\index{transaction!post}, such as
+\texttt{postJarStoreTransaction()}, \texttt{postConstructorCallTransaction()}
+or \texttt{postInstanceMethodCallTransaction()}. These methods are called
+\emph{asynchronous}, since they terminate
+immediately, without waiting for the outcome of the transaction
+they trigger. Hence they cannot return their outcome immediately
+and return a \emph{future}
+instead, whose \texttt{get()} value, if and when invoked, will block
+until the outcome of the transaction is finally available.
+
+For instance, instead of the inefficient:
+%
+\begin{codebox}\begin{javalst}
+StorageValue s = node.addInstanceMethodCallTransaction
+  (TransactionRequests.instanceMethodCall(
+    signer,
+    payer,
+    nonce,
+    chainId,
+    BigInteger.valueOf(100_000),
+    panarea(gasHelper.getSafeGasPrice()),
+    family,
+    MethodSignatures.ofNonVoid(PERSON, "toString", StorageTypes.STRING),
+    einstein
+  )).get();
+
+// code that does not use s
+// .....
+\end{javalst}\end{codebox}
+%
+one can write the more efficient:
+%
+\begin{codebox}\begin{javalst}
+MethodFuture future = node.postInstanceMethodCallTransaction
+  (TransactionRequests.instanceMethodCall(
+    signer,
+    payer,
+    nonce,
+    chainId,
+    BigInteger.valueOf(100_000),
+    panarea(gasHelper.getSafeGasPrice()),
+    family,
+    MethodSignatures.ofNonVoid(PERSON, "toString", StorageTypes.STRING),
+    einstein
+  ));
+
+// code that does not use s
+// .....
+
+// the following will be needed only if s is used later
+StorageValue s = future.get().get();
+\end{javalst}\end{codebox}
+%
+where the first \texttt{get()} belongs to the future and is a blocking call
+that suspends until the method has been executed, and the second
+\texttt{get()} extracts the value from the optional returned by Hotmoka's
+API for calling methods.
+
+There is a third way to execute a transaction. Namely, calls to methods
+annotated as \texttt{@View}\index{View} can be performed through the
+\texttt{runInstanceMethodCallTransaction()} (for instance methods) and
+\texttt{runStaticMethodCallTransaction()} (for static methods)\index{transaction!run}.
+As we have hinted before, these executions are performed
+locally, on the node they are addressed to, and do not add a transaction
+that must be replicated in each node of the network, for consensus, and
+that costs gas for storage.
+These executions are free and do not require a correct nonce, signature,
+or chain identifier, which is a great simplification.
