@@ -1,0 +1,308 @@
+\chapter{Smart contracts}\label{ch:smart_contracts}
+
+A contract is a legal agreement among two or more parties. A good contract
+should be unambiguous, since otherwise its interpretation could be
+questioned or misunderstood. A legal system normally enforces the
+validity of a contract. In the context of software development,
+a \emph{smart contract}\index{smart contract}
+is a piece of software with deterministic behavior, whose semantics should be
+clear and enforced by a consensus system. Blockchains provide the perfect
+environment where smart contracts can be deployed and executed, since their
+(typically) non-centralized nature reduces the risk that a single party
+overthrows the rules of consensus, by providing for instance a non-standard
+semantics for the code of the smart contract.
+
+Contracts are allowed to hold and transfer money to other contracts. Hence,
+traditionally, smart contracts are divided into those that hold money
+but have no code (\emph{externally owned accounts}), and those that,
+instead, contain code (\emph{actual} smart contracts).
+The formers are typically controlled by an external agent (a wallet,
+a human or a software application, on his behalf)
+while the latters are typically controlled by their code.
+Takamaka implements both alternatives as instances of the abstract library class
+\texttt{io.takamaka.code.lang.Contract} (inside the jar \texttt{io-takamaka-code}).
+That class extends
+\texttt{io.takamaka.code.lang.Storage}, hence its instances can be kept in the store
+of the node. Moreover, that class is annotated as \texttt{@Exported}, hence nodes can receive
+references to contract instances from the outside world.
+The Takamaka library defines subclasses of \texttt{io.takamaka.code.lang.Contract}, that
+we will investigate later. Programmers can define their own subclasses as well.
+
+This chapter presents a simple smart contract, whose goal is to
+enforce a Ponzi investment scheme: each investor pays back the previous investor,
+with at least a 10\% reward; as long as new
+investors keep coming, each investor gets at least a 10\% reward; the last
+investor, instead, will never see his/her investment back.
+The contract has been inspired by a similar Ethereum contract, shown
+in~\cite{IyerD18}.
+
+We will develop the contract in successive versions, in order to highlight
+the meaning of different language features of Takamaka.
+
+\section{A simple Ponzi scheme contract}\label{sec:simple_ponzi}
+
+\begin{center}
+(See the \texttt{io-hotmoka-tutorial-examples-ponzi\_simple} project in \texttt{\hotmokaRepo{}})
+\end{center}
+
+Create a new Maven Java 21 (or later) project in Eclipse,
+named \texttt{io-hotmoka-tutorial-examples-ponzi}.
+You can do this by duplicating the project
+\texttt{io-hotmoka-tutorial-examples-family}. Use the following \texttt{pom.xml}:
+%
+\begin{codebox}\begin{xmllst}
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>io.hotmoka</groupId>
+  <artifactId>io-hotmoka-tutorial-examples-ponzi</artifactId>
+  <version>|\hotmokaVersion{}|</version>
+
+  <properties>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <maven.compiler.release>21</maven.compiler.release>
+  </properties>
+
+  <dependencies>
+    <dependency>
+      <groupId>io.hotmoka</groupId>
+      <artifactId>io-takamaka-code</artifactId>
+      <version>|\takamakaVersion{}|</version>
+    </dependency>
+  </dependencies>
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <version>3.11.0</version>
+      </plugin>
+    </plugins>
+  </build>
+
+</project>
+\end{xmllst}\end{codebox}
+%
+and the following \texttt{module-info.java}:
+%
+\begin{codebox}\begin{javalst}
+module ponzi {
+  requires io.takamaka.code;
+}
+\end{javalst}\end{codebox}
+%
+Create package \texttt{io.hotmoka-tutorial.examples.ponzi} inside \texttt{src/main/java} and add
+the following \texttt{SimplePonzi.java} source inside that package:
+%
+\begin{codebox}\begin{javalst}
+package io.hotmoka.tutorial.examples.ponzi;
+
+import static io.takamaka.code.lang.Takamaka.require;
+
+import java.math.BigInteger;
+
+import io.takamaka.code.lang.Contract;
+import io.takamaka.code.lang.StringSupport;
+import io.takamaka.code.math.BigIntegerSupport;
+
+public class SimplePonzi extends Contract {
+  private final BigInteger _10 = BigInteger.valueOf(10L);
+  private final BigInteger _11 = BigInteger.valueOf(11L);
+  private Contract currentInvestor;
+  private BigInteger currentInvestment = BigInteger.ZERO;
+
+  public void invest(Contract investor, BigInteger amount) {
+    // new investments must be at least 10% greater than current
+    BigInteger minimumInvestment = BigIntegerSupport.divide
+      (BigIntegerSupport.multiply(currentInvestment, _11), _10);
+    require(BigIntegerSupport.compareTo(amount, minimumInvestment) > 0,
+      () -> StringSupport.concat("you must invest more than ", minimumInvestment));
+
+    // document new investor
+    currentInvestor = investor;
+    currentInvestment = amount;
+  }
+}
+\end{javalst}\end{codebox}
+%
+\begin{commentbox}
+This code is only the starting point of our discussion and is not functional yet.
+The real final version of this contract will appear at the end of this section.
+\end{commentbox}
+
+Look at \texttt{SimplePonzi.java} above. The contract has a single
+method, named \texttt{invest}. This method lets a new \texttt{investor} invest
+a given \texttt{amount} of coins. This amount must be at least 10\% higher than
+the current investment. The expression
+\texttt{BigIntegerSupport.compareTo(amount, minimumInvestment) > 0}
+is a comparison between two Java \texttt{BigInteger}s and should be read as the
+more familiar \texttt{amount >= minimumInvestment}: the latter cannot be
+written in this form, since Java does not allow comparison operators
+to work on reference types.
+The static method \texttt{io.takamaka.code.lang.Takamaka.require()} is used to require
+some precondition to hold. The \texttt{require(}\textit{condition}\texttt{,} \textit{message}\texttt{)} call throws an
+exception if \textit{condition} does not hold, with the given \textit{message}.
+If the new investment is at least 10\% higher than the current one, it will be
+saved in the state of the contract, together with the new investor.
+
+\begin{commentbox}
+You might wonder why we used
+\texttt{require(..., () -> StringSupport.concat("you must invest more than ", minimumInvestment)}
+instead of the simpler
+\texttt{require(..., StringSupport.concat("you must invest more than ", minimumInvestment)}.
+Both are possible and semantically almost identical. However, the former
+uses a lambda expression that computes the string concatenation lazily, only if
+the message is needed; the latter always computes the string concatenation, instead.
+Hence, the first version consumes less gas, in general, and is consequently
+preferred. This technique simulates lazy evaluation in a language, like
+Java, that has only eager evaluation for actual arguments. This technique
+has been used since years, for instance in JUnit assertions.
+\end{commentbox}
+
+\section{The \texttt{@FromContract} and \texttt{@Payable} annotations}\label{sec:from_contract_payable}
+
+\begin{center}
+(See the \texttt{io-hotmoka-tutorial-examples-ponzi\_annotations} project in \texttt{\hotmokaRepo{}})
+\end{center}
+
+The previous code of \texttt{SimplePonzi.java} is unsatisfactory, for at least two
+reasons, that we will overcome in this section:
+
+\begin{enumerate}
+\item Any contract can call \texttt{invest()} and let \emph{another} \texttt{investor}
+  contract invest
+  in the game. This is against our intuition that each investor decides when
+  and how much he (himself) decides to invest.
+\item There is no money transfer. Anybody can call \texttt{invest()}, with an arbitrary
+  \texttt{amount} of coins. The previous investor does not get the investment back
+  when a new investor arrives since, well, he never really invested anything.
+\end{enumerate}
+
+Let us rewrite \texttt{SimplePonzi.java} in the following way:
+%
+\begin{codebox}\begin{javalst}
+package io.hotmoka.tutorial.examples.ponzi;
+
+import static io.takamaka.code.lang.Takamaka.require;
+
+import java.math.BigInteger;
+
+import io.takamaka.code.lang.Contract;
+import io.takamaka.code.lang.FromContract;
+import io.takamaka.code.lang.Payable;
+import io.takamaka.code.lang.StringSupport;
+import io.takamaka.code.math.BigIntegerSupport;
+
+public class SimplePonzi extends Contract {
+  private final BigInteger _10 = BigInteger.valueOf(10L);
+  private final BigInteger _11 = BigInteger.valueOf(11L);
+  private Contract currentInvestor;
+  private BigInteger currentInvestment = BigInteger.ZERO;
+
+  public @FromContract void invest(BigInteger amount) {
+    // new investments must be at least 10% greater than current
+    BigInteger minimumInvestment = BigIntegerSupport.divide
+      (BigIntegerSupport.multiply(currentInvestment, _11), _10);
+    require(BigIntegerSupport.compareTo(amount, minimumInvestment) > 0,
+      () -> StringSupport.concat("you must invest more than ", minimumInvestment));
+
+    // document new investor
+    currentInvestor = caller();
+    currentInvestment = amount;
+  }
+}
+\end{javalst}\end{codebox}
+
+The difference with the previous version
+is that the \texttt{investor} argument of \texttt{invest()} has disappeared.
+At its place, \texttt{invest()} has been annotated as \texttt{@FromContract}\index{FromContract}.
+This annotation
+\emph{restricts} the possible uses of method \texttt{invest()}. Namely, it can
+only be called from a contract object \emph{c} or from an external wallet,
+with a paying contract \emph{c}, that pays for a transaction that runs
+\texttt{invest()}. It cannot, instead, be called from
+the code of a class that is not a contract.
+The instance of contract \emph{c} is available, inside
+\texttt{invest()}, as \texttt{caller()}\index{caller()}. This is, indeed, saved, in the above code,
+into \texttt{currentInvestor}.
+
+The annotation \texttt{@FromContract} can be applied to both methods and constructors.
+If a \texttt{@FromContract} method is redefined, the redefinitions must also be
+annotated as \texttt{@FromContract}.
+
+\begin{commentbox}
+Method \texttt{caller()} can only be used inside a \texttt{@FromContract} method or
+constructor and refers to the contract that called that method or constructor
+or to the contract that pays for a call, from a wallet, to the method or constructor.
+Hence, it will never yield \texttt{null}. If a \texttt{@FromContract} method or constructor
+calls another method \emph{m}, then the \texttt{caller()} of the former is \emph{not} available
+inside \emph{m}, unless the call occurs, syntactically, on \texttt{this}, in which case
+the \texttt{caller()} is preserved. By \emph{syntactically}, we mean through expressions such as
+\texttt{this.m(...)} or \texttt{super.m(...)}.
+\end{commentbox}
+
+The use of \texttt{@FromContract} solves the first problem: if a contract invests in the game,
+then it is the caller of \texttt{invest()}. But there is still no money
+transfer in this version of \texttt{SimplePonzi.java}. What we still miss is to require
+the caller of \texttt{invest()} to actually pay for the \texttt{amount} units of coin.
+Since \texttt{@FromContract} guarantees that the caller of \texttt{invest()} is a contract and since
+contracts hold money, this means that the caller contract of \texttt{invest()}
+can be charged \texttt{amount} coins at the moment of calling \texttt{invest()}.
+This can be achieved with the \texttt{@Payable}\index{Payable} annotation,
+that we apply to \texttt{invest()}:
+%
+\begin{codebox}\begin{javalst}
+package io.hotmoka.tutorial.examples.ponzi;
+
+import static io.takamaka.code.lang.Takamaka.require;
+
+import java.math.BigInteger;
+
+import io.takamaka.code.lang.Contract;
+import io.takamaka.code.lang.FromContract;
+import io.takamaka.code.lang.Payable;
+import io.takamaka.code.lang.StringSupport;
+import io.takamaka.code.math.BigIntegerSupport;
+
+public class SimplePonzi extends Contract {
+  private final BigInteger _10 = BigInteger.valueOf(10L);
+  private final BigInteger _11 = BigInteger.valueOf(11L);
+  private Contract currentInvestor;
+  private BigInteger currentInvestment = BigInteger.ZERO;
+
+  public @Payable @FromContract void invest(BigInteger amount) {
+    // new investments must be at least 10% greater than current
+    BigInteger minimumInvestment = BigIntegerSupport.divide
+      (BigIntegerSupport.multiply(currentInvestment, _11), _10);
+    require(BigIntegerSupport.compareTo(amount, minimumInvestment) > 0,
+      () -> StringSupport.concat("you must invest more than ", minimumInvestment));
+
+    // document new investor
+    currentInvestor = caller();
+    currentInvestment = amount;
+  }
+}
+\end{javalst}\end{codebox}
+%
+When a contract calls \texttt{invest()} now, that contract will be charged
+\texttt{amount} coins,
+automatically. This means that these coins will be automatically transferred to the
+balance of the instance of \texttt{SimplePonzi} that receives the call.
+If the balance of the calling contract is too little for that, the call
+will be automatically rejected with an insufficient funds exception. The caller
+must be able to pay for both \texttt{amount} and the gas needed to run \texttt{invest()}. Hence,
+he must hold a bit more than \texttt{amount} coins at the moment of calling \texttt{invest()}.
+
+\begin{commentbox}
+The \texttt{@Payable} annotation can only be applied to a method or constructor that
+is also annotated as \texttt{@FromContract}. If a \texttt{@Payable} method is redefined,
+the redefinitions
+must also be annotated as \texttt{@Payable}. A \texttt{@Payable} method or constructor
+must have a first argument of type \texttt{int}, \texttt{long} or \texttt{java.math.BigInteger},
+depending on the amount of coins that the programmer allows one to transfer
+at call time. The name of that argument is irrelevant, but we will keep
+using \texttt{amount} for it in this book.
+\end{commentbox}

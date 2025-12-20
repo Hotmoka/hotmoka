@@ -1173,7 +1173,7 @@ such resolved method is not found (for instance, if we tried to call \texttt{tos
 of \texttt{toString()}), then \texttt{addInstanceMethodCallTransaction()} would end up in
 a failed transaction. Moreover, the usual resolution mechanism of Java methods applies.
 If, for instance, we invoked
-\texttt{MethodSignatures.ofNonVoid(StorageTypes.OBJECT, "toString", StorageTypes.STRING)}\linebreak
+\texttt{MethodSignatures.ofNonVoid(StorageTypes.OBJECT, "toString", StorageTypes.STRING)}
 instead of
 \texttt{MethodSignatures.ofNonVoid(PERSON, "toString", StorageTypes.STRING)},
 then method \texttt{toString()} would have be resolved from the run-time class of
