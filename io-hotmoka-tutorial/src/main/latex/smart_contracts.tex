@@ -20,8 +20,8 @@ The formers are typically controlled by an external agent (a wallet,
 a human or a software application, on his behalf)
 while the latters are typically controlled by their code.
 Takamaka implements both alternatives as instances of the abstract library class
-\texttt{io.takamaka.code.lang.Contract} (inside the jar \texttt{io-takamaka-code}).
-That class extends
+\texttt{io.takamaka.code.lang.Contract}\index{Contract@{\texttt{Contract}}}
+(inside the jar \texttt{io-takamaka-code}). That class extends
 \texttt{io.takamaka.code.lang.Storage}, hence its instances can be kept in the store
 of the node. Moreover, that class is annotated as \texttt{@Exported}, hence nodes can receive
 references to contract instances from the outside world.
@@ -218,7 +218,8 @@ public class SimplePonzi extends Contract {
 
 The difference with the previous version
 is that the \texttt{investor} argument of \texttt{invest()} has disappeared.
-At its place, \texttt{invest()} has been annotated as \texttt{@FromContract}\index{FromContract}.
+At its place, \texttt{invest()} has been annotated as
+\texttt{@FromContract}\index{FromContract@{\texttt{FromContract}}}.
 This annotation
 \emph{restricts} the possible uses of method \texttt{invest()}. Namely, it can
 only be called from a contract object \emph{c} or from an external wallet,
@@ -226,7 +227,8 @@ with a paying contract \emph{c}, that pays for a transaction that runs
 \texttt{invest()}. It cannot, instead, be called from
 the code of a class that is not a contract.
 The instance of contract \emph{c} is available, inside
-\texttt{invest()}, as \texttt{caller()}\index{caller()}. This is, indeed, saved, in the above code,
+\texttt{invest()}, as \texttt{caller()}\index{caller()@{\texttt{caller()}}}.
+This is, indeed, saved, in the above code,
 into \texttt{currentInvestor}.
 
 The annotation \texttt{@FromContract} can be applied to both methods and constructors.
@@ -251,7 +253,7 @@ the caller of \texttt{invest()} to actually pay for the \texttt{amount} units of
 Since \texttt{@FromContract} guarantees that the caller of \texttt{invest()} is a contract and since
 contracts hold money, this means that the caller contract of \texttt{invest()}
 can be charged \texttt{amount} coins at the moment of calling \texttt{invest()}.
-This can be achieved with the \texttt{@Payable}\index{Payable} annotation,
+This can be achieved with the \texttt{@Payable}\index{Payable@{\texttt{Payable}}} annotation,
 that we apply to \texttt{invest()}:
 %
 \begin{codebox}\begin{javalst}
@@ -306,3 +308,285 @@ depending on the amount of coins that the programmer allows one to transfer
 at call time. The name of that argument is irrelevant, but we will keep
 using \texttt{amount} for it in this book.
 \end{commentbox}
+
+\section{Payable contracts}\label{sec:payable_contracts}
+
+\begin{center}
+(See the \texttt{io-hotmoka-tutorial-examples-ponzi\_payable} project in \texttt{\hotmokaRepo{}})
+\end{center}
+
+The \texttt{SimplePonzi.java} class is not ready yet. Namely, the code
+of that class specifies that investors have to pay
+an always increasing amount of money to replace the current investor.
+However, in the current version of the code,
+the replaced investor never gets his previous investment back, plus the 10% award
+(at least): money keeps flowing inside the \texttt{SimplePonzi} contract and remains
+stuck there, forever. The code needs an apparently simple change: just add a single statement
+before the update of the new current investor. That statement should send
+\texttt{amount} units of coin back to \texttt{currentInvestor}, before it gets replaced:
+%
+\begin{codebox}\begin{javalst}
+// document new investor
+if (currentInvestor != null)
+  currentInvestor.receive(amount);
+currentInvestor = caller();
+currentInvestment = amount;
+\end{javalst}\end{codebox}
+%
+In other words, a new investor calls \texttt{invest()} and pays \texttt{amount} coins to
+the \texttt{SimplePonzi} contract (since \texttt{invest()} is \texttt{@Payable}); then
+this \texttt{SimplePonzi} contract transfers the same \texttt{amount} of coins to pay back the
+previous investor. Money flows through the \texttt{SimplePonzi} contract but
+does not stay there for long.
+
+The problem with this simple line of code is that it does not compile.
+There is no \texttt{receive()} method in class
+\texttt{io.takamaka.code.lang.Contract}:
+a contract can receive money only through calls to its \texttt{@Payable}
+constructors and methods. Since \texttt{currentInvestor} is, very generically,
+an instance of \texttt{Contract}, that has no \texttt{@Payable} methods,
+there is no method
+that we can call here for sending money back to \texttt{currentInvestor}.
+This limitation is a deliberate design choice of Takamaka.
+%
+\begin{commentbox}
+Solidity programmers will find this very different from what happens
+in Solidity contracts. Namely, these always have a \emph{fallback function} that
+can be called for sending money to a contract. A problem with Solidity's approach
+is that the balance of a contract is not fully controlled by its
+payable methods, since money can always flow in through the fallback
+function (and also in other, more surprising ways).
+This led to software bugs, when a contract found itself
+richer then expected, which violated some (wrong) invariants about
+its state. For more information, see \emph{unexpected Ether} in~\cite{AntonopoulosW19}.
+\end{commentbox}
+
+So how do we send money back to \texttt{currentInvestor}? The solution is to
+restrict the kind of contracts that can participate to the Ponzi scheme.
+Namely, we limit the game to contracts that implement the libary class
+\texttt{io.takamaka.code.lang.PayableContract}\index{PayableContract@{\texttt{PayableContract}}},
+a subclass of \texttt{io.takamaka.code.lang.Contract}
+that, yes, does have a payable \texttt{receive()}\index{receive()@{\texttt{receive()}}} method.
+This is not really a restriction,
+since the typical players of our Ponzi contract are externally
+owned accounts, that are instances of \texttt{PayableContract}.
+
+Let us hence apply the following small changes to our \texttt{SimplePonzi.java} class:
+%
+\begin{enumerate}
+\item The type of \texttt{currentInvestment} must be restricted to \texttt{PayableContract}.
+\item The \texttt{invest()} method must be callable by \texttt{PayableContract}s only.\label{enum:invest_only_payable}
+\item The return value of \texttt{caller()} must be cast to \texttt{PayableContract}, which is
+  safe because of point~\ref{enum:invest_onlly_payable} above.
+\end{enumerate}
+%
+The result is the following:
+%
+\begin{codebox}\begin{javalst}
+package io.hotmoka.tutorial.examples.ponzi;
+
+import static io.takamaka.code.lang.Takamaka.require;
+
+import java.math.BigInteger;
+
+import io.takamaka.code.lang.Contract;
+import io.takamaka.code.lang.FromContract;
+import io.takamaka.code.lang.Payable;
+import io.takamaka.code.lang.PayableContract;
+import io.takamaka.code.lang.StringSupport;
+import io.takamaka.code.math.BigIntegerSupport;
+
+public class SimplePonzi extends Contract {
+  private final BigInteger _10 = BigInteger.valueOf(10L);
+  private final BigInteger _11 = BigInteger.valueOf(11L);
+  private PayableContract currentInvestor;
+  private BigInteger currentInvestment = BigInteger.ZERO;
+
+  public @Payable @FromContract(PayableContract.class) void invest(BigInteger amount) {
+    // new investments must be at least 10% greater than current
+    BigInteger minimumInvestment = BigIntegerSupport.divide
+      (BigIntegerSupport.multiply(currentInvestment, _11), _10);
+    require(BigIntegerSupport.compareTo(amount, minimumInvestment) > 0,
+      () -> StringSupport.concat("you must invest more than ", minimumInvestment));
+
+    // document new investor
+    if (currentInvestor != null)
+    	currentInvestor.receive(amount);
+
+    currentInvestor = (PayableContract) caller();
+    currentInvestment = amount;
+  }
+}
+\end{javalst}\end{codebox}
+%
+Note the use of \texttt{@FromContract(PayableContract.class)} in the code above:
+a method or constructor
+annotated as \texttt{@FromContract(C.class)} can only be called by a contract whose class
+is \texttt{C} or a subclass of \texttt{C}. Otherwise, a run-time exception will occur.
+
+\section{The \texttt{@View} annotation}\label{sec:view_annotation}
+
+\begin{center}
+(See the \texttt{io-hotmoka-tutorial-examples-ponzi\_view} project in \texttt{\hotmokaRepo{}})
+\end{center}
+
+Our \texttt{SimplePonzi.java} code can still be improved. As it is now,
+an investor must call \texttt{invest()} and be ready to pay a sufficiently
+large \texttt{amount} of coins to pay back and replace the previous investor.
+How much is \emph{large} actually large enough? Well, it depends on the
+current investment. But that information is kept inside the contract
+and there is no easy way to access it from outside.
+An investor can only try with something that looks large enough,
+running a transaction that might end up in two scenarios,
+both undesirable:
+%
+\begin{enumerate}
+\item The amount invested was actually large enough, but larger than needed: the investor
+  invested more than required in the Ponzi scheme, taking the risk that no one
+  will ever invest more and pay him back.
+\item The amount invested might not be enough: the \texttt{require()} function
+  will throw an exception that makes the transaction running \texttt{invest()} fail.
+  The investment will not be transferred to the \texttt{SimplePonzi} contract, but
+  the investor will be penalized by charging him all the gas provided for
+  the transaction. This is unfair since, after all, the investor had no
+  way to know that the proposed investment was not large enough.
+\end{enumerate}
+%
+Hence, it would be nice and fair to provide investors with a way to access
+the value in the \texttt{currentInvestment} field.
+This is actually very easy: just add this method to \texttt{SimplePonzi.java}:
+%
+\begin{codebox}\begin{javalst}
+public BigInteger getCurrentInvestment() {
+  return currentInvestment;
+}
+\end{javalst}\end{codebox}
+%
+This solution is perfectly fine but can be improved. Written this way,
+an investor that wants to call the method \texttt{getCurrentInvestment()} must run a
+Hotmoka transaction, by invoking the method \texttt{addInstanceMethodCallTransaction()}
+of the node, creating a new transaction that ends up in
+the store of the node. That transaction will cost gas, hence its side-effect will
+be to reduce the balance of the calling investor. But the goal of the caller
+was just to access information in the store of the node, not to modify the store through
+side-effects. The balance reduction for the caller is, indeed, the \emph{only}
+side-effect of that call! In cases like this, Takamaka allows one to
+specify that a method is expected to have no side-effects on the visible
+state of the node, but for the change of the balance of the caller.
+This is possible through the \texttt{@View}\index{View@{\texttt{View}}} annotation. Import that
+class in the Java source and edit the declaration of \texttt{getCurrentInvestment()},
+as follows:
+%
+\begin{codebox}\begin{javalst}
+import io.takamaka.code.lang.View;
+...
+public @View BigInteger getCurrentInvestment() {
+  return currentInvestment;
+}
+\end{javalst}\end{codebox}
+%
+An investor can now call that method through another API method of the Hotmoka
+nodes, called \texttt{runInstanceMethodCallTransaction()}\index{transaction!run},
+that does not expand the
+store of the node, but yields the response of the transaction, including the
+returned value of the call. If method
+\texttt{getCurrentInvestment()} had side-effects beyond that on the balance of
+the caller, then the execution will fail with a run-time exception.
+Note that the execution of a \texttt{@View} method still requires gas,
+but that gas is given back at the end of the call.
+The advantage of \texttt{@View} is hence that of allowing the execution
+of \texttt{getCurrentInvestment()} for free and without expanding the store of the node
+with useless transactions, that do not modify its state. Moreover,
+transactions run through \texttt{runInstanceMethodCallTransaction()} do not need
+a correct nonce, chain identifier or signature,
+hence any constant value can be used for them.
+This simplifies the call. For the same reason, transactions run
+through \texttt{runInstanceMethodCallTransaction()} do not count for the computation of
+the nonce of the caller.
+%
+\begin{commentbox}
+The annotation \texttt{@View} is checked, at run time, when a transaction calls the
+\texttt{@View} method from outside the blockchain, directly. It is not checked if,
+instead, the method is called indirectly, from other Takamaka code.
+The check occurs at run time, since the presence of side-effects in
+computer code is undecidable. Future versions of Takamaka might check
+\texttt{@View} at the time of installing a jar in a node, as part of
+bytecode verification. That check can only be an approximation of the run-time check.
+\end{commentbox}
+%
+\begin{commentbox}
+  If a \texttt{@View} method is called through the \texttt{moka objects call} command,
+  the moka tool will automatically perform a \texttt{runInstanceMethodCallTransaction()},
+  internally, to spare gas, and the call will occur for free.
+\end{commentbox}
+
+\section{The hierarchy of contracts}\label{sec:hierarchy_of_contracts}
+
+Fig.~\ref{fig:contract_hierarchy} shows the hierarchy of the Takamaka classes used for contracts.
+The topmost abstract class \texttt{io.takamaka.code.lang.Contract}\index{Contract@{\texttt{Contract}}}
+extends \texttt{io.takamaka.code.lang.Storage}\index{Storage@{\texttt{Storage}}} since contracts are meant to be
+stored in a node (as are other classes that are not contracts,
+such as our first \texttt{Person} example class).
+Programmers typically extend \texttt{Contract} to define their own contracts.
+This is the case, for instance, of our \texttt{SimplePonzi} class.
+Class \texttt{Storage} provides a \texttt{caller()}\index{caller()@{\texttt{caller()}}}
+final protected method that can be called inside
+\texttt{@FromContract} methods and constructors, to access the calling contract.
+Class \texttt{Contract} provides a final \texttt{@View} method \texttt{balance()}\index{balance()@{\texttt{balance()}}}
+that can be used to access the private \texttt{balance} field of the contract.
+Note that class \texttt{Contract} is annotated with the inherited
+annotation \texttt{@Exported}\index{Exported@{\texttt{Exported}}},
+hence contracts, such as instances of \texttt{SimplePonzi}, can be receivers of calls
+from outside the node and can be passed as arguments to calls from outside the node.
+Instances of \texttt{Storage} are not normally \texttt{@Exported}, unless their class
+is explicitly annotated as \texttt{@Exported}, as we did for \texttt{Person}.
+%
+\begin{figure}[th]
+  \begin{center}
+    \includegraphics[width=0.61\textwidth]{pics/contracts}
+  \end{center}
+  \caption{The hierarchy of contract classes.}
+  \label{fig:contract_hierarchy}
+\end{figure}
+
+The abstract subclass
+\texttt{PayableContract}\index{PayableContract@{\texttt{PayableContract}}}
+is meant to implement contracts that
+can receive coins from other contracts, by calling their final method
+\texttt{receive()}\index{receive()@{\texttt{receive()}}}. Its concrete subclass
+named \texttt{ExternallyOwnedAccount} is
+a payable contract that can be used to pay for a transaction.
+Such \emph{accounts} are typically controlled by humans, through a wallet, but can be
+subclassed and instantiated freely in Takamaka code. Their constructors
+allow one to build an externally owned account and fund it with an initial
+amount of coins. As we have seen in
+Sec.~\ref{sec:jar_installation},~\ref{sec:creation_object} and~\ref{sec:calling_method},
+the methods of Hotmoka nodes that start a transaction require to specify a
+payer\index{payer}
+for that transaction. Such a payer is required to be an instance of
+\texttt{ExternallyOwnedAccount}\index{ExternallyOwnedAccount@{\texttt{ExternallyOwnedAccount}}},
+or an exception will be thrown. In our previous examples,
+we have used, as payer, an account created by the \texttt{moka accounts create} command,
+that is an instance of \texttt{ExternallyOwnedAccount}.
+\texttt{ExternallyOwnedAccount}s have a private field \texttt{nonce} that can be accessed through
+the public \texttt{@View} method \texttt{nonce()}\index{nonce()@{\texttt{nonce()}}}:
+it yields a \texttt{BigInteger}
+that specifies the next nonce to use for the next transaction having that
+account as caller. This nonce gets automatically increased after each such transaction.
+
+Instances of \texttt{ExternallyOwnedAccount} hold their public key in their
+private \texttt{publicKey} field, as a Base64-encoded string,
+that can be accessed through the \texttt{publicKey()}\index{publicKey()@{\texttt{publicKey()}}} method.
+That key is used to verify the signature of the transactions
+having that account as caller. As we will see later, there is a default signature
+algorithm for transactions and that is what \texttt{ExternallyOwnedAccount}s use.
+However, it is possible to require a specific signature algorithm, that overrides the default
+for the node. For that, it is enough to instantiate classes
+\texttt{ExternallyOwnedAccountSHA256DSA},
+or \texttt{ExternallyOwnedAccountED25519}, or \texttt{ExternallyOwnedAccountQTESLA1}
+or, finally, the class \texttt{ExternallyOwnedAccountQTESLA3}. The latter two use a
+quantum-resistant signature algorithm
+(see~\ref{sec:signatures-and-quantum-resistance} later,
+for more details). This means that it is possible
+to mix many signature algorithms for signing transactions inside the same Hotmoka node,
+as we will show later.

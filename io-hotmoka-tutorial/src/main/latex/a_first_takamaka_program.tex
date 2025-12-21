@@ -161,7 +161,7 @@ public class Person {
 
 This is a plain old Java class and should not need any comment.
 The only observation is that we concat strings
-with the support class \texttt{StringSupport}\index{StringSupport},
+with the support class \texttt{StringSupport}\index{StringSupport@{\texttt{StringSupport}}},
 since the standard string concatenation
 of Java would end up
 calling methods whose computational cost is not foreseeable in advance. In general,
@@ -514,7 +514,7 @@ the server to contact,
 the directory \texttt{dir} where the key pair of the payer account can be found,
 the storage reference of that payer account, and the password of the key pair.
 
-The code above creates an instance of a \texttt{RemoteNode}\index{RemoteNode},
+The code above creates an instance of a \texttt{RemoteNode}\index{RemoteNode@{\texttt{RemoteNode}}},
 that represents a Hotmoka
 node installed in a remote host. By specifying the URI of the host, the \texttt{RemoteNode} object
 exposes all methods of a Hotmoka node. It is an \texttt{AutoCloseable} object,
@@ -535,7 +535,7 @@ Like every Hotmoka node, the observable state of the remote node can only evolve
 Namely, the code above performs two transactions:
 %
 \begin{enumerate}
-\item A call to the \texttt{nonce()} method of our account\index{account!nonce}:
+\item A call to the \texttt{nonce()} method of our account\index{nonce()@{\texttt{nonce()}}}:
   this is a progressive counter of the number
   of transactions already performed with our account. It starts from zero, but our account has been
   already used for other transactions (through the moka tool). Hence we better ask the
@@ -572,7 +572,8 @@ Namely, the code above performs two transactions:
 \begin{commentbox}
 As in Ethereum, transactions in Hotmoka are paid
 in terms of gas\index{gas} consumed for their execution.
-Calls to \texttt{@View}\index{@View} methods do not actually modify the state of the node
+Calls to \texttt{@View}\index{View@{\texttt{View}}}
+methods do not actually modify the state of the node
 and are executed locally, on the
 node that receives the request of the transaction. Hence, they can be considered
 as run \emph{for free}. Instead, we have used an actual gas price for the last
@@ -629,7 +630,7 @@ failed, does exist. Indeed, the nonce of the caller has been increased, as you c
 with \texttt{moka objects show} on our account.
 
 But we still have not understood why the transaction failed. The reason is in the exception
-message: \texttt{An object of class ...Person cannot be serialized into a storage value since it does not implement io.takamaka.code.lang.Storage}\index{Storage}.
+message: \texttt{An object of class ...Person cannot be serialized into a storage value since it does not implement io.takamaka.code.lang.Storage}\index{Storage@{\texttt{Storage}}}.
 Takamaka requires
 that all objects stored in a node extend the \texttt{io.takamaka.code.lang.Storage} class.
 That superclass
@@ -942,7 +943,7 @@ This is true also for objects meant to be private state components of other obje
 are not expected to be freely modifiable from outside the node. Because of this,
 Hotmoka requires that classes, whose instances can be passed into the node as
 arguments to methods or constructors,
-must be annotated as \texttt{@Exported}\index{Exported}.
+must be annotated as \texttt{@Exported}\index{Exported@{\texttt{Exported}}}.
 This means that the programmer acknowledges the
 use of these instances from outside the node.
 %
@@ -988,7 +989,8 @@ as argument to method calls into blockchain are contracts. Namely, in Solidity
 it is possible to pass such objects as their untyped \emph{address} that can only
 be cast to contract classes. Takamaka allows more, since \emph{any} object can be passed as
 argument, not only contracts, as long as its class is annotated as \texttt{@Exported}.
-This includes all contracts since the class \texttt{io.takamaka.code.lang.Contract}, that
+This includes all contracts since the class
+\texttt{io.takamaka.code.lang.Contract}\index{Contract@{\texttt{Contract}}}, that
 we will present later, is annotated as \texttt{@Exported} and \texttt{@Exported} is an
 inherited Java annotation.
 \end{commentbox}
@@ -1228,7 +1230,7 @@ kind of data can be exchanged:
   outside the node are called \emph{storage values}\index{storage value}.
 \item The values that can be exchanged from outside the node to
   inside the node are the same storage values as above, with the extra constraint
-  that objects must belong to an \texttt{@Exported} class.\index{Exported}
+  that objects must belong to an \texttt{@Exported} class.\index{Exported@{\texttt{Exported}}}
 \end{enumerate}
 
 The set of storage value is the union of
@@ -1366,7 +1368,7 @@ that suspends until the method has been executed, and the second
 API for calling methods.
 
 There is a third way to execute a transaction. Namely, calls to methods
-annotated as \texttt{@View}\index{View} can be performed through the
+annotated as \texttt{@View}\index{View@{\texttt{View}}} can be performed through the
 \texttt{runInstanceMethodCallTransaction()} (for instance methods) and
 \texttt{runStaticMethodCallTransaction()} (for static methods)\index{transaction!run}.
 As we have hinted before, these executions are performed
