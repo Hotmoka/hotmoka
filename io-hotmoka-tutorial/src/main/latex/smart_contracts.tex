@@ -142,7 +142,10 @@ is a comparison between two Java \texttt{BigInteger}s and should be read as the
 more familiar \texttt{amount >= minimumInvestment}: the latter cannot be
 written in this form, since Java does not allow comparison operators
 to work on reference types.
-The static method \texttt{io.takamaka.code.lang.Takamaka.require()} is used to require
+The use of \texttt{BigIntegerSupport}\index{BigIntegerSupport@{\texttt{BigIntegerSupport}}}
+is needed in order to charge gas proportionally
+to the size of the \texttt{BigInteger}s involved in the operation.
+The static method \texttt{io.takamaka.code.lang.Takamaka.require()}\index{require()@{\texttt{require()}}} is used to require
 some precondition to hold. The \texttt{require(}\textit{condition}\texttt{,} \textit{message}\texttt{)} call throws an
 exception if \textit{condition} does not hold, with the given \textit{message}.
 If the new investment is at least 10\% higher than the current one, it will be
