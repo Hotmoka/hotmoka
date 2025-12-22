@@ -227,7 +227,7 @@ public class UpdateForNewNode2 {
 			var output14 = Moka.keysBind(tempDir.resolve("anonymous.pem") + " --password=kiwis --uri=" + mokamintURI + " --output-dir=" + tempDir + " --timeout=" + TIMEOUT);
 			createOutputFile("moka_keys_bind_anonymous", "Enter value for --password (the password of the key pair): kiwis\n" + output14);
 			
-			createCommandFile("moka_jars_install", "moka jars install " + account1 + " io-hotmoka-tutorial-examples-family/target/io-hotmoka-tutorial-examples-family-" + HOTMOKA_VERSION + ".jar --password-of-payer --uri=" + mokamintURI);
+			createCommandFile("moka_jars_install", "moka jars install " + account1 + " io-hotmoka-tutorial-examples-family/target/io-hotmoka-tutorial-examples-family-" + HOTMOKA_VERSION + ".jar --yes --password-of-payer --uri=" + mokamintURI);
 			Path jar = Paths.get(System.getProperty("user.home") + "/.m2/repository/io/hotmoka/io-hotmoka-tutorial-examples-family/" + HOTMOKA_VERSION + "/io-hotmoka-tutorial-examples-family-" + HOTMOKA_VERSION + ".jar");
 			var output15 = JarsInstallOutputs.from(Moka.jarsInstall(account1 + " " + jar + " --password-of-payer=chocolate --dir=" + tempDir + " --uri=" + mokamintURI + " --json --timeout=" + TIMEOUT));
 			createOutputFile("moka_jars_install", "Enter value for --password-of-payer (the password of the key pair of the payer account): chocolate\n" + output15);
@@ -248,7 +248,7 @@ public class UpdateForNewNode2 {
 			var output16 = Moka.objectsCreate(account1 + " io.hotmoka.tutorial.examples.family.Person Einstein 14 4 1879 null null --classpath=" + familyAddress + " --uri=" + mokamintURI + " --timeout=" + TIMEOUT + " --dir=" + tempDir + " --yes --password-of-payer=chocolate");
 			createOutputFile("moka_objects_create_person_failed", "Enter value for --password-of-payer (the password of the key pair of the payer account): chocolate\nDo you really want to call constructor\n  public ...Person(java.lang.String,int,int,int,...Person,...Person)\n  spending up to 1000000 gas units at the price of 1 pana per unit (that is, up to 1000000 panas) [Y/N] Y\n" + output16);
 
-			createCommandFile("moka_jars_install_2", "cd io-takamaka-code-examples-family\nmvn clean install\ncd ..\nmoka jars install " + account1 + " io-hotmoka-tutorial-examples-family/target/io-hotmoka-tutorial-examples-family-" + HOTMOKA_VERSION + ".jar --password-of-payer --uri=" + mokamintURI);
+			createCommandFile("moka_jars_install_2", "cd io-takamaka-code-examples-family\nmvn clean install\ncd ..\nmoka jars install " + account1 + " io-hotmoka-tutorial-examples-family/target/io-hotmoka-tutorial-examples-family-" + HOTMOKA_VERSION + ".jar --yes --password-of-payer --uri=" + mokamintURI);
 			Path jar2 = Paths.get(System.getProperty("user.home") + "/.m2/repository/io/hotmoka/io-hotmoka-tutorial-examples-family_storage/" + HOTMOKA_VERSION + "/io-hotmoka-tutorial-examples-family_storage-" + HOTMOKA_VERSION + ".jar");
 			var output17 = JarsInstallOutputs.from(Moka.jarsInstall(account1 + " " + jar2 + " --password-of-payer=chocolate --dir=" + tempDir + " --uri=" + mokamintURI + " --json --timeout=" + TIMEOUT));
 			createOutputFile("moka_jars_install_2", "Enter value for --password-of-payer (the password of the key pair of the payer account): chocolate\n" + output17);
@@ -279,7 +279,7 @@ public class UpdateForNewNode2 {
 			var output19 = Moka.objectsCall(account1 + " io.hotmoka.tutorial.examples.family.Person toString --uri=" + mokamintURI + " --timeout=" + TIMEOUT + " --dir=" + tempDir + " --yes --password-of-payer=chocolate --receiver=" + person2Object);
 			createOutputFile("moka_objects_call_toString", output19);
 
-			createCommandFile("moka_jars_install_3", "cd io-takamaka-code-examples-family\nmvn clean install\ncd ..\nmoka jars install " + account1 + " io-hotmoka-tutorial-examples-family/target/io-hotmoka-tutorial-examples-family-" + HOTMOKA_VERSION + ".jar --password-of-payer --uri=" + mokamintURI);
+			createCommandFile("moka_jars_install_3", "cd io-takamaka-code-examples-family\nmvn clean install\ncd ..\nmoka jars install " + account1 + " io-hotmoka-tutorial-examples-family/target/io-hotmoka-tutorial-examples-family-" + HOTMOKA_VERSION + ".jar --yes --password-of-payer --uri=" + mokamintURI);
 			Path jar3 = Paths.get(System.getProperty("user.home") + "/.m2/repository/io/hotmoka/io-hotmoka-tutorial-examples-family_exported/" + HOTMOKA_VERSION + "/io-hotmoka-tutorial-examples-family_exported-" + HOTMOKA_VERSION + ".jar");
 			var output20 = JarsInstallOutputs.from(Moka.jarsInstall(account1 + " " + jar3 + " --password-of-payer=chocolate --dir=" + tempDir + " --uri=" + mokamintURI + " --json --timeout=" + TIMEOUT));
 			createOutputFile("moka_jars_install_3", "Enter value for --password-of-payer (the password of the key pair of the payer account): chocolate\n" + output20);
@@ -303,7 +303,7 @@ public class UpdateForNewNode2 {
 			String runFamilyExportedMain = run(() -> FamilyExported.main(new String[] { mokamintURI.toString(), tempDir.toString(), account1.toString(), "chocolate" }));
 			createOutputFile("mvn_exec_family_exported", runFamilyExportedMain);
 
-			createCommandFile("moka_jars_install_gradual_ponzi", "cd io-takamaka-code-examples-ponzi\nmvn clean install\ncd ..\nmoka jars install " + account1 + " io-hotmoka-tutorial-examples-ponzi/target/io-hotmoka-tutorial-examples-ponzi-" + HOTMOKA_VERSION + ".jar --password-of-payer --uri=" + mokamintURI);
+			createCommandFile("moka_jars_install_gradual_ponzi", "cd io-takamaka-code-examples-ponzi\nmvn clean install\ncd ..\nmoka jars install " + account1 + " io-hotmoka-tutorial-examples-ponzi/target/io-hotmoka-tutorial-examples-ponzi-" + HOTMOKA_VERSION + ".jar --yes --password-of-payer --uri=" + mokamintURI);
 			Path jar4 = Paths.get(System.getProperty("user.home") + "/.m2/repository/io/hotmoka/io-hotmoka-tutorial-examples-ponzi_gradual/" + HOTMOKA_VERSION + "/io-hotmoka-tutorial-examples-ponzi_gradual-" + HOTMOKA_VERSION + ".jar");
 			var output23 = JarsInstallOutputs.from(Moka.jarsInstall(account1 + " " + jar4 + " --password-of-payer=chocolate --dir=" + tempDir + " --uri=" + mokamintURI + " --json --timeout=" + TIMEOUT));
 			createOutputFile("moka_jars_install_gradual_ponzi", "Enter value for --password-of-payer (the password of the key pair of the payer account): chocolate\n" + output23);
@@ -363,15 +363,22 @@ public class UpdateForNewNode2 {
 			createCommandFile("moka_objects_show_investors", "moka objects show " + investorsObject + " --uri " + mokamintURI);
 			createOutputFile("moka_objects_show_investors", mokaObjectShowGradualPonziInvestorsOutput);
 
-			/*
+			createCommandFile("moka_jars_install_tictactoe_revised", "cd io-takamaka-code-examples-tictactoe\nmvn clean install\ncd ..\nmoka jars install " + account1 + " io-hotmoka-tutorial-examples-tictactoe/target/io-hotmoka-tutorial-examples-tictactoe-" + HOTMOKA_VERSION + ".jar --yes --password-of-payer --uri=" + mokamintURI);
 			Path jar5 = Paths.get(System.getProperty("user.home") + "/.m2/repository/io/hotmoka/io-hotmoka-tutorial-examples-tictactoe_revised/" + HOTMOKA_VERSION + "/io-hotmoka-tutorial-examples-tictactoe_revised-" + HOTMOKA_VERSION + ".jar");
-			var output31 = JarsInstallOutputs.from(Moka.jarsInstall(account1 + " " + jar5 + " --password-of-payer=chocolate --dir=" + dir + " --uri=" + mokamintURI + " --json --timeout=" + TIMEOUT));
-			TransactionReference ticTacToeAddress = output31.getJar().get();
-			report("sed -i 's/@tictactoe_address/" + ticTacToeAddress + "/g' target/Tutorial.md");
-			var output32 = ObjectsCreateOutputs.from(Moka.objectsCreate(account1 + " io.hotmoka.tutorial.examples.tictactoe.TicTacToe --classpath=" + ticTacToeAddress + " --uri=" + mokamintURI + " --timeout=" + TIMEOUT + " --dir=" + dir + " --json --password-of-payer=chocolate"));
-			report("sed -i 's/@tictactoe_creation_transaction/" + output32.getTransaction() + "/g' target/Tutorial.md");
-			StorageReference ticTacToeObject = output32.getObject().get();
-			report("sed -i 's/@tictactoe_object/" + ticTacToeObject + "/g' target/Tutorial.md");
+			var output32 = JarsInstallOutputs.from(Moka.jarsInstall(account1 + " " + jar5 + " --password-of-payer=chocolate --dir=" + tempDir + " --uri=" + mokamintURI + " --json --timeout=" + TIMEOUT));
+			createOutputFile("moka_jars_install_tictactoe_revised", "Enter value for --password-of-payer (the password of the key pair of the payer account): chocolate\n" + output23);
+			TransactionReference ticTacToeAddress = output32.getJar().get();
+			report("ticTacToeAddress", ticTacToeAddress);
+			reportShort("ticTacToeAddress", ticTacToeAddress);
+
+			createCommandFile("moka_objects_create_tictactoe_revised", "moka objects create " + account1 + " io.hotmoka.tutorial.examples.tictactoe.TicTacToe --classpath=" + ticTacToeAddress + " --password-of-payer --uri=" + mokamintURI);
+			var output33 = ObjectsCreateOutputs.from(Moka.objectsCreate(account1 + " io.hotmoka.tutorial.examples.tictactoe.TicTacToe --classpath=" + ticTacToeAddress + " --uri=" + mokamintURI + " --timeout=" + TIMEOUT + " --dir=" + tempDir + " --json --password-of-payer=chocolate"));
+			createOutputFile("moka_objects_create_tictactoe_revised", "Enter value for --password-of-payer (the password of the key pair of the payer account): chocolate\nDo you really want to call constructor\n  public ...TicTacToe()\n  spending up to 1000000 gas units at the price of 1 pana per unit (that is, up to 1000000 panas) [Y/N] Y\n" + output33);
+			StorageReference ticTacToeObject = output33.getObject().get();
+			report("ticTacToeObject", ticTacToeObject);
+			reportShort("ticTacToeObject", ticTacToeObject);
+
+			/*
 			var output33 = ObjectsCallOutputs.from(Moka.objectsCall(account1 + " io.hotmoka.tutorial.examples.tictactoe.TicTacToe play 100 1 1 --uri=" + mokamintURI + " --timeout=" + TIMEOUT + " --dir=" + dir + " --json --password-of-payer=chocolate --receiver=" + ticTacToeObject));
 			report("sed -i 's/@tictactoe_play1_transaction/" + output33.getTransaction() + "/g' target/Tutorial.md");
 			var output34 = ObjectsCallOutputs.from(Moka.objectsCall(account1 + " io.hotmoka.tutorial.examples.tictactoe.TicTacToe toString --uri=" + mokamintURI + " --timeout=" + TIMEOUT + " --dir=" + dir + " --json --password-of-payer=chocolate --receiver=" + ticTacToeObject));

@@ -874,3 +874,19 @@ public class TicTacToe extends Contract {
 \end{commentbox}
 
 \subsection{Running the tic-tac-toe contract}\label{subsec:running_tictactoe}
+
+Let us play with the \texttt{TicTacToe} contract. Go in
+the \texttt{io-hotmoka-tutorial-examples-tictactoe} project,
+compile it with Maven and store it in the Hotmoka node:
+%
+\input{moka_jars_install_tictactoe_revised_command}
+\input{moka_jars_install_tictactoe_revised_output}
+%
+Then we create an instance of the contract in the node:
+%
+\input{moka_objects_create_tictactoe_revised_command}
+\input{moka_objects_create_tictactoe_revised_output}
+
+We use two of our accounts now, that we have already created in the previous section,
+to interact with the contract: they will play, alternately, until the first player wins.
+We will report the resulting of calling \texttt{toString()} on the contract, after each move.
