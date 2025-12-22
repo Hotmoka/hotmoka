@@ -56,8 +56,11 @@ removing elements, for iterating on a list and for building a Java array
 \texttt{E[]} holding the elements of a list.
 
 Fig.~\ref{fig:lists_hierarchy} shows the hierarchy of the \texttt{StorageLinkedList<E>} class.
-It implements the interface \texttt{StorageList<E>}, that defines the methods that modify a list.
-That interface extends the interface \texttt{StorageListView<E>} that, instead, defines the methods
+It implements the interface \texttt{StorageList<E>}\index{StorageList@{\texttt{StorageList}}},
+that defines the methods that modify a list.
+That interface extends the interface
+\texttt{StorageListView<E>}\index{StorageListView@{\texttt{StorageListView}}}
+that, instead, defines the methods
 that read data from a list, but do not modify it. This distinction between the \emph{read-only}
 interface and the \emph{modification} interface is typical of all collection classes in the
 Takamaka library, as we will see. For the moment, note that this distinction is useful
@@ -104,7 +107,7 @@ see in this chapter.
 
 Next section shows an example of use for \texttt{StorageLinkedList}.
 
-\section{A gradual Ponzi contract}\label{sec:gradual_ponzi}
+\subsection{A gradual Ponzi contract}\label{sec:gradual_ponzi}
 
 \begin{center}
 (See the \texttt{io-hotmoka-tutorial-examples-ponzi\_gradual} project in \texttt{\hotmokaRepo{}})
@@ -120,7 +123,7 @@ not just of the current one as in \emph{SimplePonzi.java}. This requires a
 list of investors, of unbounded size. An implementation of this gradual
 Ponzi contract is reported below and has been
 inspired by a similar Ethereum contract from Iyer and Dannen,
-shown at page 150 of~\cite{IyerD18}.
+shown at page~150 of~\cite{IyerD18}.
 Write its code inside package \texttt{io.hotmoka.tutorial.examples.ponzi} of
 the \texttt{io-hotmoka-tutorial-examples-ponzi} project, as a new class
 \texttt{GradualPonzi.java}:
@@ -203,7 +206,7 @@ same occurs with many traditional Java lists that do not implement
 In Takamaka, code execution costs gas and
 computational complexity does matter, more than in other programming contexts.
 
-\section{A note on re-entrancy}\label{sec:reentrancy}
+\subsection{A note on re-entrancy}\label{subsec:reentrancy}
 
 The \texttt{GradualPonzi.java} class pays back previous investors immediately:
 as soon as a new investor invests something, his investment gets
@@ -257,3 +260,133 @@ without using the map supporting the withdrawal pattern, Takamaka contracts
 consume less gas and less storage.
 Hence, the withdrawal pattern is both
 useless in Takamaka and more expensive than paying back previous contracts immediately.
+
+\subsection{Running the gradual Ponzi contract}\label{subsec:running_gradual_ponzi}
+
+Let us play with the \texttt{GradualPonzi} contract now.
+We can now start by installing its jar in the node:
+%
+\input{moka_jars_install_gradual_ponzi_command}
+\input{moka_jars_install_gradual_ponzi_output}
+%
+Create two more keys now, for two more accounts that we are going to create soon:
+%
+\input{moka_keys_create_account2_command}
+\input{moka_keys_create_account2_output}
+%
+and then
+%
+\input{moka_keys_create_account3_command}
+\input{moka_keys_create_account3_output}
+%
+We can create the two new accounts now:
+%
+\input{moka_accounts_create_account2_command}
+\input{moka_accounts_create_account2_output}
+%
+and
+%
+\input{moka_accounts_create_account3_command}
+\input{moka_accounts_create_account3_output}
+
+We let our first account create an instance of \texttt{GradualPonzi} in the node now
+and become the first investor of the contract:
+%
+\input{moka_objects_create_gradual_ponzi_command}
+\input{moka_objects_create_gradual_ponzi_output}
+%
+We let the other two players invest, in sequence, in this new \texttt{GradualPonzi} contract.
+First investment:
+%
+\input{moka_objects_call_invest_1_command}
+\input{moka_objects_call_invest_1_output}
+%
+Second investment:
+%
+\input{moka_objects_call_invest_2_command}
+\input{moka_objects_call_invest_2_output}
+
+We let the first player try to invest again in the contract now, this time
+with a too small investment, which leads to an exception,
+since the code of the contract requires a minimum investment:
+%
+\input{moka_objects_call_invest_3_command}
+\input{moka_objects_call_invest_3_output}
+%
+This exception states that a transaction failed because the last
+investor invested less than 1000 units of coin. Note that the
+exception message reports the cause (a \texttt{require} failed)
+and includes the source program line
+of the contract where the exception occurred:
+line $65$ of the source file \texttt{GradualPonzi.java}, that is line
+%
+\begin{codebox}\begin{javalst}
+require(BigIntegerSupport.compareTo(amount, MINIMUM_INVESTMENT) >= 0,
+  () -> StringSupport.concat("you must invest at least ", MINIMUM_INVESTMENT));
+\end{javalst}\end{codebox}
+%
+Finally, we can check the state of the contract:
+%
+\input{moka_objects_show_gradual_ponzi_command}
+\input{moka_objects_show_gradual_ponzi_output}
+%
+As you can see, the contract keeps no balance. Moreover, its \texttt{investors} field is bound to an
+object, whose state can be further investigated:
+%
+\input{moka_objects_show_investors_command}
+\input{moka_objects_show_investors_output}
+%
+As you can see, it is a \texttt{StorageLinkedList} of size three, since it contains
+our three accounts that interacted with the \texttt{GradualPonzi} contract instance.
+
+\section{Storage arrays}\label{sec:storage_arrays}
+
+Arrays are an ordered sequence of elements, with constant-time access
+to such elements, both for reading and for writing. The size of the arrays is typically
+fixed, although there are programming languages with limited forms of dynamic arrays.
+
+Java has native arrays, of type \texttt{E[]}, where \texttt{E} is the
+type of the elements of the array. They can be used in Takamaka, but not
+as fields of storage classes. For that, Takamaka provides class
+\texttt{io.takamaka.code.util.StorageTreeArray<E>}\index{StorageTreeArray@{\texttt{StorageTreeArray}}}. Its instances are storage objects and
+can consequently be held in fields of storage classes and
+can be stored in the store of a Hotmoka node, \emph{as long as only
+storage objects are added to the array}. Their size is fixed and decided
+at the time of construction. Although we consider \texttt{StorageTreeArray<E>} as the storage
+replacement for Java arrays, it must be stated that the complexity of
+accessing their elements is logarithmic in the size of the array, which is
+a significant deviation from the standard definition of arrays. Nevertheless,
+logarithmic complexity is much better than the linear complexity for
+accessing elements of a \texttt{StorageLinkedList<E>} that, instead, has the advantage
+of being dynamic in size.
+
+\begin{figure}[th]
+  \begin{center}
+    \includegraphics[width=0.45\textwidth]{pics/arrays}
+  \end{center}
+  \caption{The hierarchy of storage arrays.}
+  \label{fig:arrays_hierarchy}
+\end{figure}
+
+We refer to the JavaDoc of \texttt{StorageTreeArray<E>} for a full list of its methods.
+They include methods for adding elements, for accessing and
+removing elements, for iterating on an array and for building a Java array
+\texttt{E[]} with the elements of a \texttt{StorageTreeArray<E>}.
+Fig.~\ref{fig:arrays_hierarchy} shows the hierarchy of the \texttt{StorageTreeArray<E>} class.
+It implements the interface
+\texttt{StorageArray<E>}\index{StorageArray@{\texttt{StorageArray}}},
+that defines the methods that modify an array.
+That interface extends the interface
+\texttt{StorageArrayView<E>}\index{StorageArrayView@{\texttt{StorageArrayView}}}
+that, instead, defines the methods
+that read data from an array, but do not modify it. This distinction between the \emph{read-only}
+interface and the \emph{modification} interface is identical to what we have seen for lists in the previous
+sections. Arrays have methods \texttt{snapshot()}\index{snapshot()@{\texttt{snapshot()}}}
+and \texttt{view()}\index{view()@{\texttt{view()}}} as well, like lists.
+They yield \texttt{@Exported}
+storage arrays, both in constant time. All constructors of the
+\texttt{StorageTreeArray<E>} class require to specify the unmodifiable
+size of the array. Moreover, it is possible to specify a default value for the elements of the
+array, that can be explicit or given as a supplier, possibly indexed.
+
+Next section shows an example of use for \texttt{StorageTreeArray<E>}.

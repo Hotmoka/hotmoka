@@ -9,7 +9,7 @@ You may obtain a copy of the License at
 
 Unless required by applicable law or agreed to in writing, software
 distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.50000000000
 See the License for the specific language governing permissions and
 limitations under the License.
 */
@@ -40,9 +40,11 @@ import io.hotmoka.moka.NodesManifestAddressOutputs;
 import io.hotmoka.moka.NodesTakamakaAddressOutputs;
 import io.hotmoka.moka.ObjectsCallOutputs;
 import io.hotmoka.moka.ObjectsCreateOutputs;
+import io.hotmoka.moka.ObjectsShowOutputs;
 import io.hotmoka.node.StorageValues;
 import io.hotmoka.node.TransactionReferences;
 import io.hotmoka.node.api.transactions.TransactionReference;
+import io.hotmoka.node.api.updates.UpdateOfStorage;
 import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.tutorial.examples.runs.Family;
 import io.hotmoka.tutorial.examples.runs.FamilyExported;
@@ -301,40 +303,67 @@ public class UpdateForNewNode2 {
 			String runFamilyExportedMain = run(() -> FamilyExported.main(new String[] { mokamintURI.toString(), tempDir.toString(), account1.toString(), "chocolate" }));
 			createOutputFile("mvn_exec_family_exported", runFamilyExportedMain);
 
-			/*
+			createCommandFile("moka_jars_install_gradual_ponzi", "cd io-takamaka-code-examples-ponzi\nmvn clean install\ncd ..\nmoka jars install " + account1 + " io-hotmoka-tutorial-examples-ponzi/target/io-hotmoka-tutorial-examples-ponzi-" + HOTMOKA_VERSION + ".jar --password-of-payer --uri=" + mokamintURI);
 			Path jar4 = Paths.get(System.getProperty("user.home") + "/.m2/repository/io/hotmoka/io-hotmoka-tutorial-examples-ponzi_gradual/" + HOTMOKA_VERSION + "/io-hotmoka-tutorial-examples-ponzi_gradual-" + HOTMOKA_VERSION + ".jar");
-			var output22 = JarsInstallOutputs.from(Moka.jarsInstall(account1 + " " + jar4 + " --password-of-payer=chocolate --dir=" + dir + " --uri=" + mokamintURI + " --json --timeout=" + TIMEOUT));
-			TransactionReference gradualPonziAddress = output22.getJar().get();
-			report("sed -i 's/@gradual_ponzi_address/" + gradualPonziAddress + "/g' target/Tutorial.md");
-			KeysCreateOutputs.from(Moka.keysCreate("--name account2.pem --output-dir=" + dir + " --password=orange --json"));
-			KeysCreateOutputs.from(Moka.keysCreate("--name account3.pem --output-dir=" + dir + " --password=apple --json"));
-			var output23 = AccountsCreateOutputs.from(Moka.accountsCreate("faucet 50000000000 " + dir.resolve("account2.pem") + " --dir=" + dir + " --output-dir=" + dir + " --password=orange --uri=" + mokamintURI + " --json --timeout=" + TIMEOUT));
-			StorageReference account2 = output23.getAccount().get();
-			report("sed -i 's/@transaction_account2/" + output23.getTransaction() + "/g' target/Tutorial.md");
-			report("sed -i 's/@account2/" + account2 + "/g' target/Tutorial.md");
-			var output24 = AccountsCreateOutputs.from(Moka.accountsCreate("faucet 10000000 " + dir.resolve("account3.pem") + " --dir=" + dir + " --output-dir=" + dir + " --password=apple --uri=" + mokamintURI + " --json --timeout=" + TIMEOUT));
-			StorageReference account3 = output24.getAccount().get();
-			report("sed -i 's/@transaction_account3/" + output24.getTransaction() + "/g' target/Tutorial.md");
-			report("sed -i 's/@account3/" + account3 + "/g' target/Tutorial.md");
-			var output25 = ObjectsCreateOutputs.from(Moka.objectsCreate(account1 + " io.hotmoka.tutorial.examples.ponzi.GradualPonzi --classpath=" + gradualPonziAddress + " --uri=" + mokamintURI + " --timeout=" + TIMEOUT + " --dir=" + dir + " --json --password-of-payer=chocolate"));
-			report("sed -i 's/@transaction_creation_gradual_ponzi/" + output15.getTransaction() + "/g' target/Tutorial.md");
-			StorageReference gradualPonziObject = output25.getObject().get();
-			report("sed -i 's/@gradual_ponzi_object/" + gradualPonziObject + "/g' target/Tutorial.md");
-			var output26 = ObjectsCallOutputs.from(Moka.objectsCall(account2 + " io.hotmoka.tutorial.examples.ponzi.GradualPonzi invest 5000 --uri=" + mokamintURI + " --timeout=" + TIMEOUT + " --dir=" + dir + " --json --password-of-payer=orange --receiver=" + gradualPonziObject));
-			report("sed -i 's/@transaction_account2_invest/" + output26.getTransaction() + "/g' target/Tutorial.md");
-			var output27 = ObjectsCallOutputs.from(Moka.objectsCall(account3 + " io.hotmoka.tutorial.examples.ponzi.GradualPonzi invest 15000 --uri=" + mokamintURI + " --timeout=" + TIMEOUT + " --dir=" + dir + " --json --password-of-payer=apple --receiver=" + gradualPonziObject));
-			report("sed -i 's/@transaction_account3_invest/" + output27.getTransaction() + "/g' target/Tutorial.md");
-			var output28 = ObjectsCallOutputs.from(Moka.objectsCall(account1 + " io.hotmoka.tutorial.examples.ponzi.GradualPonzi invest 500 --uri=" + mokamintURI + " --timeout=" + TIMEOUT + " --dir=" + dir + " --json --password-of-payer=chocolate --receiver=" + gradualPonziObject));
-			report("sed -i 's/@transaction_account1_invest/" + output28.getTransaction() + "/g' target/Tutorial.md");
-			var output29 = ObjectsShowOutputs.from(Moka.objectsShow(gradualPonziObject + " --json --uri=" + mokamintURI + " --timeout=" + TIMEOUT));
-			StorageValue gradualPonziList = output29.getFields().filter(update -> "investors".equals(update.getField().getName())).map(update -> update.getValue()).findFirst().get();
-			report("sed -i 's/@gradual_ponzi_list/" + gradualPonziList + "/g' target/Tutorial.md");
-			var output30 = ObjectsShowOutputs.from(Moka.objectsShow(gradualPonziList + " --json --uri=" + mokamintURI + " --timeout=" + TIMEOUT));
-			StorageValue gradualPonziFirst = output30.getFields().filter(update -> "first".equals(update.getField().getName())).map(update -> update.getValue()).findFirst().get();
-			report("sed -i 's/@gradual_ponzi_first/" + gradualPonziFirst + "/g' target/Tutorial.md");
-			StorageValue gradualPonziLast = output30.getFields().filter(update -> "last".equals(update.getField().getName())).map(update -> update.getValue()).findFirst().get();
-			report("sed -i 's/@gradual_ponzi_last/" + gradualPonziLast + "/g' target/Tutorial.md");
+			var output23 = JarsInstallOutputs.from(Moka.jarsInstall(account1 + " " + jar4 + " --password-of-payer=chocolate --dir=" + tempDir + " --uri=" + mokamintURI + " --json --timeout=" + TIMEOUT));
+			createOutputFile("moka_jars_install_gradual_ponzi", "Enter value for --password-of-payer (the password of the key pair of the payer account): chocolate\n" + output23);
+			TransactionReference gradualPonziAddress = output23.getJar().get();
+			report("gradualPonziAddress", gradualPonziAddress);
+			reportShort("gradualPonziAddress", gradualPonziAddress);
 
+			var output24 = Moka.keysCreate("--name account2.pem --output-dir=" + tempDir + " --password=orange");
+			createCommandFile("moka_keys_create_account2", "moka keys create --name=account2.pem --password");
+			createOutputFile("moka_keys_create_account2", "Enter value for --password (the password that will be needed later to use the key pair): orange\n" + output24);
+
+			var output25 = Moka.keysCreate("--name account3.pem --output-dir=" + tempDir + " --password=apple");
+			createCommandFile("moka_keys_create_account3", "moka keys create --name=account3.pem --password");
+			createOutputFile("moka_keys_create_account3", "Enter value for --password (the password that will be needed later to use the key pair): apple\n" + output25);
+
+			var output26 = AccountsCreateOutputs.from(Moka.accountsCreate(account1 + " 50000000000 " + tempDir.resolve("account2.pem") + " --dir=" + tempDir + " --output-dir=" + tempDir + " --password=orange --password-of-payer=chocolate --uri=" + mokamintURI + " --json --timeout=" + TIMEOUT));
+			createCommandFile("moka_accounts_create_account2", "moka accounts create " + account1 + " 50000000000 account2.pem --password --password-of-payer --uri " + mokamintURI);
+			createOutputFile("moka_accounts_create_account2", "Enter value for --password (the password of the key pair): orange\nEnter value for --password-of-payer (the password of the payer): chocolate\nDo you really want to create the new account spending up to 200000 gas units\n"
+					+ "  at the price of 1 pana per unit (that is, up to 200000 panas) [Y/N] Y\n" + output26);
+			StorageReference account2 = output26.getAccount().get();
+			report("accountTwo", account2);
+			reportShort("accountTwo", account2);
+
+			var output27 = AccountsCreateOutputs.from(Moka.accountsCreate(account1 + " 10000000 " + tempDir.resolve("account3.pem") + " --dir=" + tempDir + " --output-dir=" + tempDir + " --password=apple --password-of-payer=chocolate --uri=" + mokamintURI + " --json --timeout=" + TIMEOUT));
+			createCommandFile("moka_accounts_create_account3", "moka accounts create " + account1 + " 10000000 account3.pem --password --password-of-payer --uri " + mokamintURI);
+			createOutputFile("moka_accounts_create_account3", "Enter value for --password (the password of the key pair): apple\nEnter value for --password-of-payer (the password of the payer): chocolate\nDo you really want to create the new account spending up to 200000 gas units\n"
+					+ "  at the price of 1 pana per unit (that is, up to 200000 panas) [Y/N] Y\n" + output27);
+			StorageReference account3 = output27.getAccount().get();
+			report("accountThree", account3);
+			reportShort("accountThree", account3);
+
+			createCommandFile("moka_objects_create_gradual_ponzi", "moka objects create " + account1 + " io.hotmoka.tutorial.examples.ponzi.GradualPonzi --classpath=" + gradualPonziAddress + " --password-of-payer --uri=" + mokamintURI);
+			var output28 = ObjectsCreateOutputs.from(Moka.objectsCreate(account1 + " io.hotmoka.tutorial.examples.ponzi.GradualPonzi --classpath=" + gradualPonziAddress + " --uri=" + mokamintURI + " --timeout=" + TIMEOUT + " --dir=" + tempDir + " --json --password-of-payer=chocolate"));
+			createOutputFile("moka_objects_create_gradual_ponzi", "Enter value for --password-of-payer (the password of the key pair of the payer account): chocolate\nDo you really want to call constructor\n  public ...GradualPonzi()\n  spending up to 1000000 gas units at the price of 1 pana per unit (that is, up to 1000000 panas) [Y/N] Y\n" + output28);
+			StorageReference gradualPonziObject = output28.getObject().get();
+			report("gradualPonziObject", gradualPonziObject);
+			reportShort("gradualPonziObject", gradualPonziObject);
+
+			createCommandFile("moka_objects_call_invest_1", "moka objects call " + account2 + " io.hotmoka.tutorial.examples.ponzi.GradualPonzi invest 5000 --uri=" + mokamintURI + " --password-of-payer --receiver=" + gradualPonziObject);
+			var output29 = Moka.objectsCall(account2 + " io.hotmoka.tutorial.examples.ponzi.GradualPonzi invest 5000 --uri=" + mokamintURI + " --timeout=" + TIMEOUT + " --dir=" + tempDir + " --yes --password-of-payer=orange --receiver=" + gradualPonziObject);
+			createOutputFile("moka_objects_call_invest_1", "Enter value for --password-of-payer (the password of the key pair of the payer account): orange\n" + output29);
+
+			createCommandFile("moka_objects_call_invest_2", "moka objects call " + account3 + " io.hotmoka.tutorial.examples.ponzi.GradualPonzi invest 15000 --uri=" + mokamintURI + " --password-of-payer --receiver=" + gradualPonziObject);
+			var output30 = Moka.objectsCall(account3 + " io.hotmoka.tutorial.examples.ponzi.GradualPonzi invest 15000 --uri=" + mokamintURI + " --timeout=" + TIMEOUT + " --dir=" + tempDir + " --yes --password-of-payer=apple --receiver=" + gradualPonziObject);
+			createOutputFile("moka_objects_call_invest_2", "Enter value for --password-of-payer (the password of the key pair of the payer account): apple\n" + output30);
+
+			createCommandFile("moka_objects_call_invest_3", "moka objects call " + account1 + " io.hotmoka.tutorial.examples.ponzi.GradualPonzi invest 500 --uri=" + mokamintURI + " --password-of-payer --receiver=" + gradualPonziObject);
+			var output31 = Moka.objectsCall(account1 + " io.hotmoka.tutorial.examples.ponzi.GradualPonzi invest 500 --uri=" + mokamintURI + " --timeout=" + TIMEOUT + " --dir=" + tempDir + " --yes --password-of-payer=chocolate --receiver=" + gradualPonziObject);
+			createOutputFile("moka_objects_call_invest_3", "Enter value for --password-of-payer (the password of the key pair of the payer account): chocolate\n" + output31);
+
+			var mokaObjectShowGradualPonziOutput = ObjectsShowOutputs.from(Moka.objectsShow(gradualPonziObject + " --json --uri " + mokamintURI));
+			createCommandFile("moka_objects_show_gradual_ponzi", "moka objects show " + gradualPonziObject + " --uri " + mokamintURI);
+			createOutputFile("moka_objects_show_gradual_ponzi", mokaObjectShowGradualPonziOutput.toString());
+			var investorsField = (UpdateOfStorage) mokaObjectShowGradualPonziOutput.getFields().filter(field -> "investors".equals(field.getField().getName())).findFirst().get();
+			var investorsObject = investorsField.getValue();
+			var mokaObjectShowGradualPonziInvestorsOutput = Moka.objectsShow(investorsObject + " --uri " + mokamintURI);
+			createCommandFile("moka_objects_show_investors", "moka objects show " + investorsObject + " --uri " + mokamintURI);
+			createOutputFile("moka_objects_show_investors", mokaObjectShowGradualPonziInvestorsOutput);
+
+			/*
 			Path jar5 = Paths.get(System.getProperty("user.home") + "/.m2/repository/io/hotmoka/io-hotmoka-tutorial-examples-tictactoe_revised/" + HOTMOKA_VERSION + "/io-hotmoka-tutorial-examples-tictactoe_revised-" + HOTMOKA_VERSION + ".jar");
 			var output31 = JarsInstallOutputs.from(Moka.jarsInstall(account1 + " " + jar5 + " --password-of-payer=chocolate --dir=" + dir + " --uri=" + mokamintURI + " --json --timeout=" + TIMEOUT));
 			TransactionReference ticTacToeAddress = output31.getJar().get();
