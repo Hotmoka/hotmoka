@@ -110,7 +110,7 @@ Next section shows an example of use for \texttt{StorageLinkedList}.
 \subsection{A gradual Ponzi contract}\label{sec:gradual_ponzi}
 
 \begin{center}
-(See the \texttt{io-hotmoka-tutorial-examples-ponzi\_gradual} project in \texttt{\hotmokaRepo{}})
+(See the \texttt{io-hotmoka-tutorial-examples-tictactoe} project in \texttt{\hotmokaRepo{}})
 \end{center}
 
 Consider our previous Ponzi contract from Ch.~\ref{ch:smart_contracts}
@@ -390,3 +390,487 @@ size of the array. Moreover, it is possible to specify a default value for the e
 array, that can be explicit or given as a supplier, possibly indexed.
 
 Next section shows an example of use for \texttt{StorageTreeArray<E>}.
+
+\subsection{A tic-tac-toe contract}\label{subsec:tic_tac_toe}
+
+\begin{center}
+(See the \texttt{io-hotmoka-tutorial-examples-tictactoe} project in \texttt{\hotmokaRepo{}})
+\end{center}
+
+Tic-tac-toe is a game where two players place, alternately,
+a cross and a circle on a $3\times 3$ board, initially empty. The winner is the
+player who places three crosses or three circles on the same row,
+column or diagonal. For instance, in Fig.~\ref{fig:cross_wins} the player of
+the cross wins.
+%
+\begin{figure}
+\centering
+\begin{subfigure}{.5\textwidth}
+  \centering
+  \includegraphics[width=.4\linewidth]{pics/tictactoe_wins}
+  \caption{Cross wins.}
+  \label{fig:cross_wins}
+\end{subfigure}%
+\begin{subfigure}{.5\textwidth}
+  \centering
+  \includegraphics[width=.5\linewidth]{pics/tictactoe_draw}
+  \caption{A draw.}
+  \label{fig:tictactoe_draw}
+\end{subfigure}
+\caption{The two ways a tic-tac-toe game can end: victory of one of the players or a draw.}
+\end{figure}
+%
+Some games that end up in a draw, when the board is full but nobody wins,
+as in Fig.~\ref{fig:tictactoe_draw}.
+
+A natural representation of the tic-tac-toe board is a two-dimensional array
+where indexes are distributed as shown in Fig.~\ref{fig:tictactoe_grid},
+%
+\begin{figure}
+\centering
+\begin{subfigure}{.5\textwidth}
+  \centering
+  \includegraphics[width=.5\linewidth]{pics/tictactoe_grid}
+  \caption{A two-dimensional representation of the board.}
+  \label{fig:tictactoe_grid}
+\end{subfigure}%
+\begin{subfigure}{.5\textwidth}
+  \centering
+  \includegraphics[width=.42\linewidth]{pics/tictactoe_grid_linear}
+  \caption{A linear representation of the board.}
+  \label{fig:tictactoe_linear}
+\end{subfigure}
+\caption{Two alternative representations of the board of the game.}
+\end{figure}
+%
+implemented as a \texttt{StorageTreeArray<StorageTreeArray<Tile>>}, where \texttt{Tile} is
+a class that enumerates the three possible tiles (empty, cross, circle). This is
+possible but overkill. It is simpler and cheaper (also in terms of gas)
+to use the previous diagram as a conceptual representation of the board
+shown to the users, but use, internally,
+a one-dimensional array of nine tiles, distributed as in
+Fig.~\ref{fig:tictactoe_linear}.
+This one-dimensional array can be implemented as a \texttt{StorageTreeArray<Tile>}.
+There will be functions
+for translating the conceptual representation into the internal one.
+
+Create hence in Eclipse a new Maven Java 21 (or later) project. Use for this project the name
+\texttt{io-hotmoka-tutorial-examples-tictactoe}.
+You can do this by duplicating the project \texttt{io-hotmoka-tutorial-examples-family}.
+Use the following \texttt{pom.xml}:
+%
+\begin{codebox}\begin{xmllst}
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>io.hotmoka</groupId>
+  <artifactId>io-hotmoka-tutorial-examples-tictactoe</artifactId>
+  <version>|\hotmokaVersion{}|</version>
+
+  <properties>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <maven.compiler.release>21</maven.compiler.release>
+  </properties>
+
+  <dependencies>
+    <dependency>
+      <groupId>io.hotmoka</groupId>
+      <artifactId>io-takamaka-code</artifactId>
+      <version>|\takamakaVersion{}|</version>
+    </dependency>
+  </dependencies>
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <version>3.11.0</version>
+      </plugin>
+    </plugins>
+  </build>
+
+</project>
+\end{xmllst}\end{codebox}
+%
+and the following \texttt{module-info.java}:
+%
+\begin{codebox}\begin{javalst}
+module tictactoe {
+  requires io.takamaka.code;
+}
+\end{javalst}\end{codebox}
+%
+Create package \texttt{io.hotmoka.tutorial.examples.tictactoe}
+inside \texttt{src/main/java} and add
+the following \texttt{TicTacToe.java} source inside that package:
+%
+\begin{codebox}\begin{javalst}
+package io.hotmoka.tutorial.examples.tictactoe;
+
+import static io.takamaka.code.lang.Takamaka.require;
+
+import java.math.BigInteger;
+
+import io.takamaka.code.lang.Contract;
+import io.takamaka.code.lang.Exported;
+import io.takamaka.code.lang.FromContract;
+import io.takamaka.code.lang.Payable;
+import io.takamaka.code.lang.PayableContract;
+import io.takamaka.code.lang.Storage;
+import io.takamaka.code.lang.StringSupport;
+import io.takamaka.code.lang.View;
+import io.takamaka.code.math.BigIntegerSupport;
+import io.takamaka.code.util.StorageTreeArray;
+
+public class TicTacToe extends Contract {
+
+  @Exported
+  public class Tile extends Storage {
+    private final char c;
+
+    private Tile(char c) {
+      this.c = c;
+    }
+
+    @Override
+    public String toString() {
+      return String.valueOf(c);
+    }
+
+    private Tile nextTurn() {
+      return this == CROSS ? CIRCLE : CROSS;
+    }
+  }
+
+  private final Tile EMPTY = new Tile(' ');
+  private final Tile CROSS = new Tile('X');
+  private final Tile CIRCLE = new Tile('O');
+
+  private final StorageTreeArray<Tile> board = new StorageTreeArray<>(9, EMPTY);
+  private PayableContract crossPlayer;
+  private PayableContract circlePlayer;
+  private Tile turn = CROSS; // cross plays first
+  private boolean gameOver;
+
+  public @View Tile at(int x, int y) {
+    require(1 <= x && x <= 3 && 1 <= y && y <= 3, "coordinates must be between 1 and 3");
+    return board.get((y - 1) * 3 + x - 1);
+  }
+
+  private void set(int x, int y, Tile tile) {
+    board.set((y - 1) * 3 + x - 1, tile);
+  }
+
+  public @Payable @FromContract(PayableContract.class) void play(long amount, int x, int y) {
+    require(!gameOver, "the game is over");
+    require(1 <= x && x <= 3 && 1 <= y && y <= 3, "coordinates must be between 1 and 3");
+    require(at(x, y) == EMPTY, "the selected tile is not empty");
+
+    PayableContract player = (PayableContract) caller();
+
+    if (turn == CROSS)
+      if (crossPlayer == null)
+        crossPlayer = player;
+      else
+        require(player == crossPlayer, "it's not your turn");
+    else
+      if (circlePlayer == null) {
+        require(crossPlayer != player, "you cannot play against yourself");
+        long previousBet = BigIntegerSupport.subtract
+          (balance(), BigInteger.valueOf(amount)).longValue();
+        require(amount >= previousBet,
+          () -> StringSupport.concat("you must bet at least ", previousBet, " coins"));
+        circlePlayer = player;
+      }
+      else
+        require(player == circlePlayer, "it's not your turn");
+
+    set(x, y, turn);
+    if (isGameOver(x, y))
+      player.receive(balance());
+    else
+      turn = turn.nextTurn();
+  }
+
+  private boolean isGameOver(int x, int y) {
+    if (at(x, 1) == turn && at(x, 2) == turn && at(x, 3) == turn) // column x
+      return gameOver = true;
+
+    if (at(1, y) == turn && at(2, y) == turn && at(3, y) == turn) // row y
+      return gameOver = true;
+
+    if (x == y && at(1, 1) == turn && at (2, 2) == turn && at(3, 3) == turn) // first diagonal
+      return gameOver = true;
+
+    if (x + y == 4 && at(1, 3) == turn && at(2, 2) == turn && at(3, 1) == turn) // second diagonal
+      return gameOver = true;
+
+    return gameOver = false;
+  }
+
+  @Override
+  public @View String toString() {
+    return StringSupport.concat(at(1, 1), "!", at(2, 1), "!", at(3, 1),
+      "\n-----\n", at(1, 2), "!", at(2, 2), "!", at(3, 2),
+      "\n-----\n", at(1, 3), "!", at(2, 3), "!", at(3, 3));
+  }
+}
+\end{javalst}\end{codebox}
+
+The internal class \texttt{Tile} represents the three alternatives that can be
+put in the tic-tac-toe board. It overrides the default
+\texttt{toString()} implementation, to yield the
+usual representation for such alternatives; its \texttt{nextTurn()} method
+alternates between cross and circle.
+
+The board of the game is represented as a \texttt{new StorageTreeArray<>(9, EMPTY)}, whose
+elements are indexed from zero to eight (inclusive) and are initialized to \texttt{EMPTY}.
+It is also possible to construct the array as \texttt{new StorageTreeArray<>(9)}, but then
+its elements would hold the default value \texttt{null} and the array would need to be initialized
+inside a constructor for \texttt{TicTacToe}.
+
+Methods \texttt{at()} and \texttt{set()} read and set the board element
+at indexes $(x,y)$, respectively. They transform the two-dimensional conceptual representation
+of the board into its internal one-dimensional representation. Since \texttt{at()} is public,
+we defensively check the validity of the indexes there.
+
+Method \texttt{play()} is the heart of the contract. Being called by the accounts
+that play the game, it is annotated as \texttt{@FromContract}. It is also annotated as
+\texttt{@Payable(PayableContract.class)} since players must bet money for
+taking part in the game, at least for the first two moves, and receive
+money if they win. The first
+contract that plays is registered as \texttt{crossPlayer}. The second contract
+that plays is registered as \texttt{circlePlayer}. Subsequent moves must
+come, alternately, from \texttt{crossPlayer} and \texttt{circlePlayer}. The contract
+uses a \texttt{turn} variable to keep track of the current turn.
+
+Note the extensive use of \texttt{require()} to check all error situations:
+%
+\begin{enumerate}
+\item It is possible to play only if the game is not over yet.
+\item A move must be inside the board and identify an empty tile.
+\item Players must alternate correctly.
+\item The second player must bet at least as much as the first player.
+\item It is not allowed to play against oneself.
+\end{enumerate}
+
+The \texttt{play()} method ends with a call to \texttt{gameOver()} that checks
+if the game is over, that is, if the current player won.
+In that case, the winner receives the full
+jackpot. Note that the \texttt{gameOver()} method receives the coordinates
+where the current player has moved. This allows it to restrict the
+check for game over: the game is over only if the row or column
+where the player moved contain the same tile; if the current player
+played on a diagonal, the method checks the diagonals as well.
+It is of course possible to check all rows, columns and diagonals, always,
+but our solution is gas-thriftier.
+
+The \texttt{toString()} method yields a string representation of the current board, such as
+%
+\begin{alltt}
+X|O| 
+-----
+ |X|O
+-----
+ |X| 
+\end{alltt}
+
+\subsection{A more realistic tic-tac-toe contract}\label{subsec:more_realistic_tictactoe}
+
+\begin{center}
+(See the \texttt{io-hotmoka-tutorial-examples-tictactoe\_revised} project in \texttt{\hotmokaRepo{}})
+\end{center}
+
+The \texttt{TicTacToe.java} code implements the rules of a tic-tac-toe game, but has
+a couple of drawbacks that make it still incomplete. Namely:
+%
+\begin{enumerate}
+\item The creator of the game must spend gas to call its constructor,
+  but has no direct incentive in doing so. He must be a benefactor,
+  or hope to take part in the game after creation, if he is faster than
+  any other potential player.
+\item If the game ends in a draw, money gets stuck in the \texttt{TicTacToe} contract
+  instance, for ever and ever.
+\end{enumerate}
+
+Replace hence the previous version of \texttt{TicTacToe.java} with the following
+revised version. This new version solves
+both problems at once. The policy is very simple: it imposes a minimum
+bet, in order to avoid free games; if a winner emerges,
+then the game forwards him only $90\%$ of the jackpot; the remaining $10\%$ goes to the
+creator of the \texttt{TicTacToe} contract itself. If, instead, the game ends in a draw,
+it forwards the whole jackpot to the creator.
+Note that we added a \texttt{@FromContract} constructor, that takes
+note of the \texttt{creator} of the game:
+%
+\begin{codebox}\begin{javalst}
+package io.hotmoka.tutorial.examples.tictactoe;
+
+import static io.takamaka.code.lang.Takamaka.require;
+
+import java.math.BigInteger;
+
+import io.takamaka.code.lang.Contract;
+import io.takamaka.code.lang.Exported;
+import io.takamaka.code.lang.FromContract;
+import io.takamaka.code.lang.Payable;
+import io.takamaka.code.lang.PayableContract;
+import io.takamaka.code.lang.Storage;
+import io.takamaka.code.lang.StringSupport;
+import io.takamaka.code.lang.View;
+import io.takamaka.code.math.BigIntegerSupport;
+import io.takamaka.code.util.StorageTreeArray;
+
+public class TicTacToe extends Contract {
+
+  @Exported
+  public class Tile extends Storage {
+    private final char c;
+
+    private Tile(char c) {
+      this.c = c;
+    }
+
+    @Override
+    public String toString() {
+      return String.valueOf(c);
+    }
+
+    private Tile nextTurn() {
+      return this == CROSS ? CIRCLE : CROSS;
+    }
+  }
+
+  private final Tile EMPTY = new Tile(' ');
+  private final Tile CROSS = new Tile('X');
+  private final Tile CIRCLE = new Tile('O');
+
+  private static final long MINIMUM_BET = 100L;
+
+  private final StorageTreeArray<Tile> board = new StorageTreeArray<>(9, EMPTY);
+  private final PayableContract creator;
+  private PayableContract crossPlayer;
+  private PayableContract circlePlayer;
+  private Tile turn = CROSS; // cross plays first
+  private boolean gameOver;
+
+  public @FromContract(PayableContract.class) TicTacToe() {
+    creator = (PayableContract) caller();
+  }
+
+  public @View Tile at(int x, int y) {
+    require(1 <= x && x <= 3 && 1 <= y && y <= 3, "coordinates must be between 1 and 3");
+    return board.get((y - 1) * 3 + x - 1);
+  }
+
+  private void set(int x, int y, Tile tile) {
+    board.set((y - 1) * 3 + x - 1, tile);
+  }
+
+  public @Payable @FromContract(PayableContract.class) void play(long amount, int x, int y) {
+    require(!gameOver, "the game is over");
+    require(1 <= x && x <= 3 && 1 <= y && y <= 3, "coordinates must be between 1 and 3");
+    require(at(x, y) == EMPTY, "the selected tile is not empty");
+
+    PayableContract player = (PayableContract) caller();
+
+    if (turn == CROSS)
+      if (crossPlayer == null) {
+        require(amount >= MINIMUM_BET, () -> "you must invest at least " + MINIMUM_BET + " coins");
+         crossPlayer = player;
+      }
+      else
+        require(player == crossPlayer, "it's not your turn");
+    else
+      if (circlePlayer == null) {
+        require(crossPlayer != player, "you cannot play against yourself");
+        long previousBet = BigIntegerSupport.subtract
+          (balance(), BigInteger.valueOf(amount)).longValue();
+        require(amount >= previousBet,
+          () -> StringSupport.concat("you must bet at least ", previousBet, " coins"));
+        circlePlayer = player;
+      }
+      else
+        require(player == circlePlayer, "it's not your turn");
+
+    set(x, y, turn);
+    if (isGameOver(x, y)) {
+      // 90% goes to the winner
+      player.receive(BigIntegerSupport.divide
+        (BigIntegerSupport.multiply(balance(), BigInteger.valueOf(9L)), BigInteger.valueOf(10L)));
+      // the rest to the creator of the game
+      creator.receive(balance());
+    }
+    else if (isDraw())
+      // everything goes to the creator of the game
+      creator.receive(balance());
+    else
+      turn = turn.nextTurn();
+  }
+
+  private boolean isGameOver(int x, int y) {
+    if (at(x, 1) == turn && at(x, 2) == turn && at(x, 3) == turn) // column x
+      return gameOver = true;
+
+    if (at(1, y) == turn && at(2, y) == turn && at(3, y) == turn) // row y
+      return gameOver = true;
+
+    if (x == y && at(1, 1) == turn && at (2, 2) == turn && at(3, 3) == turn) // first diagonal
+      return gameOver = true;
+
+    if (x + y == 4 && at(1, 3) == turn && at(2, 2) == turn && at(3, 1) == turn) // second diagonal
+      return gameOver = true;
+
+    return gameOver = false;
+  }
+
+  private boolean isDraw() {
+    for (var tile: board)
+      if (tile == EMPTY)
+        return false;
+
+    return true;
+  }
+
+  @Override
+  public @View String toString() {
+    return StringSupport.concat(at(1, 1), "!", at(2, 1), "!", at(3, 1),
+      "\n-----\n", at(1, 2), "!", at(2, 2), "!", at(3, 2),
+      "\n-----\n", at(1, 3), "!", at(2, 3), "!", at(3, 3));
+  }
+}    
+\end{javalst}\end{codebox}
+
+\begin{commentbox}
+  We have chosen to allow a \texttt{long amount} in the \texttt{@Payable}
+  method \texttt{play()} since
+  it is unlikely that users will want to invest huge quantities of money in this
+  game. This gives us the opportunity to discuss why the computation of the
+  previous bet has been written as
+  \begin{center}\begin{alltt}
+    long previousBet = BigIntegerSupport.subtract
+      (balance(), BigInteger.valueOf(amount)).longValue()
+  \end{alltt}\end{center}
+  instead of the simpler
+  \texttt{long previousBet = balance().longValue() - amount}.
+  The reason is that, when that line is executed, both players have already paid
+  their bet, that accumulates in the balance of the \texttt{TicTacToe} contract.
+  Each single bet is a \texttt{long}, but their sum could overflow the size of a \texttt{long}.
+  Hence, we have to deal with a computation on \texttt{BigInteger}. The same situation
+  occurs later, when we have to compute the $90\%$ that goes to the winner:
+  the jackpot might be larger than a \texttt{long} and we have to compute over
+  \texttt{BigInteger}. As a final remark, note that in the line:
+  \begin{center}\begin{alltt}
+      BigIntegerSupport.divide(BigIntegerSupport.multiply
+        (balance(), BigInteger.valueOf(9L)), BigInteger.valueOf(10L))
+  \end{alltt}\end{center}
+  we \emph{first multiply} by $9$ and \emph{then divide} by $10$. This reduces the
+  approximation inherent to integer division. For instance, if the jackpot
+  (\texttt{balance()}) were 209, we have (with Java's left-to-right evaluation)
+  $209\cdot 9/10=1881/10=188$ while $209/10\cdot 9=20\cdot 9=180$.
+\end{commentbox}
+
+\subsection{Running the tic-tac-toe contract}\label{subsec:running_tictactoe}
