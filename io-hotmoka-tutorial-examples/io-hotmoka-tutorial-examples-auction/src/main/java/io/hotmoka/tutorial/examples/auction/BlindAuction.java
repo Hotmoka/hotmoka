@@ -40,7 +40,7 @@ import io.takamaka.code.util.StorageTreeMap;
 
 /**
  * A contract for a simple auction. This class is derived from the Solidity code shown at
- * https://solidity.readthedocs.io/en/v0.5.9/solidity-by-example.html#id2
+ * https://docs.soliditylang.org/en/v0.8.33/solidity-by-example.html#blind-auction
  * In this contract, bidders place bids together with a hash. At the end of
  * the bidding period, bidders are expected to reveal if and which of their bids
  * were real and their actual value. Fake bids are refunded. Real bids are compared
@@ -205,9 +205,10 @@ public class BlindAuction extends Contract {
     require(bids != null && bids.size() > 0, "No bids to reveal");
     require(revealed != null, () -> "The revealed bid cannot be null");
 
-    // any other hashing algorithm will do, as long as both bidder and auction contract use the same
+    // any other hashing algorithm will do, as long as both bidder and auction contracts use the same
     var digest = new SHA256Digest();
-    // by removing the head of the list, it makes it impossible for the caller to re-claim the same deposits
+    // by removing the head of the list, it makes it impossible for the caller
+    // to re-claim the same deposits
     bidder.receive(refundFor(bidder, bids.removeFirst(), revealed, digest));
   }
 
@@ -243,11 +244,13 @@ public class BlindAuction extends Contract {
       // the bid was not actually revealed: no refund
       return BigInteger.ZERO;
     else if (!revealed.fake && BigIntegerSupport.compareTo(bid.deposit, revealed.value) >= 0 && placeBid(bidder, revealed.value))
-      // the bid was correctly revealed and is the best up to now: only the difference between promised and provided is refunded;
+      // the bid was correctly revealed and is the best up to now:
+      // only the difference between promised and provided is refunded;
       // the rest might be refunded later if a better bid will be revealed
       return BigIntegerSupport.subtract(bid.deposit, revealed.value);
     else
-      // the bid was correctly revealed and is not the best one: it is fully refunded
+      // the bid was correctly revealed and is not the best one:
+      // it is fully refunded
       return bid.deposit;
   }
 
@@ -265,13 +268,13 @@ public class BlindAuction extends Contract {
 
     // if there was a best bidder already, its bid is refunded
     if (highestBidder != null)
-      // Refund the previously highest bidder
+      // refund the previously highest bidder
       highestBidder.receive(highestBid);
 
     // take note that this is the best bid up to now
     highestBid = value;
     highestBidder = bidder;
-    //event(new BidIncrease(bidder, value)); // does not compile yet
+    // event(new BidIncrease(bidder, value)); // does not compile yet
 
     return true;
   }

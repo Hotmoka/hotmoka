@@ -41,7 +41,7 @@ import io.takamaka.code.util.StorageTreeMap;
 
 /**
  * A contract for a simple auction. This class is derived from the Solidity code shown at
- * https://solidity.readthedocs.io/en/v0.5.9/solidity-by-example.html#id2
+ * https://docs.soliditylang.org/en/v0.8.33/solidity-by-example.html#blind-auction
  * In this contract, bidders place bids together with a hash. At the end of
  * the bidding period, bidders are expected to reveal if and which of their bids
  * were real and their actual value. Fake bids are refunded. Real bids are compared
@@ -206,7 +206,7 @@ public class BlindAuction extends Contract {
     require(bids != null && bids.size() > 0, "No bids to reveal");
     require(revealed != null, () -> "The revealed bid cannot be null");
 
-    // any other hashing algorithm will do, as long as both bidder and auction contract use the same
+    // any other hashing algorithm will do, as long as both bidder and auction contracts use the same
     var digest = new SHA256Digest();
     // by removing the head of the list, it makes it impossible for the caller to re-claim the same deposits
     bidder.receive(refundFor(bidder, bids.removeFirst(), revealed, digest));

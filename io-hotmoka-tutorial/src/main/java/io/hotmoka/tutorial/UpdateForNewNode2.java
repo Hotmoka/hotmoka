@@ -378,41 +378,50 @@ public class UpdateForNewNode2 {
 			report("ticTacToeObject", ticTacToeObject);
 			reportShort("ticTacToeObject", ticTacToeObject);
 
-			/*
-			var output33 = ObjectsCallOutputs.from(Moka.objectsCall(account1 + " io.hotmoka.tutorial.examples.tictactoe.TicTacToe play 100 1 1 --uri=" + mokamintURI + " --timeout=" + TIMEOUT + " --dir=" + dir + " --json --password-of-payer=chocolate --receiver=" + ticTacToeObject));
-			report("sed -i 's/@tictactoe_play1_transaction/" + output33.getTransaction() + "/g' target/Tutorial.md");
-			var output34 = ObjectsCallOutputs.from(Moka.objectsCall(account1 + " io.hotmoka.tutorial.examples.tictactoe.TicTacToe toString --uri=" + mokamintURI + " --timeout=" + TIMEOUT + " --dir=" + dir + " --json --password-of-payer=chocolate --receiver=" + ticTacToeObject));
-			report("sed -i 's/@tictactoe_toString1_transaction/" + output34.getTransaction() + "/g' target/Tutorial.md");
-			StorageValue toString1Result = output34.getResult().get();
-			// we replace new lines with the escape sequence \n (that must itself be escaped in Java...)
-			report("sed -i 's/@tictactoe_toString1_result/" + toString1Result.toString().trim().replace("\n", "\\n") + "/g' target/Tutorial.md");
-			var output35 = ObjectsCallOutputs.from(Moka.objectsCall(account2 + " io.hotmoka.tutorial.examples.tictactoe.TicTacToe play 100 2 1 --uri=" + mokamintURI + " --timeout=" + TIMEOUT + " --dir=" + dir + " --json --password-of-payer=orange --receiver=" + ticTacToeObject));
-			report("sed -i 's/@tictactoe_play2_transaction/" + output35.getTransaction() + "/g' target/Tutorial.md");
-			var output36 = ObjectsCallOutputs.from(Moka.objectsCall(account2 + " io.hotmoka.tutorial.examples.tictactoe.TicTacToe toString --uri=" + mokamintURI + " --timeout=" + TIMEOUT + " --dir=" + dir + " --json --password-of-payer=chocolate --receiver=" + ticTacToeObject));
-			report("sed -i 's/@tictactoe_toString2_transaction/" + output36.getTransaction() + "/g' target/Tutorial.md");
-			StorageValue toString2Result = output36.getResult().get();
-			report("sed -i 's/@tictactoe_toString2_result/" + toString2Result.toString().trim().replace("\n", "\\n") + "/g' target/Tutorial.md");
-			var output37 = ObjectsCallOutputs.from(Moka.objectsCall(account1 + " io.hotmoka.tutorial.examples.tictactoe.TicTacToe play 0 1 2 --uri=" + mokamintURI + " --timeout=" + TIMEOUT + " --dir=" + dir + " --json --password-of-payer=chocolate --receiver=" + ticTacToeObject));
-			report("sed -i 's/@tictactoe_play3_transaction/" + output37.getTransaction() + "/g' target/Tutorial.md");
-			var output38 = ObjectsCallOutputs.from(Moka.objectsCall(account1 + " io.hotmoka.tutorial.examples.tictactoe.TicTacToe toString --uri=" + mokamintURI + " --timeout=" + TIMEOUT + " --dir=" + dir + " --json --password-of-payer=chocolate --receiver=" + ticTacToeObject));
-			report("sed -i 's/@tictactoe_toString3_transaction/" + output38.getTransaction() + "/g' target/Tutorial.md");
-			StorageValue toString3Result = output38.getResult().get();
-			report("sed -i 's/@tictactoe_toString3_result/" + toString3Result.toString().trim().replace("\n", "\\n") + "/g' target/Tutorial.md");
-			var output39 = ObjectsCallOutputs.from(Moka.objectsCall(account2 + " io.hotmoka.tutorial.examples.tictactoe.TicTacToe play 0 2 2 --uri=" + mokamintURI + " --timeout=" + TIMEOUT + " --dir=" + dir + " --json --password-of-payer=orange --receiver=" + ticTacToeObject));
-			report("sed -i 's/@tictactoe_play4_transaction/" + output39.getTransaction() + "/g' target/Tutorial.md");
-			var output40 = ObjectsCallOutputs.from(Moka.objectsCall(account2 + " io.hotmoka.tutorial.examples.tictactoe.TicTacToe toString --uri=" + mokamintURI + " --timeout=" + TIMEOUT + " --dir=" + dir + " --json --password-of-payer=chocolate --receiver=" + ticTacToeObject));
-			report("sed -i 's/@tictactoe_toString4_transaction/" + output40.getTransaction() + "/g' target/Tutorial.md");
-			StorageValue toString4Result = output40.getResult().get();
-			report("sed -i 's/@tictactoe_toString4_result/" + toString4Result.toString().trim().replace("\n", "\\n") + "/g' target/Tutorial.md");
-			var output41 = ObjectsCallOutputs.from(Moka.objectsCall(account1 + " io.hotmoka.tutorial.examples.tictactoe.TicTacToe play 0 1 3 --uri=" + mokamintURI + " --timeout=" + TIMEOUT + " --dir=" + dir + " --json --password-of-payer=chocolate --receiver=" + ticTacToeObject));
-			report("sed -i 's/@tictactoe_play5_transaction/" + output41.getTransaction() + "/g' target/Tutorial.md");
-			var output42 = ObjectsCallOutputs.from(Moka.objectsCall(account1 + " io.hotmoka.tutorial.examples.tictactoe.TicTacToe toString --uri=" + mokamintURI + " --timeout=" + TIMEOUT + " --dir=" + dir + " --json --password-of-payer=chocolate --receiver=" + ticTacToeObject));
-			report("sed -i 's/@tictactoe_toString5_transaction/" + output42.getTransaction() + "/g' target/Tutorial.md");
-			StorageValue toString5Result = output42.getResult().get();
-			report("sed -i 's/@tictactoe_toString5_result/" + toString5Result.toString().trim().replace("\n", "\\n") + "/g' target/Tutorial.md");
-			var output43 = ObjectsCallOutputs.from(Moka.objectsCall(account2 + " io.hotmoka.tutorial.examples.tictactoe.TicTacToe play 0 2 3 --uri=" + mokamintURI + " --timeout=" + TIMEOUT + " --dir=" + dir + " --json --password-of-payer=orange --receiver=" + ticTacToeObject));
-			report("sed -i 's/@tictactoe_play6_transaction/" + output43.getTransaction() + "/g' target/Tutorial.md");
+			createCommandFile("moka_objects_call_tictactoe_play_1", "moka objects call " + account1 + " io.hotmoka.tutorial.examples.tictactoe.TicTacToe play 100 1 1 --uri=" + mokamintURI + " --password-of-payer --receiver=" + ticTacToeObject);
+			var output34 = Moka.objectsCall(account1 + " io.hotmoka.tutorial.examples.tictactoe.TicTacToe play 100 1 1 --uri=" + mokamintURI + " --timeout=" + TIMEOUT + " --dir=" + tempDir + " --yes --password-of-payer=chocolate --receiver=" + ticTacToeObject);
+			createOutputFile("moka_objects_call_tictactoe_play_1", "Enter value for --password-of-payer (the password of the key pair of the payer account): chocolate\n" + output34);
+			createCommandFile("moka_objects_call_tictactoe_toString_1", "moka objects call " + account1 + " io.hotmoka.tutorial.examples.tictactoe.TicTacToe toString --uri=" + mokamintURI + " --receiver=" + ticTacToeObject);
+			var output35 = Moka.objectsCall(account1 + " io.hotmoka.tutorial.examples.tictactoe.TicTacToe toString --uri=" + mokamintURI + " --timeout=" + TIMEOUT + " --dir=" + tempDir + " --receiver=" + ticTacToeObject);
+			createOutputFile("moka_objects_call_tictactoe_toString_1", output35);
 
+			createCommandFile("moka_objects_call_tictactoe_play_2", "moka objects call " + account2 + " io.hotmoka.tutorial.examples.tictactoe.TicTacToe play 100 2 1 --uri=" + mokamintURI + " --password-of-payer --receiver=" + ticTacToeObject);
+			var output36 = Moka.objectsCall(account2 + " io.hotmoka.tutorial.examples.tictactoe.TicTacToe play 100 2 1 --uri=" + mokamintURI + " --timeout=" + TIMEOUT + " --dir=" + tempDir + " --yes --password-of-payer=orange --receiver=" + ticTacToeObject);
+			createOutputFile("moka_objects_call_tictactoe_play_2", "Enter value for --password-of-payer (the password of the key pair of the payer account): orange\n" + output36);
+			createCommandFile("moka_objects_call_tictactoe_toString_2", "moka objects call " + account2 + " io.hotmoka.tutorial.examples.tictactoe.TicTacToe toString --uri=" + mokamintURI + " --receiver=" + ticTacToeObject);
+			var output37 = Moka.objectsCall(account2 + " io.hotmoka.tutorial.examples.tictactoe.TicTacToe toString --uri=" + mokamintURI + " --timeout=" + TIMEOUT + " --dir=" + tempDir + " --receiver=" + ticTacToeObject);
+			createOutputFile("moka_objects_call_tictactoe_toString_2", output37);
+
+			createCommandFile("moka_objects_call_tictactoe_play_3", "moka objects call " + account1 + " io.hotmoka.tutorial.examples.tictactoe.TicTacToe play 0 1 2 --uri=" + mokamintURI + " --password-of-payer --receiver=" + ticTacToeObject);
+			var output38 = Moka.objectsCall(account1 + " io.hotmoka.tutorial.examples.tictactoe.TicTacToe play 0 1 2 --uri=" + mokamintURI + " --timeout=" + TIMEOUT + " --dir=" + tempDir + " --yes --password-of-payer=chocolate --receiver=" + ticTacToeObject);
+			createOutputFile("moka_objects_call_tictactoe_play_3", "Enter value for --password-of-payer (the password of the key pair of the payer account): chocolate\n" + output38);
+			createCommandFile("moka_objects_call_tictactoe_toString_3", "moka objects call " + account1 + " io.hotmoka.tutorial.examples.tictactoe.TicTacToe toString --uri=" + mokamintURI + " --receiver=" + ticTacToeObject);
+			var output39 = Moka.objectsCall(account1 + " io.hotmoka.tutorial.examples.tictactoe.TicTacToe toString --uri=" + mokamintURI + " --timeout=" + TIMEOUT + " --dir=" + tempDir + " --receiver=" + ticTacToeObject);
+			createOutputFile("moka_objects_call_tictactoe_toString_3", output39);
+
+			createCommandFile("moka_objects_call_tictactoe_play_4", "moka objects call " + account2 + " io.hotmoka.tutorial.examples.tictactoe.TicTacToe play 0 2 2 --uri=" + mokamintURI + " --password-of-payer --receiver=" + ticTacToeObject);
+			var output40 = Moka.objectsCall(account2 + " io.hotmoka.tutorial.examples.tictactoe.TicTacToe play 0 2 2 --uri=" + mokamintURI + " --timeout=" + TIMEOUT + " --dir=" + tempDir + " --yes --password-of-payer=orange --receiver=" + ticTacToeObject);
+			createOutputFile("moka_objects_call_tictactoe_play_4", "Enter value for --password-of-payer (the password of the key pair of the payer account): orange\n" + output40);
+			createCommandFile("moka_objects_call_tictactoe_toString_4", "moka objects call " + account2 + " io.hotmoka.tutorial.examples.tictactoe.TicTacToe toString --uri=" + mokamintURI + " --receiver=" + ticTacToeObject);
+			var output41 = Moka.objectsCall(account2 + " io.hotmoka.tutorial.examples.tictactoe.TicTacToe toString --uri=" + mokamintURI + " --timeout=" + TIMEOUT + " --dir=" + tempDir + " --receiver=" + ticTacToeObject);
+			createOutputFile("moka_objects_call_tictactoe_toString_4", output41);
+
+			createCommandFile("moka_objects_call_tictactoe_play_5", "moka objects call " + account1 + " io.hotmoka.tutorial.examples.tictactoe.TicTacToe play 0 1 3 --uri=" + mokamintURI + " --password-of-payer --receiver=" + ticTacToeObject);
+			var output42 = Moka.objectsCall(account1 + " io.hotmoka.tutorial.examples.tictactoe.TicTacToe play 0 1 3 --uri=" + mokamintURI + " --timeout=" + TIMEOUT + " --dir=" + tempDir + " --yes --password-of-payer=chocolate --receiver=" + ticTacToeObject);
+			createOutputFile("moka_objects_call_tictactoe_play_5", "Enter value for --password-of-payer (the password of the key pair of the payer account): chocolate\n" + output42);
+			createCommandFile("moka_objects_call_tictactoe_toString_5", "moka objects call " + account1 + " io.hotmoka.tutorial.examples.tictactoe.TicTacToe toString --uri=" + mokamintURI + " --receiver=" + ticTacToeObject);
+			var output43 = Moka.objectsCall(account1 + " io.hotmoka.tutorial.examples.tictactoe.TicTacToe toString --uri=" + mokamintURI + " --timeout=" + TIMEOUT + " --dir=" + tempDir + " --receiver=" + ticTacToeObject);
+			createOutputFile("moka_objects_call_tictactoe_toString_5", output43);
+
+			createCommandFile("moka_objects_show_tictactoe", "moka objects show " + ticTacToeObject + " --uri " + mokamintURI);
+			String mokaObjectsShowTicTacToeOutput = Moka.objectsShow(ticTacToeObject + " --uri " + mokamintURI);
+			createOutputFile("moka_objects_show_tictactoe", mokaObjectsShowTicTacToeOutput);
+
+			createCommandFile("moka_objects_call_tictactoe_play_6", "moka objects call " + account2 + " io.hotmoka.tutorial.examples.tictactoe.TicTacToe play 0 2 3 --uri=" + mokamintURI + " --password-of-payer --receiver=" + ticTacToeObject);
+			var output44 = Moka.objectsCall(account2 + " io.hotmoka.tutorial.examples.tictactoe.TicTacToe play 0 2 3 --uri=" + mokamintURI + " --timeout=" + TIMEOUT + " --dir=" + tempDir + " --yes --password-of-payer=orange --receiver=" + ticTacToeObject);
+			createOutputFile("moka_objects_call_tictactoe_play_6", "Enter value for --password-of-payer (the password of the key pair of the payer account): orange\n" + output44);
+
+			/*
 			KeysCreateOutputs.from(Moka.keysCreate("--name account4.pem --output-dir=" + dir + " --password=banana --json"));
 			KeysCreateOutputs.from(Moka.keysCreate("--name account5.pem --output-dir=" + dir + " --password=mango --json"));
 			KeysCreateOutputs.from(Moka.keysCreate("--name account6.pem --output-dir=" + dir + " --password=strawberry --json"));

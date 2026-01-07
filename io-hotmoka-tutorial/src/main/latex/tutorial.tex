@@ -129,7 +129,7 @@
   basicstyle=\ttfamily\small, 
   breaklines=true,
   columns=fullflexible,
-  escapeinside = ||,
+  %escapeinside = ||,
   breakindent=0pt} 
 \lstnewenvironment{ttlst}{}{} 
 
@@ -144,7 +144,7 @@ rulecolor = \color{black}, %% set frame color to avoid being affected by text co
 basicstyle = \small \ttfamily , %% set listing font and size
 breaklines = true, %% enable line breaking
 %numberstyle = \tiny,
-escapeinside = ||,
+%escapeinside = ||,
 language = Java,
 showstringspaces=false,
 morekeywords={module,requires,exports,provides}
@@ -158,6 +158,7 @@ morekeywords={module,requires,exports,provides}
 
 \lstdefinestyle{myXML}{
   language=XML,
+  escapeinside = ||,
   tabsize = 2, %% set tab space width
   showstringspaces=false,
   commentstyle = \color{violet}, %% set comment color
