@@ -46,6 +46,8 @@ import io.hotmoka.node.TransactionReferences;
 import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.api.updates.UpdateOfStorage;
 import io.hotmoka.node.api.values.StorageReference;
+import io.hotmoka.tutorial.examples.runs.Auction;
+import io.hotmoka.tutorial.examples.runs.Events;
 import io.hotmoka.tutorial.examples.runs.Family;
 import io.hotmoka.tutorial.examples.runs.FamilyExported;
 import io.hotmoka.tutorial.examples.runs.FamilyStorage;
@@ -66,7 +68,11 @@ public class UpdateForNewNode2 {
 	 * The timeout (in milliseconds) used for the communication to the remote nodes. Better to use a relatively high
 	 * value, since the Mokamint node has a varying block creation rate.
 	 */
-	public final static int TIMEOUT = 250000;
+	public final static int TIMEOUT = 400000;
+
+	private final static String hotmokaRepo = "git@github.com:Hotmoka/hotmoka.git";
+
+	private final static String hotmokaTutorialDir = "hotmoka_tutorial";
 
 	private UpdateForNewNode2() {}
 
@@ -82,11 +88,11 @@ public class UpdateForNewNode2 {
 	 */
 	public static void main(String[] args) throws Exception {
 		Path dir = args.length > 0 ? Paths.get(args[0]) : Paths.get("src/main/latex");
-		String server1 = args.length > 1 ? args[1] : "ws://panarea.hotmoka.io:8001";
-		String server2 = args.length > 2 ? args[2] : "ws://panarea.hotmoka.io:8002";
+		String mokamintServer = args.length > 1 ? args[1] : "ws://panarea.hotmoka.io:8001";
+		String tendermintServer = args.length > 2 ? args[2] : "ws://panarea.hotmoka.io:8002";
 
 		try (PrintWriter writer = new PrintWriter(dir.resolve("parameters.tex").toFile())) {
-			new Experiments(new URI(server1), new URI(server2), writer, dir);
+			new Experiments(new URI(mokamintServer), new URI(tendermintServer), writer, dir);
 		}
 	}
 
@@ -103,14 +109,32 @@ public class UpdateForNewNode2 {
 		 */
 		private final Path outputDir;
 
+		private final URI mokamintURI;
+
+		private final URI tendermintURI;
+
 		private Experiments(URI mokamintURI, URI tendermintURI, PrintWriter writer, Path outputDir) throws Exception {
+			this.mokamintURI = mokamintURI;
+			this.tendermintURI = tendermintURI;
 			this.writer = writer;
 			this.outputDir = outputDir;
 			this.tempDir = Files.createTempDirectory("tmp");
-			String hotmokaRepo = "git@github.com:Hotmoka/hotmoka.git";
 			System.out.println("Generating all files inside the directory " + outputDir);
 			System.out.println("Saving temporary files inside the directory " + tempDir);
 
+			report("hotmokaVersion", HOTMOKA_VERSION);
+			report("takamakaVersion", TAKAMAKA_VERSION);
+			report("faustoEmail", "\\email{fausto.spoto@hotmoka.io}");
+			report("hotmokaRepo", hotmokaRepo);
+			report("hotmokaTutorialDir", hotmokaTutorialDir.replace("_", "\\_"));
+			report("serverMokamint", mokamintURI.toString());
+			report("serverTendermint", tendermintURI.toString());
+
+			experimentsWithMokamintServer();
+			experimentsWithTendermintServer();
+		}
+
+		private void experimentsWithMokamintServer() throws Exception {
 			createCommandFile("git_clone_hotmoka", "git clone --branch v" + HOTMOKA_VERSION + " " + hotmokaRepo);
 			createCommandFile("mvn_clean_install", "mvn clean install");
 			createOutputFile("moka_help", Moka.help(""));
@@ -122,48 +146,39 @@ public class UpdateForNewNode2 {
 			createCommandFile("install_moka", "mkdir -p ~/Gits\ncd ~/Gits\ngit clone --branch v" + HOTMOKA_VERSION + " " + hotmokaRepo + "\ncd hotmoka\nmvn clean install -DskipTests");
 			createCommandFile("export_path_moka", "export PATH=~/Gits/hotmoka/io-hotmoka-moka/src/main/bash:$PATH");
 			
-			report("hotmokaVersion", HOTMOKA_VERSION);
-			report("takamakaVersion", TAKAMAKA_VERSION);
-			report("faustoEmail", "\\email{fausto.spoto@hotmoka.io}");
-			report("hotmokaRepo", hotmokaRepo);
-			var hotmokaTutorialDir = "hotmoka_tutorial";
-			report("hotmokaTutorialDir", hotmokaTutorialDir.replace("_", "\\_"));
-			report("serverMokamint", mokamintURI.toString());
-			report("serverTendermint", tendermintURI.toString());
-
 			var output1 = NodesTakamakaAddressOutputs.from(Moka.nodesTakamakaAddress("--uri=" + mokamintURI + " --json --timeout=" + TIMEOUT));
 			TransactionReference takamakaCode = output1.getTakamakaCode();
 			report("takamakaCode", takamakaCode);
 			reportShort("takamakaCode", takamakaCode);
-
+		
 			var output2 = NodesManifestAddressOutputs.from(Moka.nodesManifestAddress("--uri=" + mokamintURI + " --json --timeout=" + TIMEOUT));
 			StorageReference manifest = output2.getManifest();
 			report("manifest", manifest);
 			reportShort("manifest", manifest);
-
+		
 			var output3 = ObjectsCallOutputs.from(Moka.objectsCall(manifest + " " + Constants.MANIFEST_NAME + " getGamete --receiver=" + manifest + " --uri=" + mokamintURI + " --json --timeout=" + TIMEOUT));
 			StorageReference gamete = output3.getResult().get().asReference(value -> new IllegalStateException("The gamete should be a storage reference"));
 			report("gamete", gamete);
 			reportShort("gamete", gamete);
-
+		
 			var output4 = ObjectsCallOutputs.from(Moka.objectsCall(manifest + " " + Constants.MANIFEST_NAME + " getGasStation --receiver=" + manifest + " --uri=" + mokamintURI + " --json --timeout=" + TIMEOUT));
 			StorageReference gasStation = output4.getResult().get().asReference(value -> new IllegalStateException("The gas station should be a storage reference"));
 			report("gasStation", gasStation);
 			reportShort("gasStation", gasStation);
-
+		
 			var output5 = ObjectsCallOutputs.from(Moka.objectsCall(manifest + " " + Constants.MANIFEST_NAME + " getValidators --receiver=" + manifest + " --uri=" + mokamintURI + " --json --timeout=" + TIMEOUT));
 			StorageReference validators = output5.getResult().get().asReference(value -> new IllegalStateException("The validators should be a storage reference"));
 			report("validators", validators);
 			reportShort("validators", validators);
-
+		
 			var output6 = ObjectsCallOutputs.from(Moka.objectsCall(manifest + " " + Constants.GAMETE_NAME + " getMaxFaucet --receiver=" + gamete + " --uri=" + mokamintURI + " --json --timeout=" + TIMEOUT));
 			BigInteger maxFaucet = output6.getResult().get().asBigInteger(value -> new IllegalStateException("The max faucet threshold should be a BigInteger"));
 			report("maxFaucet", maxFaucet.toString());
-
+		
 			var output7 = ObjectsCallOutputs.from(Moka.objectsCall(manifest + " " + Constants.MANIFEST_NAME + " getChainId --receiver=" + manifest + " --uri=" + mokamintURI + " --json --timeout=" + TIMEOUT));
 			String chainId = output7.getResult().get().asString(value -> new IllegalStateException("The chain identifier should be a String"));
 			report("chainId", chainId);
-
+		
 			var output8 = KeysCreateOutputs.from(Moka.keysCreate("--name account1.pem --output-dir=" + tempDir + " --password=chocolate --json"));
 			createCommandFile("moka_keys_create_account1", "moka keys create --name=account1.pem --password");
 			createOutputFile("moka_keys_create_account1", "Enter value for --password (the password that will be needed later to use the key pair): chocolate\n" + output8);
@@ -173,7 +188,7 @@ public class UpdateForNewNode2 {
 			report("accountOneTendermintAddress", output8.getTendermintAddress());
 			String publicKeyAccount1Base64Short = publicKeyAccount1Base64.substring(0, 16) + "\\ldots";
 			report("accountOnePublicKeyBaseSixtyfourShort", publicKeyAccount1Base64Short);
-
+		
 			var account1Balance = 50000000000000L;
 			report("accountOneBalance", Long.toString(account1Balance));
 			var output9 = AccountsCreateOutputs.from(Moka.accountsCreate("faucet " + account1Balance + " " + tempDir.resolve("account1.pem") + " --dir=" + tempDir + " --output-dir=" + tempDir + " --password=chocolate --uri=" + mokamintURI + " --json --timeout=" + TIMEOUT));
@@ -183,44 +198,44 @@ public class UpdateForNewNode2 {
 			report("accountOneTransaction", output9.getTransaction().toString());
 			report("accountOne", account1);
 			reportShort("accountOne", account1);
-
+		
 			createCommandFile("docker_run_moka_objects_show_account1", "docker run -it --rm hotmoka/mokamint-node:" + HOTMOKA_VERSION + " moka objects show " + account1 + " --uri " + mokamintURI);
 			// we actually run the following locally, not inside docker...
 			String mokaObjectShowAccount1Output = Moka.objectsShow(account1 + " --uri " + mokamintURI);
 			createOutputFile("docker_run_moka_objects_show_account1", mokaObjectShowAccount1Output);
 			createCommandFile("moka_objects_show_account1", "moka objects show " + account1 + " --uri " + mokamintURI);
 			createOutputFile("moka_objects_show_account1", mokaObjectShowAccount1Output);
-
+		
 			var recharge = 200000;
 			report("accountOneRecharge", String.valueOf(recharge));
 			createCommandFile("moka_accounts_send_account1", "moka accounts send faucet " + recharge + " " + account1 + " --uri=" + mokamintURI);
 			var output10 = Moka.accountsSend("faucet " + recharge + " " + account1 + " --uri=" + mokamintURI + " --timeout=" + TIMEOUT);
 			createOutputFile("moka_accounts_send_account1", output10);
-
+		
 			var accountMokito = StorageValues.reference("826b150ccd5bf7ac6d8b07a7d3d12eba2c0eada93a91318e3b8a61397c702412#0");
 			report("accountMokito", accountMokito);
 			reportShort("accountMokito", accountMokito);
-
+		
 			createCommandFile("moka_accounts_import_account_mokito", "moka accounts import bench cradle hat deer game nation stage extra elite alarm pupil eight sudden amused uniform clip catch apart alpha autumn fat away theme ski excuse truly gospel clay silent stairs route pyramid exile find outside decade");
 			var output11 = Moka.accountsImport("bench cradle hat deer game nation stage extra elite alarm pupil eight sudden amused uniform clip catch apart alpha autumn fat away theme ski excuse truly gospel clay silent stairs route pyramid exile find outside decade --output-dir=" + tempDir);
 			createOutputFile("moka_accounts_import_account_mokito", output11);
-
+		
 			createCommandFile("moka_accounts_export_account1", "moka account export " + account1);
 			createOutputFile("moka_accounts_export_account1", Moka.accountsExport(account1 + " --dir=" + tempDir));
-
+		
 			createCommandFile("moka_keys_create_anonymous", "moka keys create --name=anonymous.pem --password");
 			var output12 = KeysCreateOutputs.from(Moka.keysCreate("--name anonymous.pem --output-dir=" + tempDir + " --password=kiwis --json"));
 			String anonymousPublicKeyBase58 = output12.getPublicKeyBase58();
 			createOutputFile("moka_keys_create_anonymous", "Enter value for --password (the password that will be needed later to use the key pair): kiwis\n" + output12);
 			report("publicKeyBaseFifthyeightAnonymous", anonymousPublicKeyBase58);
-
+		
 			var amountSendToAnonymous = 10000;
 			report("sentToAnonymous", String.valueOf(amountSendToAnonymous));
 			createCommandFile("moka_accounts_send_account1_anonymous", "moka accounts send " + account1 + " " + amountSendToAnonymous + " " + anonymousPublicKeyBase58 + " --password-of-sender --uri=" + mokamintURI);
 			var output13 = AccountsSendOutputs.from(Moka.accountsSend(account1 + " " + amountSendToAnonymous + " " + anonymousPublicKeyBase58 + " --password-of-sender=chocolate --dir=" + tempDir + " --uri=" + mokamintURI + " --json --timeout=" + TIMEOUT));
 			createOutputFile("moka_accounts_send_account1_anonymous", "Enter value for --password-of-sender (the password of the sender): chocolate\n" + output13);
 			report("accountAnonymous", output13.getDestinationInAccountsLedger().get());
-
+		
 			createCommandFile("moka_keys_bind_anonymous", "moka keys bind anonymous.pem --password --uri=" + mokamintURI);
 			// we use a wrong password to simulate the fact that the key has not been bound yet
 			createOutputFile("moka_keys_bind_anonymous_not_yet", Moka.keysBind(tempDir.resolve("anonymous.pem") + " --password=wrong --uri=" + mokamintURI + " --output-dir=" + tempDir + " --timeout=" + TIMEOUT));
@@ -234,7 +249,7 @@ public class UpdateForNewNode2 {
 			TransactionReference familyAddress = output15.getJar().get();
 			report("familyAddress", familyAddress);
 			reportShort("familyAddress", familyAddress);
-
+		
 			createCommandFile("mvn_exec_family_1", "mvn compile exec:java -Dexec.mainClass=\"io.hotmoka.tutorial.examples.runs.Family\" -Dexec.args=\""
 					+ mokamintURI + " " + hotmokaTutorialDir + " " + account1 + " chocolate\"");
 			String runFamilyMain = run(() -> Family.main(new String[] { mokamintURI.toString(), tempDir.toString(), account1.toString(), "chocolate" }));
@@ -243,11 +258,11 @@ public class UpdateForNewNode2 {
 			var codeFamilyAddress = TransactionReferences.of(runFamilyMain.substring(start, start + 64));
 			report("codeFamilyAddress", codeFamilyAddress);
 			reportShort("codeFamilyAddress", codeFamilyAddress);
-
+		
 			createCommandFile("moka_objects_create_person_failed", "moka objects create " + account1 + " io.hotmoka.tutorial.examples.family.Person Einstein 14 4 1879 null null --classpath=" + familyAddress + " --password-of-payer --uri=" + mokamintURI);
 			var output16 = Moka.objectsCreate(account1 + " io.hotmoka.tutorial.examples.family.Person Einstein 14 4 1879 null null --classpath=" + familyAddress + " --uri=" + mokamintURI + " --timeout=" + TIMEOUT + " --dir=" + tempDir + " --yes --password-of-payer=chocolate");
 			createOutputFile("moka_objects_create_person_failed", "Enter value for --password-of-payer (the password of the key pair of the payer account): chocolate\nDo you really want to call constructor\n  public ...Person(java.lang.String,int,int,int,...Person,...Person)\n  spending up to 1000000 gas units at the price of 1 pana per unit (that is, up to 1000000 panas) [Y/N] Y\n" + output16);
-
+		
 			createCommandFile("moka_jars_install_2", "cd io-takamaka-code-examples-family\nmvn clean install\ncd ..\nmoka jars install " + account1 + " io-hotmoka-tutorial-examples-family/target/io-hotmoka-tutorial-examples-family-" + HOTMOKA_VERSION + ".jar --yes --password-of-payer --uri=" + mokamintURI);
 			Path jar2 = Paths.get(System.getProperty("user.home") + "/.m2/repository/io/hotmoka/io-hotmoka-tutorial-examples-family_storage/" + HOTMOKA_VERSION + "/io-hotmoka-tutorial-examples-family_storage-" + HOTMOKA_VERSION + ".jar");
 			var output17 = JarsInstallOutputs.from(Moka.jarsInstall(account1 + " " + jar2 + " --password-of-payer=chocolate --dir=" + tempDir + " --uri=" + mokamintURI + " --json --timeout=" + TIMEOUT));
@@ -255,17 +270,17 @@ public class UpdateForNewNode2 {
 			TransactionReference family2Address = output17.getJar().get();
 			report("familyTwoAddress", family2Address);
 			reportShort("familyTwoAddress", family2Address);
-
+		
 			createCommandFile("moka_objects_create_person", "moka objects create " + account1 + " io.hotmoka.tutorial.examples.family.Person Einstein 14 4 1879 null null --classpath=" + family2Address + " --password-of-payer --uri=" + mokamintURI);
 			var output18 = ObjectsCreateOutputs.from(Moka.objectsCreate(account1 + " io.hotmoka.tutorial.examples.family.Person Einstein 14 4 1879 null null --classpath=" + family2Address + " --uri=" + mokamintURI + " --timeout=" + TIMEOUT + " --dir=" + tempDir + " --json --password-of-payer=chocolate"));
 			createOutputFile("moka_objects_create_person", "Enter value for --password-of-payer (the password of the key pair of the payer account): chocolate\nDo you really want to call constructor\n  public ...Person(java.lang.String,int,int,int,...Person,...Person)\n  spending up to 1000000 gas units at the price of 1 pana per unit (that is, up to 1000000 panas) [Y/N] Y\n" + output18);
 			StorageReference person = output18.getObject().get();
 			report("personObject", person);
 			reportShort("personObject", person);
-
+		
 			createCommandFile("moka_objects_show_person", "moka objects show " + person + " --uri " + mokamintURI);
 			createOutputFile("moka_objects_show_person", Moka.objectsShow(person + " --uri " + mokamintURI));
-
+		
 			createCommandFile("mvn_exec_family_storage", "mvn compile exec:java -Dexec.mainClass=\"io.hotmoka.tutorial.examples.runs.FamilyStorage\" -Dexec.args=\""
 					+ mokamintURI + " " + hotmokaTutorialDir + " " + account1 + " chocolate\"");
 			String runFamilyStorageMain = run(() -> FamilyStorage.main(new String[] { mokamintURI.toString(), tempDir.toString(), account1.toString(), "chocolate" }));
@@ -278,7 +293,7 @@ public class UpdateForNewNode2 {
 			createCommandFile("moka_objects_call_toString", "moka objects call " + account1 + " io.hotmoka.tutorial.examples.family.Person toString --uri=" + mokamintURI + " --password-of-payer --receiver=" + person2Object);
 			var output19 = Moka.objectsCall(account1 + " io.hotmoka.tutorial.examples.family.Person toString --uri=" + mokamintURI + " --timeout=" + TIMEOUT + " --dir=" + tempDir + " --yes --password-of-payer=chocolate --receiver=" + person2Object);
 			createOutputFile("moka_objects_call_toString", output19);
-
+		
 			createCommandFile("moka_jars_install_3", "cd io-takamaka-code-examples-family\nmvn clean install\ncd ..\nmoka jars install " + account1 + " io-hotmoka-tutorial-examples-family/target/io-hotmoka-tutorial-examples-family-" + HOTMOKA_VERSION + ".jar --yes --password-of-payer --uri=" + mokamintURI);
 			Path jar3 = Paths.get(System.getProperty("user.home") + "/.m2/repository/io/hotmoka/io-hotmoka-tutorial-examples-family_exported/" + HOTMOKA_VERSION + "/io-hotmoka-tutorial-examples-family_exported-" + HOTMOKA_VERSION + ".jar");
 			var output20 = JarsInstallOutputs.from(Moka.jarsInstall(account1 + " " + jar3 + " --password-of-payer=chocolate --dir=" + tempDir + " --uri=" + mokamintURI + " --json --timeout=" + TIMEOUT));
@@ -286,23 +301,23 @@ public class UpdateForNewNode2 {
 			TransactionReference familyExportedAddress = output20.getJar().get();
 			report("familyExportedAddress", familyExportedAddress);
 			reportShort("familyExportedAddress", familyExportedAddress);
-
+		
 			createCommandFile("moka_objects_create_person_exported", "moka objects create " + account1 + " io.hotmoka.tutorial.examples.family.Person Einstein 14 4 1879 null null --classpath=" + familyExportedAddress + " --password-of-payer --uri=" + mokamintURI);
 			var output21 = ObjectsCreateOutputs.from(Moka.objectsCreate(account1 + " io.hotmoka.tutorial.examples.family.Person Einstein 14 4 1879 null null --classpath=" + familyExportedAddress + " --uri=" + mokamintURI + " --timeout=" + TIMEOUT + " --dir=" + tempDir + " --json --password-of-payer=chocolate"));
 			createOutputFile("moka_objects_create_person_exported", "Enter value for --password-of-payer (the password of the key pair of the payer account): chocolate\nDo you really want to call constructor\n  public ...Person(java.lang.String,int,int,int,...Person,...Person)\n  spending up to 1000000 gas units at the price of 1 pana per unit (that is, up to 1000000 panas) [Y/N] Y\n" + output21);
 			StorageReference personExported = output21.getObject().get();
 			report("personExportedObject", personExported);
 			reportShort("personExportedObject", personExported);
-
+		
 			createCommandFile("moka_objects_call_toString_exported", "moka objects call " + account1 + " io.hotmoka.tutorial.examples.family.Person toString --uri=" + mokamintURI + " --password-of-payer --receiver=" + personExported);
 			var output22 = Moka.objectsCall(account1 + " io.hotmoka.tutorial.examples.family.Person toString --uri=" + mokamintURI + " --timeout=" + TIMEOUT + " --dir=" + tempDir + " --yes --password-of-payer=chocolate --receiver=" + personExported);
 			createOutputFile("moka_objects_call_toString_exported", output22);
-
+		
 			createCommandFile("mvn_exec_family_exported", "mvn compile exec:java -Dexec.mainClass=\"io.hotmoka.tutorial.examples.runs.FamilyExported\" -Dexec.args=\""
 					+ mokamintURI + " " + hotmokaTutorialDir + " " + account1 + " chocolate\"");
 			String runFamilyExportedMain = run(() -> FamilyExported.main(new String[] { mokamintURI.toString(), tempDir.toString(), account1.toString(), "chocolate" }));
 			createOutputFile("mvn_exec_family_exported", runFamilyExportedMain);
-
+		
 			createCommandFile("moka_jars_install_gradual_ponzi", "cd io-takamaka-code-examples-ponzi\nmvn clean install\ncd ..\nmoka jars install " + account1 + " io-hotmoka-tutorial-examples-ponzi/target/io-hotmoka-tutorial-examples-ponzi-" + HOTMOKA_VERSION + ".jar --yes --password-of-payer --uri=" + mokamintURI);
 			Path jar4 = Paths.get(System.getProperty("user.home") + "/.m2/repository/io/hotmoka/io-hotmoka-tutorial-examples-ponzi_gradual/" + HOTMOKA_VERSION + "/io-hotmoka-tutorial-examples-ponzi_gradual-" + HOTMOKA_VERSION + ".jar");
 			var output23 = JarsInstallOutputs.from(Moka.jarsInstall(account1 + " " + jar4 + " --password-of-payer=chocolate --dir=" + tempDir + " --uri=" + mokamintURI + " --json --timeout=" + TIMEOUT));
@@ -310,15 +325,15 @@ public class UpdateForNewNode2 {
 			TransactionReference gradualPonziAddress = output23.getJar().get();
 			report("gradualPonziAddress", gradualPonziAddress);
 			reportShort("gradualPonziAddress", gradualPonziAddress);
-
+		
 			var output24 = Moka.keysCreate("--name account2.pem --output-dir=" + tempDir + " --password=orange");
 			createCommandFile("moka_keys_create_account2", "moka keys create --name=account2.pem --password");
 			createOutputFile("moka_keys_create_account2", "Enter value for --password (the password that will be needed later to use the key pair): orange\n" + output24);
-
+		
 			var output25 = Moka.keysCreate("--name account3.pem --output-dir=" + tempDir + " --password=apple");
 			createCommandFile("moka_keys_create_account3", "moka keys create --name=account3.pem --password");
 			createOutputFile("moka_keys_create_account3", "Enter value for --password (the password that will be needed later to use the key pair): apple\n" + output25);
-
+		
 			var output26 = AccountsCreateOutputs.from(Moka.accountsCreate(account1 + " 50000000000 " + tempDir.resolve("account2.pem") + " --dir=" + tempDir + " --output-dir=" + tempDir + " --password=orange --password-of-payer=chocolate --uri=" + mokamintURI + " --json --timeout=" + TIMEOUT));
 			createCommandFile("moka_accounts_create_account2", "moka accounts create " + account1 + " 50000000000 account2.pem --password --password-of-payer --uri " + mokamintURI);
 			createOutputFile("moka_accounts_create_account2", "Enter value for --password (the password of the key pair): orange\nEnter value for --password-of-payer (the password of the payer): chocolate\nDo you really want to create the new account spending up to 200000 gas units\n"
@@ -326,7 +341,7 @@ public class UpdateForNewNode2 {
 			StorageReference account2 = output26.getAccount().get();
 			report("accountTwo", account2);
 			reportShort("accountTwo", account2);
-
+		
 			var output27 = AccountsCreateOutputs.from(Moka.accountsCreate(account1 + " 10000000 " + tempDir.resolve("account3.pem") + " --dir=" + tempDir + " --output-dir=" + tempDir + " --password=apple --password-of-payer=chocolate --uri=" + mokamintURI + " --json --timeout=" + TIMEOUT));
 			createCommandFile("moka_accounts_create_account3", "moka accounts create " + account1 + " 10000000 account3.pem --password --password-of-payer --uri " + mokamintURI);
 			createOutputFile("moka_accounts_create_account3", "Enter value for --password (the password of the key pair): apple\nEnter value for --password-of-payer (the password of the payer): chocolate\nDo you really want to create the new account spending up to 200000 gas units\n"
@@ -334,26 +349,26 @@ public class UpdateForNewNode2 {
 			StorageReference account3 = output27.getAccount().get();
 			report("accountThree", account3);
 			reportShort("accountThree", account3);
-
+		
 			createCommandFile("moka_objects_create_gradual_ponzi", "moka objects create " + account1 + " io.hotmoka.tutorial.examples.ponzi.GradualPonzi --classpath=" + gradualPonziAddress + " --password-of-payer --uri=" + mokamintURI);
 			var output28 = ObjectsCreateOutputs.from(Moka.objectsCreate(account1 + " io.hotmoka.tutorial.examples.ponzi.GradualPonzi --classpath=" + gradualPonziAddress + " --uri=" + mokamintURI + " --timeout=" + TIMEOUT + " --dir=" + tempDir + " --json --password-of-payer=chocolate"));
 			createOutputFile("moka_objects_create_gradual_ponzi", "Enter value for --password-of-payer (the password of the key pair of the payer account): chocolate\nDo you really want to call constructor\n  public ...GradualPonzi()\n  spending up to 1000000 gas units at the price of 1 pana per unit (that is, up to 1000000 panas) [Y/N] Y\n" + output28);
 			StorageReference gradualPonziObject = output28.getObject().get();
 			report("gradualPonziObject", gradualPonziObject);
 			reportShort("gradualPonziObject", gradualPonziObject);
-
+		
 			createCommandFile("moka_objects_call_invest_1", "moka objects call " + account2 + " io.hotmoka.tutorial.examples.ponzi.GradualPonzi invest 5000 --uri=" + mokamintURI + " --password-of-payer --receiver=" + gradualPonziObject);
 			var output29 = Moka.objectsCall(account2 + " io.hotmoka.tutorial.examples.ponzi.GradualPonzi invest 5000 --uri=" + mokamintURI + " --timeout=" + TIMEOUT + " --dir=" + tempDir + " --yes --password-of-payer=orange --receiver=" + gradualPonziObject);
 			createOutputFile("moka_objects_call_invest_1", "Enter value for --password-of-payer (the password of the key pair of the payer account): orange\n" + output29);
-
+		
 			createCommandFile("moka_objects_call_invest_2", "moka objects call " + account3 + " io.hotmoka.tutorial.examples.ponzi.GradualPonzi invest 15000 --uri=" + mokamintURI + " --password-of-payer --receiver=" + gradualPonziObject);
 			var output30 = Moka.objectsCall(account3 + " io.hotmoka.tutorial.examples.ponzi.GradualPonzi invest 15000 --uri=" + mokamintURI + " --timeout=" + TIMEOUT + " --dir=" + tempDir + " --yes --password-of-payer=apple --receiver=" + gradualPonziObject);
 			createOutputFile("moka_objects_call_invest_2", "Enter value for --password-of-payer (the password of the key pair of the payer account): apple\n" + output30);
-
+		
 			createCommandFile("moka_objects_call_invest_3", "moka objects call " + account1 + " io.hotmoka.tutorial.examples.ponzi.GradualPonzi invest 500 --uri=" + mokamintURI + " --password-of-payer --receiver=" + gradualPonziObject);
 			var output31 = Moka.objectsCall(account1 + " io.hotmoka.tutorial.examples.ponzi.GradualPonzi invest 500 --uri=" + mokamintURI + " --timeout=" + TIMEOUT + " --dir=" + tempDir + " --yes --password-of-payer=chocolate --receiver=" + gradualPonziObject);
 			createOutputFile("moka_objects_call_invest_3", "Enter value for --password-of-payer (the password of the key pair of the payer account): chocolate\n" + output31);
-
+		
 			var mokaObjectShowGradualPonziOutput = ObjectsShowOutputs.from(Moka.objectsShow(gradualPonziObject + " --json --uri " + mokamintURI));
 			createCommandFile("moka_objects_show_gradual_ponzi", "moka objects show " + gradualPonziObject + " --uri " + mokamintURI);
 			createOutputFile("moka_objects_show_gradual_ponzi", mokaObjectShowGradualPonziOutput.toString());
@@ -362,7 +377,7 @@ public class UpdateForNewNode2 {
 			var mokaObjectShowGradualPonziInvestorsOutput = Moka.objectsShow(investorsObject + " --uri " + mokamintURI);
 			createCommandFile("moka_objects_show_investors", "moka objects show " + investorsObject + " --uri " + mokamintURI);
 			createOutputFile("moka_objects_show_investors", mokaObjectShowGradualPonziInvestorsOutput);
-
+		
 			createCommandFile("moka_jars_install_tictactoe_revised", "cd io-takamaka-code-examples-tictactoe\nmvn clean install\ncd ..\nmoka jars install " + account1 + " io-hotmoka-tutorial-examples-tictactoe/target/io-hotmoka-tutorial-examples-tictactoe-" + HOTMOKA_VERSION + ".jar --yes --password-of-payer --uri=" + mokamintURI);
 			Path jar5 = Paths.get(System.getProperty("user.home") + "/.m2/repository/io/hotmoka/io-hotmoka-tutorial-examples-tictactoe_revised/" + HOTMOKA_VERSION + "/io-hotmoka-tutorial-examples-tictactoe_revised-" + HOTMOKA_VERSION + ".jar");
 			var output32 = JarsInstallOutputs.from(Moka.jarsInstall(account1 + " " + jar5 + " --password-of-payer=chocolate --dir=" + tempDir + " --uri=" + mokamintURI + " --json --timeout=" + TIMEOUT));
@@ -370,82 +385,58 @@ public class UpdateForNewNode2 {
 			TransactionReference ticTacToeAddress = output32.getJar().get();
 			report("ticTacToeAddress", ticTacToeAddress);
 			reportShort("ticTacToeAddress", ticTacToeAddress);
-
+		
 			createCommandFile("moka_objects_create_tictactoe_revised", "moka objects create " + account1 + " io.hotmoka.tutorial.examples.tictactoe.TicTacToe --classpath=" + ticTacToeAddress + " --password-of-payer --uri=" + mokamintURI);
 			var output33 = ObjectsCreateOutputs.from(Moka.objectsCreate(account1 + " io.hotmoka.tutorial.examples.tictactoe.TicTacToe --classpath=" + ticTacToeAddress + " --uri=" + mokamintURI + " --timeout=" + TIMEOUT + " --dir=" + tempDir + " --json --password-of-payer=chocolate"));
 			createOutputFile("moka_objects_create_tictactoe_revised", "Enter value for --password-of-payer (the password of the key pair of the payer account): chocolate\nDo you really want to call constructor\n  public ...TicTacToe()\n  spending up to 1000000 gas units at the price of 1 pana per unit (that is, up to 1000000 panas) [Y/N] Y\n" + output33);
 			StorageReference ticTacToeObject = output33.getObject().get();
 			report("ticTacToeObject", ticTacToeObject);
 			reportShort("ticTacToeObject", ticTacToeObject);
-
+		
 			createCommandFile("moka_objects_call_tictactoe_play_1", "moka objects call " + account1 + " io.hotmoka.tutorial.examples.tictactoe.TicTacToe play 100 1 1 --uri=" + mokamintURI + " --password-of-payer --receiver=" + ticTacToeObject);
 			var output34 = Moka.objectsCall(account1 + " io.hotmoka.tutorial.examples.tictactoe.TicTacToe play 100 1 1 --uri=" + mokamintURI + " --timeout=" + TIMEOUT + " --dir=" + tempDir + " --yes --password-of-payer=chocolate --receiver=" + ticTacToeObject);
 			createOutputFile("moka_objects_call_tictactoe_play_1", "Enter value for --password-of-payer (the password of the key pair of the payer account): chocolate\n" + output34);
 			createCommandFile("moka_objects_call_tictactoe_toString_1", "moka objects call " + account1 + " io.hotmoka.tutorial.examples.tictactoe.TicTacToe toString --uri=" + mokamintURI + " --receiver=" + ticTacToeObject);
 			var output35 = Moka.objectsCall(account1 + " io.hotmoka.tutorial.examples.tictactoe.TicTacToe toString --uri=" + mokamintURI + " --timeout=" + TIMEOUT + " --dir=" + tempDir + " --receiver=" + ticTacToeObject);
 			createOutputFile("moka_objects_call_tictactoe_toString_1", output35);
-
+		
 			createCommandFile("moka_objects_call_tictactoe_play_2", "moka objects call " + account2 + " io.hotmoka.tutorial.examples.tictactoe.TicTacToe play 100 2 1 --uri=" + mokamintURI + " --password-of-payer --receiver=" + ticTacToeObject);
 			var output36 = Moka.objectsCall(account2 + " io.hotmoka.tutorial.examples.tictactoe.TicTacToe play 100 2 1 --uri=" + mokamintURI + " --timeout=" + TIMEOUT + " --dir=" + tempDir + " --yes --password-of-payer=orange --receiver=" + ticTacToeObject);
 			createOutputFile("moka_objects_call_tictactoe_play_2", "Enter value for --password-of-payer (the password of the key pair of the payer account): orange\n" + output36);
 			createCommandFile("moka_objects_call_tictactoe_toString_2", "moka objects call " + account2 + " io.hotmoka.tutorial.examples.tictactoe.TicTacToe toString --uri=" + mokamintURI + " --receiver=" + ticTacToeObject);
 			var output37 = Moka.objectsCall(account2 + " io.hotmoka.tutorial.examples.tictactoe.TicTacToe toString --uri=" + mokamintURI + " --timeout=" + TIMEOUT + " --dir=" + tempDir + " --receiver=" + ticTacToeObject);
 			createOutputFile("moka_objects_call_tictactoe_toString_2", output37);
-
+		
 			createCommandFile("moka_objects_call_tictactoe_play_3", "moka objects call " + account1 + " io.hotmoka.tutorial.examples.tictactoe.TicTacToe play 0 1 2 --uri=" + mokamintURI + " --password-of-payer --receiver=" + ticTacToeObject);
 			var output38 = Moka.objectsCall(account1 + " io.hotmoka.tutorial.examples.tictactoe.TicTacToe play 0 1 2 --uri=" + mokamintURI + " --timeout=" + TIMEOUT + " --dir=" + tempDir + " --yes --password-of-payer=chocolate --receiver=" + ticTacToeObject);
 			createOutputFile("moka_objects_call_tictactoe_play_3", "Enter value for --password-of-payer (the password of the key pair of the payer account): chocolate\n" + output38);
 			createCommandFile("moka_objects_call_tictactoe_toString_3", "moka objects call " + account1 + " io.hotmoka.tutorial.examples.tictactoe.TicTacToe toString --uri=" + mokamintURI + " --receiver=" + ticTacToeObject);
 			var output39 = Moka.objectsCall(account1 + " io.hotmoka.tutorial.examples.tictactoe.TicTacToe toString --uri=" + mokamintURI + " --timeout=" + TIMEOUT + " --dir=" + tempDir + " --receiver=" + ticTacToeObject);
 			createOutputFile("moka_objects_call_tictactoe_toString_3", output39);
-
+		
 			createCommandFile("moka_objects_call_tictactoe_play_4", "moka objects call " + account2 + " io.hotmoka.tutorial.examples.tictactoe.TicTacToe play 0 2 2 --uri=" + mokamintURI + " --password-of-payer --receiver=" + ticTacToeObject);
 			var output40 = Moka.objectsCall(account2 + " io.hotmoka.tutorial.examples.tictactoe.TicTacToe play 0 2 2 --uri=" + mokamintURI + " --timeout=" + TIMEOUT + " --dir=" + tempDir + " --yes --password-of-payer=orange --receiver=" + ticTacToeObject);
 			createOutputFile("moka_objects_call_tictactoe_play_4", "Enter value for --password-of-payer (the password of the key pair of the payer account): orange\n" + output40);
 			createCommandFile("moka_objects_call_tictactoe_toString_4", "moka objects call " + account2 + " io.hotmoka.tutorial.examples.tictactoe.TicTacToe toString --uri=" + mokamintURI + " --receiver=" + ticTacToeObject);
 			var output41 = Moka.objectsCall(account2 + " io.hotmoka.tutorial.examples.tictactoe.TicTacToe toString --uri=" + mokamintURI + " --timeout=" + TIMEOUT + " --dir=" + tempDir + " --receiver=" + ticTacToeObject);
 			createOutputFile("moka_objects_call_tictactoe_toString_4", output41);
-
+		
 			createCommandFile("moka_objects_call_tictactoe_play_5", "moka objects call " + account1 + " io.hotmoka.tutorial.examples.tictactoe.TicTacToe play 0 1 3 --uri=" + mokamintURI + " --password-of-payer --receiver=" + ticTacToeObject);
 			var output42 = Moka.objectsCall(account1 + " io.hotmoka.tutorial.examples.tictactoe.TicTacToe play 0 1 3 --uri=" + mokamintURI + " --timeout=" + TIMEOUT + " --dir=" + tempDir + " --yes --password-of-payer=chocolate --receiver=" + ticTacToeObject);
 			createOutputFile("moka_objects_call_tictactoe_play_5", "Enter value for --password-of-payer (the password of the key pair of the payer account): chocolate\n" + output42);
 			createCommandFile("moka_objects_call_tictactoe_toString_5", "moka objects call " + account1 + " io.hotmoka.tutorial.examples.tictactoe.TicTacToe toString --uri=" + mokamintURI + " --receiver=" + ticTacToeObject);
 			var output43 = Moka.objectsCall(account1 + " io.hotmoka.tutorial.examples.tictactoe.TicTacToe toString --uri=" + mokamintURI + " --timeout=" + TIMEOUT + " --dir=" + tempDir + " --receiver=" + ticTacToeObject);
 			createOutputFile("moka_objects_call_tictactoe_toString_5", output43);
-
+		
 			createCommandFile("moka_objects_show_tictactoe", "moka objects show " + ticTacToeObject + " --uri " + mokamintURI);
 			String mokaObjectsShowTicTacToeOutput = Moka.objectsShow(ticTacToeObject + " --uri " + mokamintURI);
 			createOutputFile("moka_objects_show_tictactoe", mokaObjectsShowTicTacToeOutput);
-
+		
 			createCommandFile("moka_objects_call_tictactoe_play_6", "moka objects call " + account2 + " io.hotmoka.tutorial.examples.tictactoe.TicTacToe play 0 2 3 --uri=" + mokamintURI + " --password-of-payer --receiver=" + ticTacToeObject);
 			var output44 = Moka.objectsCall(account2 + " io.hotmoka.tutorial.examples.tictactoe.TicTacToe play 0 2 3 --uri=" + mokamintURI + " --timeout=" + TIMEOUT + " --dir=" + tempDir + " --yes --password-of-payer=orange --receiver=" + ticTacToeObject);
 			createOutputFile("moka_objects_call_tictactoe_play_6", "Enter value for --password-of-payer (the password of the key pair of the payer account): orange\n" + output44);
-
+		
 			/*
-			KeysCreateOutputs.from(Moka.keysCreate("--name account4.pem --output-dir=" + dir + " --password=banana --json"));
-			KeysCreateOutputs.from(Moka.keysCreate("--name account5.pem --output-dir=" + dir + " --password=mango --json"));
-			KeysCreateOutputs.from(Moka.keysCreate("--name account6.pem --output-dir=" + dir + " --password=strawberry --json"));
-			var output44 = AccountsCreateOutputs.from(Moka.accountsCreate("faucet 50000000000000 " + dir.resolve("account4.pem") + " --dir=" + dir + " --output-dir=" + dir + " --password=banana --uri=" + tendermintURI + " --json --timeout=" + TIMEOUT));
-			StorageReference account4 = output44.getAccount().get();
-			report("sed -i 's/@transaction_account4/" + output44.getTransaction() + "/g' target/Tutorial.md");
-			report("sed -i 's/@account4/" + account4 + "/g' target/Tutorial.md");
-			var output45 = AccountsCreateOutputs.from(Moka.accountsCreate("faucet 50000000000000 " + dir.resolve("account5.pem") + " --dir=" + dir + " --output-dir=" + dir + " --password=mango --uri=" + tendermintURI + " --json --timeout=" + TIMEOUT));
-			StorageReference account5 = output45.getAccount().get();
-			report("sed -i 's/@transaction_account5/" + output45.getTransaction() + "/g' target/Tutorial.md");
-			report("sed -i 's/@account5/" + account5 + "/g' target/Tutorial.md");
-			var output46 = AccountsCreateOutputs.from(Moka.accountsCreate("faucet 50000000000000 " + dir.resolve("account6.pem") + " --dir=" + dir + " --output-dir=" + dir + " --password=strawberry --uri=" + tendermintURI + " --json --timeout=" + TIMEOUT));
-			StorageReference account6 = output46.getAccount().get();
-			report("sed -i 's/@transaction_account6/" + output46.getTransaction() + "/g' target/Tutorial.md");
-			report("sed -i 's/@account6/" + account6 + "/g' target/Tutorial.md");
-
-			System.out.println("running Auction: it will take around ten minutes");
-			String runAuctionMain = run(() -> Auction.main(new String[] { tendermintURI.toString(), dir.toString(), account4.toString(), "banana", account5.toString(), "mango", account6.toString(), "strawberry" }));
-			report("sed -i 's/@auction_main_output/" + runAuctionMain.toString().trim().replace("/", "\\/").replace("\n", "\\n") + "/g' target/Tutorial.md");
-			System.out.println("running Events: it will take around ten minutes");
-			String runEventsMain = run(() -> Events.main(new String[] { tendermintURI.toString(), dir.toString(), account4.toString(), "banana", account5.toString(), "mango", account6.toString(), "strawberry" }));
-			// we cut long sentences at "by contract"
-			report("sed -i 's/@events_main_output/" + runEventsMain.toString().trim().replace("/", "\\/").replace("by contract", "\n  by contract").replace("\n", "\\n") + "/g' target/Tutorial.md");
-
 			Path jar6 = Paths.get(System.getProperty("user.home") + "/.m2/repository/io/hotmoka/io-hotmoka-tutorial-examples-erc20/" + HOTMOKA_VERSION + "/io-hotmoka-tutorial-examples-erc20-" + HOTMOKA_VERSION + ".jar");
 			var output47 = JarsInstallOutputs.from(Moka.jarsInstall(account1 + " " + jar6 + " --password-of-payer=chocolate --dir=" + dir + " --uri=" + mokamintURI + " --json --timeout=" + TIMEOUT));
 			report("sed -i 's/@transaction_install_erc20/" + output47.getTransaction() + "/g' target/Tutorial.md");
@@ -455,7 +446,7 @@ public class UpdateForNewNode2 {
 			report("sed -i 's/@erc20_creation_transaction/" + output48.getTransaction() + "/g' target/Tutorial.md");
 			StorageReference erc20Object = output48.getObject().get();
 			report("sed -i 's/@erc20_object/" + erc20Object + "/g' target/Tutorial.md");
-
+		
 			KeysCreateOutputs.from(Moka.keysCreate("--name account7.pem --output-dir=" + dir + " --password=game --json"));
 			var output49 = AccountsCreateOutputs.from(Moka.accountsCreate("faucet 1000000000000 " + dir.resolve("account7.pem") + " --dir=" + dir + " --output-dir=" + dir + " --password=game --uri=" + mokamintURI + " --json --timeout=" + TIMEOUT));
 			StorageReference account7 = output49.getAccount().get();
@@ -484,7 +475,7 @@ public class UpdateForNewNode2 {
 			report("sed -i 's/@account10/" + account10 + "/g' target/Tutorial.md");
 			Path jar7 = Paths.get(System.getProperty("user.home") + "/.m2/repository/io/hotmoka/io-hotmoka-tutorial-examples-family_exported/" + HOTMOKA_VERSION + "/io-hotmoka-tutorial-examples-family_exported-" + HOTMOKA_VERSION + ".jar");
 			JarsInstallOutput output55;
-
+		
 			do {
 				System.out.println("I wait one minute since the previous command might have increased the gas cost too much");
 				Thread.sleep(60_000L);
@@ -492,11 +483,59 @@ public class UpdateForNewNode2 {
 				output55 = JarsInstallOutputs.from(Moka.jarsInstall(account9 + " " + jar7 + " --password-of-payer=quantum1 --dir=" + dir + " --uri=" + mokamintURI + " --json --timeout=" + TIMEOUT));
 			}
 			while (output55.getJar().isEmpty());
-
+		
 			report("sed -i 's/@family3_install_transaction/" + output55.getTransaction() + "/g' target/Tutorial.md");
 			TransactionReference family3Address = output55.getJar().get();
 			report("sed -i 's/@family3_address/" + family3Address + "/g' target/Tutorial.md");
 			*/
+		}
+
+		private void experimentsWithTendermintServer() throws Exception {
+			createCommandFile("moka_keys_create_account4", "moka keys create --name=account4.pem --password");
+			String output = Moka.keysCreate("--name account4.pem --output-dir=" + tempDir + " --password=banana");
+			createOutputFile("moka_keys_create_account4", "Enter value for --password (the password that will be needed later to use the key pair): banana\n" + output);
+
+			createCommandFile("moka_keys_create_account5", "moka keys create --name=account5.pem --password");
+			output = Moka.keysCreate("--name account5.pem --output-dir=" + tempDir + " --password=mango");
+			createOutputFile("moka_keys_create_account5", "Enter value for --password (the password that will be needed later to use the key pair): mango\n" + output);
+			
+			createCommandFile("moka_keys_create_account6", "moka keys create --name=account6.pem --password");
+			output = Moka.keysCreate("--name account6.pem --output-dir=" + tempDir + " --password=strawberry");
+			createOutputFile("moka_keys_create_account6", "Enter value for --password (the password that will be needed later to use the key pair): strawberry\n" + output);
+
+			var balance = BigInteger.valueOf(50000000000000L);
+
+			createCommandFile("moka_accounts_create_account4", "moka accounts create faucet " + balance + " account4.pem --password --uri " + tendermintURI);
+			var output4 = AccountsCreateOutputs.from(Moka.accountsCreate("faucet " + balance + " " + tempDir.resolve("account4.pem") + " --dir=" + tempDir + " --output-dir=" + tempDir + " --password=banana --uri=" + tendermintURI + " --json --timeout=" + TIMEOUT));
+			createOutputFile("moka_accounts_create_account4", "Enter value for --password (the password of the key pair): banana\n" + output4);
+			StorageReference account4 = output4.getAccount().get();
+			report("accountFour", account4);
+			reportShort("accountFour", account4);
+
+			createCommandFile("moka_accounts_create_account5", "moka accounts create faucet " + balance + " account5.pem --password --uri " + tendermintURI);
+			var output5 = AccountsCreateOutputs.from(Moka.accountsCreate("faucet " + balance + " " + tempDir.resolve("account5.pem") + " --dir=" + tempDir + " --output-dir=" + tempDir + " --password=mango --uri=" + tendermintURI + " --json --timeout=" + TIMEOUT));
+			createOutputFile("moka_accounts_create_account5", "Enter value for --password (the password of the key pair): mango\n" + output5);
+			StorageReference account5 = output5.getAccount().get();
+			report("accountFive", account5);
+			reportShort("accountFive", account5);
+
+			createCommandFile("moka_accounts_create_account6", "moka accounts create faucet " + balance + " account6.pem --password --uri " + tendermintURI);
+			var output6 = AccountsCreateOutputs.from(Moka.accountsCreate("faucet " + balance + " " + tempDir.resolve("account6.pem") + " --dir=" + tempDir + " --output-dir=" + tempDir + " --password=strawberry --uri=" + tendermintURI + " --json --timeout=" + TIMEOUT));
+			createOutputFile("moka_accounts_create_account6", "Enter value for --password (the password of the key pair): strawberry\n" + output6);
+			StorageReference account6 = output6.getAccount().get();
+			report("accountSix", account6);
+			reportShort("accountSix", account6);
+
+			System.out.println("running Auction: it will take around ten minutes");
+			createCommandFile("mvn_exec_blind_auction", "mvn compile exec:java -Dexec.mainClass=\"io.hotmoka.tutorial.examples.runs.Auction\" -Dexec.args=\""
+					+ tendermintURI + " " + hotmokaTutorialDir + " " + account4 + " banana " + account5 + " mango " + account6 + " strawberry\"");
+			String runAuctionMain = run(() -> Auction.main(new String[] { tendermintURI.toString(), tempDir.toString(), account4.toString(), "banana", account5.toString(), "mango", account6.toString(), "strawberry" }));
+			createOutputFile("mvn_exec_blind_auction", runAuctionMain);
+			System.out.println("running Events: it will take around ten minutes");
+			createCommandFile("mvn_exec_blind_auction_events", "mvn compile exec:java -Dexec.mainClass=\"io.hotmoka.tutorial.examples.runs.Events\" -Dexec.args=\""
+					+ tendermintURI + " " + hotmokaTutorialDir + " " + account4 + " banana " + account5 + " mango " + account6 + " strawberry\"");
+			String runEventsMain = run(() -> Events.main(new String[] { tendermintURI.toString(), tempDir.toString(), account4.toString(), "banana", account5.toString(), "mango", account6.toString(), "strawberry" }));
+			createOutputFile("mvn_exec_blind_auction_events", runEventsMain);
 		}
 
 		private void report(String line) {

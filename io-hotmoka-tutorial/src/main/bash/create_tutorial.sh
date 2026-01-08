@@ -6,10 +6,6 @@ mkdir -p target/pdf
 rm -r target/pdf/*
 cp src/main/latex/*.tex target/pdf
 LC_ALL=C sed -i 's/[^[:print:][:cntrl:]]//g' target/pdf/moka_nodes_manifest_show_output.tex
-cp src/main/latex/tutorial.tex target/pdf
-cp src/main/latex/introduction.tex target/pdf
-cp src/main/latex/getting_started.tex target/pdf
-cp src/main/latex/parameters.tex target/pdf
 cp src/main/latex/biblio.bib target/pdf
 cp -r src/main/resources/pics target/pdf
 cd target/pdf
@@ -28,10 +24,6 @@ cp src/main/latex/*.tex target/html
 sed -i 's/</\&langle;/g' target/html/moka_objects_help_show_output.tex
 sed -i 's/>/\&rangle;/g' target/html/moka_objects_help_show_output.tex
 LC_ALL=C sed -i 's/[^[:print:][:cntrl:]]//g' target/html/moka_nodes_manifest_show_output.tex
-cp src/main/latex/tutorial.tex target/html
-cp src/main/latex/introduction.tex target/html
-cp src/main/latex/getting_started.tex target/html
-cp src/main/latex/parameters.tex target/html
 cp src/main/latex/biblio.bib target/html
 cp -r src/main/resources/pics target/html
 cd target/html
