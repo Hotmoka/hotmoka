@@ -1,0 +1,109 @@
+\chapter{Code verification}\label{ch:code_verification}
+
+Code verification\index{code verification} checks that code complies with some constraints, that should
+guarantee that its execution does not run into errors. Modern programming
+languages apply more or less extensive code verification, since this helps
+programmers write reliable code. This can both occur at run time and at compile
+time. Run-time (\emph{dynamic}) code verification is typically stronger, since it can exploit
+exact information about the actual run-time values flowing through the code. However,
+compile-time (\emph{static}) code verification has the advantage that it runs only
+once, at compilation time or at jar installation time, and can prove, once and for all,
+that some errors will never occur, regardless of the execution path that will
+be followed at run time.
+
+Hotmoka nodes apply a combination of static and dynamic verification to the
+Takamaka code that is installed inside their store.
+Static verification runs only once, when a node installs
+a jar in its store, or when classes are loaded for the first time at run time.
+Dynamic verification runs every time some piece of code gets executed.
+
+\section{JVM bytecode verification}\label{subsec:jvm_bytecode_verification}
+
+Takamaka code is written in Java, compiled into Java bytecode\index{Java bytecode}, instrumented
+and run inside the Java Virtual Machine (\emph{JVM}). Hence, all code verifications
+executed by the JVM apply to Takamaka code as well. In particular, the JVM verifies
+some structural and dynamic constraints of class files, including their
+type correctness.
+Moreover, the JVM executes run-time checks as well: for instance, class casts
+are checked at run time, as well as pointer dereferences and
+array stores. Violations result in exceptions. For a thorough discussion,
+we refer the interested
+reader to the official documentation about Java bytecode class
+verification (see \website{https://docs.oracle.com/javase/specs/jvms/se25/html/jvms-4.html#jvms-4.9}).
+
+\section{Takamaka bytecode verification}\label{subsec:takamaka_bytecode_verification}
+
+Hotmoka nodes verify extra constraints, that are not checked as part of the
+standard JVM bytecode verification. Such extra constraints are mainly related to
+the correct use of Takamaka annotations and contracts, and are
+in part static and in part dynamic. Static constraints are checked when a
+jar is installed into the store of a node, hence only once for each node of a network.
+If a static constraint
+is violated, the transaction that tries to install the jar fails with
+an exception. Dynamic constraints, instead,
+are checked every time a piece of code is run. If a dynamic constraint is
+violated, the transaction that runs the code fails with an exception.
+
+Below, remember that \texttt{@FromContract} is shorthand for \texttt{@FromContract(Contract.class)}.
+Moreover, note that the constraints related
+to overridden methods follow by Liskov's principle~\cite{LiskovW94}.
+
+Hotmoka nodes verify the following static constraints:
+%
+\begin{enumerate}
+\item The \texttt{@FromContract(C.class)}\index{FromContract@{\texttt{FromContract}}}
+   	annotation is only applied to constructors of a
+	(non-strict) subclass of \texttt{io.takamaka.code.lang.Storage}\index{Storage@{\texttt{Storage}}}
+	or to instance methods of a
+ 	(non-strict) subclass of \texttt{io.takamaka.code.lang.Storage} or of an interface.
+\item In every use of the \texttt{@FromContract(C.class)}\index{FromContract@{\texttt{FromContract}}}
+	annotation, class \texttt{C} is a subclass
+	of the abstract class \texttt{io.takamaka.code.lang.Contract}\index{Contract@{\texttt{Contract}}}.
+\item If a method is annotated as \texttt{@FromContract(C.class)}\index{FromContract@{\texttt{FromContract}}}
+	and overrides another method,
+	then the latter is annotated as \texttt{@FromContract(D.class)} as well, and \texttt{D} is a
+	(non-strict) subclass of \texttt{C}.
+\item If a method is annotated as \texttt{@FromContract(D.class)}\index{FromContract@{\texttt{FromContract}}}
+	and is overridden by another method,
+	then the latter is annotated as \texttt{@FromContract(C.class)} as well, and \texttt{D} is a
+	(non-strict) subclass of \texttt{C}.
+\item If a method is annotated as \texttt{@Payable}\index{Payable@{\texttt{Payable}}}, then it is also annotated as
+	\texttt{@FromContract(C.class)}\index{FromContract@{\texttt{FromContract}}} for some \texttt{C}.
+\item If a method is annotated as \texttt{@Payable}\index{Payable@{\texttt{Payable}}}, then it has a first formal argument
+	(the paid amount) of type \texttt{int}, \texttt{long} or \texttt{BigInteger}.
+\item If a method is annotated as \texttt{@Payable}\index{Payable@{\texttt{Payable}}} and overrides another method,
+	then the latter is annotated as \texttt{@Payable} as well.
+\item If a method is annotated as \texttt{@Payable}\index{Payable@{\texttt{Payable}}} and is overridden by another method,
+	then the latter is annotated as \texttt{@Payable} as well.
+\item The \texttt{@Payable}\index{Payable@{\texttt{Payable}}} annotation is only applied to constructors of a (non-strict) subclass of
+	the library class \texttt{io.takamaka.code.lang.Contract}\index{Contract@{\texttt{Contract}}}
+	or to instance methods of a (non-strict) subclass of
+	\texttt{io.takamaka.code.lang.Contract} or of an interface.
+\item Classes that extend \texttt{io.takamaka.code.lang.Storage}\index{Storage@{\texttt{Storage}}}
+	have instance non-transient
+    fields whose type is primitive (\texttt{char}, \texttt{byte}, \texttt{short}, \texttt{int},
+	\texttt{long}, \texttt{float},
+    \texttt{double} or \texttt{boolean}), or is a class that extends \texttt{io.takamaka.code.lang.Storage},
+    or is any of
+    \texttt{java.math.BigInteger}, \texttt{java.lang.String}, \texttt{java.lang.Object} or is an interface
+    (see Sec.~\ref{sec:storage}).
+%
+\begin{commentbox}
+The choice of allowing, inside a storage type, fields of type
+\texttt{java.lang.Object} can be surprising. After all, any reference value can be
+stored in such a field, which requires to verify, at run time, if the field
+actually contains a storage value or not (see the dynamic check number~\ref{check:object_or_interface_fields}, below).
+The reason for this choice is to allow generic storage types, such as
+\texttt{StorageTreeMap<K,V>}, whose values are storage values as long as \texttt{K} and \texttt{V}
+are replaced with storage types. Since Java implements generics by erasure,
+the bytecode of such a class ends up having fields of type \texttt{java.lang.Object}. An alternative
+solution would be to bound \texttt{K} and \texttt{V} from above
+(\texttt{StorageTreeMap<K extends Storage, V extends Storage>}). This second choice
+would be erased by using \texttt{Storage} as static type of the erased fields of the
+class. However, not all storage reference values extend \texttt{Storage}. For instance,
+this solution would not allow one to write \texttt{StorageTreeMap<String, BigInteger>}, where
+both \texttt{String} and \texttt{BigInteger} are storage types, but neither extends \texttt{Storage}.
+The fact that fields of type \texttt{java.lang.Object} or interface actually hold a
+storage value at the end of a transaction is checked dynamically (see the dynamic checks below).
+\end{commentbox}
+\end{enumerate}
