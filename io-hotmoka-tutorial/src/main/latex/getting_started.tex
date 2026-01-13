@@ -202,7 +202,7 @@ running simple transactions), while moka is the most complete solution.
 
 \subsection{Moka}\label{subsec:moka}
 
-You can use the \texttt{moka} command to interact with an existing Hotmoka node,
+You can use the moka tool to interact with an existing Hotmoka node,
 install code in the node and run transactions. There are two ways of using moka.
 You can either use moka inside a docker container provided by the Hotmoka developers.
 Or you can download its source code, compile it and add the moka executable to
@@ -242,7 +242,7 @@ Note that the classpath (the \emph{jar installed at\ldots}) corresponds to
 what reported in Fig.~\ref{fig:receiver_payer}, since it is an immutable
 property of an object.
 
-\subsubsection{Invoking \texttt{moka} in the local machine}
+\subsubsection{Invoking moka in the local machine}
 \label{subsubsec:moka_local}
 
 In order to invoke moka directly, in the local machine, one needs to download
@@ -264,10 +264,12 @@ Exit the terminal and spawn a new one. You should be able to run moka directly n
 For instance, you can run the same commands of Sec.~\ref{subsubsec:moka_inside_docker}, but
 without the help of docker:
 %
+\index{moka!version@{\texttt{version}}}
 \input{moka_version_command}
 %
 and
 %
+\index{moka!objects show@{\texttt{objects show}}}
 \input{moka_objects_show_account1_command}
 
 In the rest of this book, we will normally show direct invocations
@@ -280,6 +282,7 @@ Remember, however, that you can also run it from inside its docker container if 
 If you want help about the commands of moka, just use the \texttt{help} command.
 Namely, \texttt{moka help} will print on the screen the following help lines:
 %
+\index{moka!help@{\texttt{help}}}
 \input{moka_help_output}
 %
 You can see that commands are organized in groups. You can get help about a specific
@@ -496,6 +499,7 @@ inside a \texttt{\hotmokaTutorialDir{}} directory of your home, so that moka
 will save the key pair of your account
 there, which will simplify your subsequent work:
 %
+\index{moka!keys create@{\texttt{keys create}}}
 \input{moka_keys_create_account1_command}\index{key!creation}
 \input{moka_keys_create_account1_output}
 %
@@ -508,6 +512,7 @@ there, which will simplify your subsequent work:
 %
 We can now create an account that uses the key pair, letting the faucet pay for it:\index{faucet}
 %
+\index{moka!accounts create@{\texttt{accounts create}}}
 \input{moka_accounts_create_account1_command}\index{account!creation}
 \input{moka_accounts_create_account1_output}
 %
@@ -530,6 +535,7 @@ Note that the password is not written anywhere: if you lose it, it cannot be rec
 Let us check that our account really exists,
 by querying the node about the state of the object allocated at \texttt{\accountOne}:
 %
+\index{moka!objects show@{\texttt{objects show}}}
 \input{moka_objects_show_account1_command}
 \input{moka_objects_show_account1_output}
 %
@@ -628,6 +634,7 @@ Whenever your account will run out of coins, you can recharge it with the
 \texttt{moka send} command, by using, again, the faucet as source of coins. Namely,
 if you want to recharge your account with \accountOneRecharge{} extra coins, you can type:
 %
+\index{moka!accounts send@{\texttt{accounts send}}}
 \input{moka_accounts_send_account1_command}
 \input{moka_accounts_send_account1_output}
 %
@@ -702,6 +709,7 @@ and the latter in moka, so that we can operate on both accounts with both tools.
 \texttt{\accountMokitoShort{}} in moka, we can use the \texttt{moka accounts import} command
 and insert its 36 words passphrase from Fig.~\ref{fig:mokito_show_elvis}:
 %
+\index{moka!accounts import@{\texttt{accounts import}}}
 \input{moka_accounts_import_account_mokito_command}
 \input{moka_accounts_import_account_mokito_output}
 %
@@ -736,6 +744,7 @@ its password, that is, \texttt{chocolate}).
 Vice versa, in order to import into Mokito the account that was created with moka,
 first export\index{account!export} the 36 words of that account:
 %
+\index{moka!accounts export@{\texttt{accounts export}}}
 \input{moka_accounts_export_account1_command}
 \input{moka_accounts_export_account1_output}
 %
@@ -801,6 +810,7 @@ but still wants to remain unknown. He can receive the payment in many ways:
 Let us show how the third possibility works. Anonymous starts by creating a new private/public key,
 exactly as we did before:
 %
+\index{moka!keys create@{\texttt{keys create}}}
 \input{moka_keys_create_anonymous_command}
 \input{moka_keys_create_anonymous_output}
 %
@@ -821,6 +831,7 @@ Anonymous pastes the new key into an anonymous email message and sends it to us:
 Once we receive that email, we use (for instance) our previous account
 to send $\sentToAnonymous{}$ coins to that key:
 %
+\index{moka!accounts send@{\texttt{accounts send}}}
 \input{moka_accounts_send_account1_anonymous_command}\index{account!payment}\index{payment!to account}
 \input{moka_accounts_send_account1_anonymous_output}
 %
@@ -828,6 +839,7 @@ And that's all! No interaction is needed with Anonymous. He will check
 from time to time to see if we have paid, by running the command \texttt{moka keys bind}\index{key!binding}
 until it succeeds. First attempt:
 %
+\index{moka!keys bind@{\texttt{keys bind}}}
 \input{moka_keys_bind_anonymous_command}
 \input{moka_keys_bind_anonymous_not_yet_output}
 %

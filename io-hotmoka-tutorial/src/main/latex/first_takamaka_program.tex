@@ -211,7 +211,7 @@ Move inside the \texttt{\hotmokaTutorialDir{}} directory, if you are not
 there already, so that
 moka will find your saved key pair there, and run the \texttt{moka jars install} command:
 %
-\input{moka_jars_install_command}\index{jar!install}
+\input{moka_jars_install_command}\index{moka!jars install@{\texttt{jars install}}}\index{jar!install}
 \input{moka_jars_install_output}
 %
 As you can see above, the jar has been installed at a reference
@@ -606,7 +606,7 @@ has installed it at \texttt{\familyAddressShort{}} and our code at
 \texttt{\codeFamilyAddressShort{}}.
 We can use either of them, interchangeably, as class path for the execution of a transaction that
 tries to run the constructor of our class \texttt{Person} and add a brand
-new \texttt{Person} object into the store of the node. We can perform this through the moka tool:
+new \texttt{Person} object into the store of the node. We can perform this through the moka tool:\index{moka!objects create@{\texttt{objects create}}}
 %
 \input{moka_objects_create_person_failed_command}
 \input{moka_objects_create_person_failed_output}
@@ -684,13 +684,13 @@ jar file
 \texttt{io-hotmoka-tutorial-examples-family-\hotmokaVersion{}.jar},
 by running \texttt{mvn install} again
 inside the \texttt{io-hotmoka-tutorial-examples-family} project.
-Install this new version in blockchain:
+Install this new version in blockchain:\index{moka!jars install@{\texttt{jars install}}}
 %
 \input{moka_jars_install_2_command}
 \input{moka_jars_install_2_output}
 %
 then run the \texttt{moka objects create} command again. This time, the execution should
-complete without exception:
+complete without exception:\index{moka!objects create@{\texttt{objects create}}}
 %
 \input{moka_objects_create_person_command}
 \input{moka_objects_create_person_output}
@@ -698,7 +698,7 @@ complete without exception:
 The new object has been allocated at a storage reference \texttt{\personObjectShort{}}
 that can be used to refer to it, also in the future.
 You can verify that it is actually there and that its fields are correctly initialized,
-by using the \texttt{moka objects show} command:
+by using the \texttt{moka objects show} command:\index{moka!objects show@{\texttt{objects show}}}
 %
 \input{moka_objects_show_person_command}
 \input{moka_objects_show_person_output}
@@ -921,6 +921,7 @@ previously, hence the receiver of the call.
 The receiver can be seen as an implicit actual argument passed to a (non-\texttt{static}) method.
 \end{commentbox}
 %
+\index{moka!objects call@{\texttt{objects call}}}
 \input{moka_objects_call_toString_command}
 \input{moka_objects_call_toString_output}
 %
@@ -969,16 +970,19 @@ public class Person extends Storage {
 %
 Package the project \texttt{io-hotmoka-tutorial-examples-family}:
 %
+\index{moka!jars install@{\texttt{jars install}}}
 \input{moka_jars_install_3_command}
 \input{moka_jars_install_3_output}
 %
 then create a new \texttt{Person} object:
 %
+\index{moka!objects create@{\texttt{objects create}}}
 \input{moka_objects_create_person_exported_command}
 \input{moka_objects_create_person_exported_output}
 %
 and finally call \texttt{toString()} on that new object:
 %
+\index{moka!objects call@{\texttt{objects call}}}
 \input{moka_objects_call_toString_exported_command}
 \input{moka_objects_call_toString_exported_output}
 %

@@ -266,11 +266,13 @@ useless in Takamaka and more expensive than paying back previous contracts immed
 Let us play with the \texttt{GradualPonzi} contract now.
 We can now start by installing its jar in the node:
 %
+\index{moka!jars install@{\texttt{jars install}}}
 \input{moka_jars_install_gradual_ponzi_command}
 \input{moka_jars_install_gradual_ponzi_output}
 %
 Create two more keys now, for two more accounts that we are going to create soon:
 %
+\index{moka!keys create@{\texttt{keys create}}}
 \input{moka_keys_create_account2_command}
 \input{moka_keys_create_account2_output}
 %
@@ -281,6 +283,7 @@ and then
 %
 We can create the two new accounts now:
 %
+\index{moka!accounts create@{\texttt{accounts create}}}
 \input{moka_accounts_create_account2_command}
 \input{moka_accounts_create_account2_output}
 %
@@ -292,12 +295,14 @@ and
 We let our first account create an instance of \texttt{GradualPonzi} in the node now
 and become the first investor of the contract:
 %
+\index{moka!objects create@{\texttt{objects create}}}
 \input{moka_objects_create_gradual_ponzi_command}
 \input{moka_objects_create_gradual_ponzi_output}
 %
 We let the other two players invest, in sequence, in this new \texttt{GradualPonzi} contract.
 First investment:
 %
+\index{moka!objects call@{\texttt{objects call}}}
 \input{moka_objects_call_invest_1_command}
 \input{moka_objects_call_invest_1_output}
 %
@@ -320,6 +325,7 @@ and includes the source program line
 of the contract where the exception occurred:
 line $65$ of the source file \texttt{GradualPonzi.java}, that is line
 %
+\index{BigIntegerSupport@{\texttt{BigIntegerSupport}}}
 \begin{codebox}\begin{javalst}
 require(BigIntegerSupport.compareTo(amount, MINIMUM_INVESTMENT) >= 0,
   () -> StringSupport.concat("you must invest at least ", MINIMUM_INVESTMENT));
@@ -327,6 +333,7 @@ require(BigIntegerSupport.compareTo(amount, MINIMUM_INVESTMENT) >= 0,
 %
 Finally, we can check the state of the contract:
 %
+\index{moka!objects show@{\texttt{objects show}}}
 \input{moka_objects_show_gradual_ponzi_command}
 \input{moka_objects_show_gradual_ponzi_output}
 %
@@ -879,11 +886,13 @@ Let us play with the \texttt{TicTacToe} contract. Go in
 the \texttt{io-hotmoka-tutorial-examples-tictactoe} project,
 compile it with Maven and store it in the Hotmoka node:
 %
+\index{moka!jars install@{\texttt{jars install}}}
 \input{moka_jars_install_tictactoe_revised_command}
 \input{moka_jars_install_tictactoe_revised_output}
 %
 Then we create an instance of the contract in the node:
 %
+\index{moka!objects create@{\texttt{objects create}}}
 \input{moka_objects_create_tictactoe_revised_command}
 \input{moka_objects_create_tictactoe_revised_output}
 
@@ -893,6 +902,7 @@ We will report the resulting of calling \texttt{toString()} on the contract, aft
 
 The first player starts, by playing at (1,1), and bets 100:
 %
+\index{moka!objects call@{\texttt{objects call}}}
 \input{moka_objects_call_tictactoe_play_1_command}
 \input{moka_objects_call_tictactoe_play_1_output}
 %
@@ -936,6 +946,7 @@ The first player wins by playing at (1,3):
 %
 We can verify that the game is over now:
 %
+\index{moka!objects show@{\texttt{objects show}}}
 \input{moka_objects_show_tictactoe_command}
 \input{moka_objects_show_tictactoe_output}
 %
@@ -1606,6 +1617,7 @@ some new accounts for our tests, since those that we generated before for
 \texttt{\serverMokamint{}} do not exist in \texttt{\serverTendermint{}}. We do it as previously done,
 but swapping the server we are talking to:
 %
+\index{moka!keys create@{\texttt{keys create}}}
 \input{moka_keys_create_account4_command}
 \input{moka_keys_create_account4_output}
 %
@@ -1615,6 +1627,7 @@ but swapping the server we are talking to:
 \input{moka_keys_create_account6_command}
 \input{moka_keys_create_account6_output}
 %
+\index{moka!accounts create@{\texttt{accounts create}}}
 \input{moka_accounts_create_account4_command}
 \input{moka_accounts_create_account4_output}
 %

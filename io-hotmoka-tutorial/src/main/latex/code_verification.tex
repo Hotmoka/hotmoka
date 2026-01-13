@@ -389,7 +389,7 @@ mvn install
 \end{ttlst}\end{shellcommandbox}
 
 Let us start with the verification of \texttt{io-takamaka-code-\takamakaVersion{}.jar},
-that we should find in the cache of Maven:
+that we should find in the cache of Maven:\index{moka!jars verify@{\texttt{jars verify}}}
 %
 \input{moka_jars_verify_takamaka_command}
 \input{moka_jars_verify_takamaka_output}
@@ -401,7 +401,7 @@ switch, we verify the jar as it would be verified before node initialization,
 that is, by considering such package as legal.
 
 We can generate the instrumented jar, exactly as it would be generated during
-installation in a Hotmoka node. For that, we run:
+installation in a Hotmoka node. For that, we run:\index{moka!jars instrument@{\texttt{jars instrument}}}
 %
 \input{moka_jars_instrument_takamaka_command}
 \input{moka_jars_instrument_takamaka_output}
@@ -413,7 +413,7 @@ Let us verify and instrument \texttt{io-hotmoka-tutorial-examples-family-\hotmok
 (the correct version of the project).
 As all Takamaka programs, it uses classes from the \texttt{io-takamaka-code} jar,
 hence it depends on it. We specify this with the \texttt{-{}-libs} option, that must
-refer to an already instrumented jar:
+refer to an already instrumented jar:\index{moka!jars instrument@{\texttt{jars instrument}}}
 %
 \input{moka_jars_instrument_family_command}
 \input{moka_jars_instrument_family_output}
@@ -427,14 +427,14 @@ when users add their jars to the store of the node.
 
 Let us verify the \texttt{io-hotmoka-tutorial-examples-family\_errors-\hotmokaVersion{}.jar} archive now, that
 (we know) contains a few errors. This time, verification will fail and the errors will
-be printed on the screen:
+be printed on the screen:\index{moka!jars verify@{\texttt{jars verify}}}
 %
 \input{moka_jars_verify_family_errors_command}
 \input{moka_jars_verify_family_errors_output}
 %
 The same failure occurs with the \texttt{moka jars instrument} command,
 that will not generate the instrumented jar. It only
-reports the first encountered error before failure:
+reports the first encountered error before failure:\index{moka!jars instrument@{\texttt{jars instrument}}}
 %
 \input{moka_jars_instrument_family_errors_command}
 \input{moka_jars_instrument_family_errors_output}
