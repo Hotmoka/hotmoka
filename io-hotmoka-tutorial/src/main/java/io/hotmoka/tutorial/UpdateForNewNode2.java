@@ -129,12 +129,48 @@ public class UpdateForNewNode2 {
 		}
 
 		@Override
-		protected void createFile() throws Exception {
+		protected void generateFiles() throws Exception {
 			report("hotmokaVersion", HOTMOKA_VERSION);
 			report("takamakaVersion", TAKAMAKA_VERSION);
 			report("faustoEmail", "\\email{fausto.spoto@hotmoka.io}");
 			report("hotmokaRepo", HOTMOKA_REPOSITORY);
 			report("hotmokaTutorialDir", HOTMOKA_TUTORIAL_DIR.replace("_", "\\_"));
+
+			var home = Paths.get(System.getProperty("user.home"));
+			createCommandFile("moka_jars_verify_takamaka", "moka jars verify ~/.m2/repository/io/hotmoka/io-takamaka-code/"
+					+ TAKAMAKA_VERSION + "/io-takamaka-code-" + TAKAMAKA_VERSION + ".jar --init");
+			createOutputFile("moka_jars_verify_takamaka", Moka.jarsVerify(home + "/.m2/repository/io/hotmoka/io-takamaka-code/"
+					+ TAKAMAKA_VERSION + "/io-takamaka-code-" + TAKAMAKA_VERSION + ".jar --init"));
+
+			Files.createDirectory(tempDir.resolve("instrumented"));
+			createCommandFile("moka_jars_instrument_takamaka", "mkdir instrumented\nmoka jars instrument ~/.m2/repository/io/hotmoka/io-takamaka-code/"
+					+ TAKAMAKA_VERSION + "/io-takamaka-code-" + TAKAMAKA_VERSION + ".jar instrumented/io-takamaka-code-" + TAKAMAKA_VERSION + ".jar --init");
+			createOutputFile("moka_jars_instrument_takamaka", Moka.jarsInstrument(home + "/.m2/repository/io/hotmoka/io-takamaka-code/"
+					+ TAKAMAKA_VERSION + "/io-takamaka-code-" + TAKAMAKA_VERSION + ".jar instrumented/io-takamaka-code-" + TAKAMAKA_VERSION + ".jar --init"));
+
+			createCommandFile("moka_jars_instrument_family", "moka jars instrument ~/.m2/repository/io/hotmoka/io-hotmoka-tutorial-examples-family/"
+					+ HOTMOKA_VERSION + "/io-hotmoka-tutorial-examples-family-" + HOTMOKA_VERSION
+					+ ".jar instrumented/io-hotmoka-tutorial-examples-family-" + HOTMOKA_VERSION
+					+ ".jar --libs instrumented/io-takamaka-code-" + TAKAMAKA_VERSION + ".jar");
+			createOutputFile("moka_jars_instrument_family", Moka.jarsInstrument(home + "/.m2/repository/io/hotmoka/io-hotmoka-tutorial-examples-family/"
+					+ HOTMOKA_VERSION + "/io-hotmoka-tutorial-examples-family-" + HOTMOKA_VERSION
+					+ ".jar instrumented/io-hotmoka-tutorial-examples-family-" + TAKAMAKA_VERSION + ".jar --libs instrumented/io-takamaka-code-" + TAKAMAKA_VERSION + ".jar"));
+
+			createCommandFile("moka_jars_verify_family_errors", "moka jars verify ~/.m2/repository/io/hotmoka/io-hotmoka-tutorial-examples-family_errors/"
+					+ HOTMOKA_VERSION + "/io-hotmoka-tutorial-examples-family_errors-" + HOTMOKA_VERSION
+					+ ".jar --libs instrumented/io-takamaka-code-" + TAKAMAKA_VERSION + ".jar");
+			createOutputFile("moka_jars_verify_family_errors", Moka.jarsVerify(home + "/.m2/repository/io/hotmoka/io-hotmoka-tutorial-examples-family_errors/"
+					+ HOTMOKA_VERSION + "/io-hotmoka-tutorial-examples-family_errors-" + HOTMOKA_VERSION
+					+ ".jar --libs instrumented/io-takamaka-code-" + TAKAMAKA_VERSION + ".jar"));
+
+			createCommandFile("moka_jars_instrument_family_errors", "moka jars instrument ~/.m2/repository/io/hotmoka/io-hotmoka-tutorial-examples-family_errors/"
+					+ HOTMOKA_VERSION + "/io-hotmoka-tutorial-examples-family_errors-" + HOTMOKA_VERSION
+					+ ".jar instrumented/io-hotmoka-tutorial-examples-family_errors-" + HOTMOKA_VERSION
+					+ ".jar --libs instrumented/io-takamaka-code-" + TAKAMAKA_VERSION + ".jar");
+			createOutputFile("moka_jars_instrument_family_errors", Moka.jarsInstrument(home + "/.m2/repository/io/hotmoka/io-hotmoka-tutorial-examples-family_errors/"
+					+ HOTMOKA_VERSION + "/io-hotmoka-tutorial-examples-family_errors-" + HOTMOKA_VERSION
+					+ ".jar instrumented/io-hotmoka-tutorial-examples-family_errors-" + HOTMOKA_VERSION
+					+ ".jar --libs instrumented/io-takamaka-code-" + TAKAMAKA_VERSION + ".jar"));
 		}
 	}
 
@@ -144,7 +180,7 @@ public class UpdateForNewNode2 {
 		}
 
 		@Override
-		protected void createFile() throws Exception {
+		protected void generateFiles() throws Exception {
 			report("serverMokamint", mokamintServer.toString());
 			createCommandFile("git_clone_hotmoka", "git clone --branch v" + HOTMOKA_VERSION + " " + HOTMOKA_REPOSITORY);
 			createCommandFile("mvn_clean_install", "mvn clean install");
@@ -508,7 +544,7 @@ public class UpdateForNewNode2 {
 		}
 
 		@Override
-		protected void createFile() throws Exception {
+		protected void generateFiles() throws Exception {
 			report("serverTendermint", tendermintServer.toString());
 			createCommandFile("moka_keys_create_account4", "moka keys create --name=account4.pem --password");
 			String output = Moka.keysCreate("--name account4.pem --output-dir=" + tempDir + " --password=banana");
@@ -579,11 +615,11 @@ public class UpdateForNewNode2 {
 				System.out.println("*".repeat(message.length()));
 				System.out.println(message);
 				System.out.println("*".repeat(message.length()));
-				createFile();
+				generateFiles();
 			}
 		}
 
-		protected abstract void createFile() throws Exception;
+		protected abstract void generateFiles() throws Exception;
 
 		protected void report(String line) {
 			writer.println(line);

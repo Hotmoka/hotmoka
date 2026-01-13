@@ -138,7 +138,7 @@ public class Instrument extends AbstractMokaCommand {
 
 		@Override
 		public String toString() {
-			return "";
+			return "Instrumentation succeeded\n"; // TODO: report the file name where the instrumented jar has been saved
 		}
 	}
 }

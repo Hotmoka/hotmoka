@@ -316,3 +316,125 @@ Takamaka verifies the following dynamic constraints:
 \begin{center}
 (See the \texttt{io-hotmoka-tutorial-examples-family\_errors} project in \texttt{\hotmokaRepo{}})
 \end{center}
+
+If a jar being installed in a Hotmoka node does not satisfy the static
+constraints in Sec.~\ref{subsec:takamaka_bytecode_verification}, the installation transaction fails with
+a verification exception, no jar is actually installed but the gas of the
+caller gets consumed. Hence it is not practical to realize that a
+static constraint does not hold only by trying to install a jar in a node.
+Instead, it is desirable to verify all constraints off-line, fix all
+violations (if any) and only then install the jar in the node. This is
+possible by using the moka command-line interface of Hotmoka.
+Namely, it provides a subcommand that performs the same identical jar
+verification that would be executed when a jar is
+installed in a Hotmoka node.
+
+Create a jar file containing
+a wrong version of the \texttt{io-hotmoka-tutorial-examples-family} project.
+For that, copy the \texttt{io-hotmoka-tutorial-examples-family}
+project into a new project \texttt{io-hotmoka-tutorial-examples-family\_errors} project,
+change the artifact name in its \texttt{pom.xml} into
+\texttt{io-hotmoka-tutorial-examples-family\_errors} and modify
+its \texttt{Person} class so that it contains a few errors, as follows:
+%
+\begin{codebox}\begin{javalst}
+package io.hotmoka.tutorial.examples.family;
+
+import io.takamaka.code.lang.Exported;
+import io.takamaka.code.lang.Payable;
+import io.takamaka.code.lang.Storage;
+import io.takamaka.code.lang.StringSupport;
+
+@Exported
+public class Person extends Storage {
+  private final String name;
+  private final int day;
+  private final int month;
+  private final int year;
+
+  // error: arrays are not allowed in storage
+  public final Person[] parents = new Person[2];
+
+  public static int toStringCounter;
+
+  public Person(String name, int day, int month, int year, Person parent1, Person parent2) {
+    this.name = name;
+    this.day = day;
+    this.month = month;
+    this.year = year;
+    this.parents[0] = parent1;
+    this.parents[1] = parent2;
+  }
+
+  // error: @Payable without @FromContract,
+  // missing amount and @Payable method not in a Contract
+  public @Payable Person(String name, int day, int month, int year) {
+    this(name, day, month, year, null, null);
+  }
+
+  @Override
+  public String toString() {
+    toStringCounter++; // error: static update (putstatic) is not allowed
+    return StringSupport.concat(name, " (", day, "/", month, "/", year, ")");
+  }
+}
+\end{javalst}\end{codebox}
+%
+Then generate the \texttt{io-hotmoka-tutorial-examples-family\_errors-\hotmokaVersion{}.jar} file and
+store it in the cache of Maven:
+%
+\begin{shellcommandbox}\begin{ttlst}
+cd io-hotmoka-tutorial-examples-family_errors
+mvn install
+\end{ttlst}\end{shellcommandbox}
+
+Let us start with the verification of \texttt{io-takamaka-code-\takamakaVersion{}.jar},
+that we should find in the cache of Maven:
+%
+\input{moka_jars_verify_takamaka_command}
+\input{moka_jars_verify_takamaka_output}
+%
+No error has been issued, since the code does not violate any static constraint.
+Note that we used the \texttt{-{}-init} switch, since otherwise we would get many errors
+related to the use of the forbidden \texttt{io.takamaka.code.*} package. With that
+switch, we verify the jar as it would be verified before node initialization,
+that is, by considering such package as legal.
+
+We can generate the instrumented jar, exactly as it would be generated during
+installation in a Hotmoka node. For that, we run:
+%
+\input{moka_jars_instrument_takamaka_command}
+\input{moka_jars_instrument_takamaka_output}
+%
+The \texttt{moka jars instrument} command verifies and instruments the jar, and then stores
+its instrumented version inside the \texttt{instrumented} directory.
+
+Let us verify and instrument \texttt{io-hotmoka-tutorial-examples-family-\hotmokaVersion{}.jar} now
+(the correct version of the project).
+As all Takamaka programs, it uses classes from the \texttt{io-takamaka-code} jar,
+hence it depends on it. We specify this with the \texttt{-{}-libs} option, that must
+refer to an already instrumented jar:
+%
+\input{moka_jars_instrument_family_command}
+\input{moka_jars_instrument_family_output}
+%
+As you can see, verification succeeds this time as well and an instrumented jar file named
+\texttt{io-hotmoka-tutorial-examples-family-\hotmokaVersion{}.jar} appears in the
+\texttt{instrumented} directory. Note that we have not used the \texttt{-{}-init}
+switch this time, since we wanted to simulate the verification
+as it would occur after the node has been already initialized,
+when users add their jars to the store of the node.
+
+Let us verify the \texttt{io-hotmoka-tutorial-examples-family\_errors-\hotmokaVersion{}.jar} archive now, that
+(we know) contains a few errors. This time, verification will fail and the errors will
+be printed on the screen:
+%
+\input{moka_jars_verify_family_errors_command}
+\input{moka_jars_verify_family_errors_output}
+%
+The same failure occurs with the \texttt{moka jars instrument} command,
+that will not generate the instrumented jar. It only
+reports the first encountered error before failure:
+%
+\input{moka_jars_instrument_family_errors_command}
+\input{moka_jars_instrument_family_errors_output}
