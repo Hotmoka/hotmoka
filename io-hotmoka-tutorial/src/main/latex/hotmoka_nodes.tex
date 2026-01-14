@@ -1,0 +1,112 @@
+\chapter{Hotmoka nodes}\label{ch:hotmoka_nodes}
+
+A Hotmoka node is a device that implements an interface for running Java code
+remotely. It can be any kind of device, such as a device of an IoT network,
+but also a node of a blockchain. We have already used instances of Hotmoka nodes,
+namely, instances of \texttt{RemoteNode}. But there are other examples of nodes, that we
+will describe in this chapter.
+
+The interface \texttt{io.hotmoka.node.api.Node}\index{Node@{\texttt{Node}}}
+is shown in the topmost part of Fig.~\ref{fig:node_hierarchy}.
+That interface can be split in five parts:
+%
+\begin{enumerate}
+\item A \emph{get} part, that includes methods for querying the
+	state of the node and for accessing the objects contained in its store.
+\item An \emph{add} part, that expands the store of the node with the result of a transaction.
+\item A \emph{run} part, that runs transactions that execute
+	\texttt{@View}\index{View@{\texttt{View}}} methods and hence do not
+   	expand the store of the node.
+\item A \emph{post} part, that expands the store of the node with the result of a transaction,
+	without waiting for its result; instead, a future is returned.
+\item A \emph{contextual} part, that allows users to subscribe listeners of events generated during
+	the execution of the transactions, or listeners called when the node gets closed, or
+	to close the node itself.
+\end{enumerate}
+
+\begin{figure}[th]
+  \begin{center}
+    \includegraphics[width=0.55\textwidth]{pics/nodes}
+  \end{center}
+  \caption{The hierarchy of Hotmoka nodes.}
+  \label{fig:node_hierarchy}
+\end{figure}
+
+If a node belongs to a blockchain, then all nodes of the blockchain have the same vision
+of the state, so that it is equivalent to call a method on a node or on any other node of the
+network. The only methods that are out of consensus, since they deal with information specific
+to each node, are \texttt{getInfo()}\index{getInfo()@{\texttt{getInfo()}}}
+and the four contextual methods
+\texttt{subscribeToEvents()}\index{subscribeToEvents()@{\texttt{subscribeToEvents()}}},
+\texttt{addOnCloseHandler()}\index{addOnCloseHandler()@{\texttt{addOnCloseHandler()}}},
+\texttt{removeOnCloseHandler()}\index{removeOnCloseHandler()@{\texttt{removeOnCloseHandler()}}}
+and \texttt{close()}\index{close()@{\texttt{close()}}}.
+
+Looking at Fig.~\ref{fig:node_hierarchy}, it is possible to see that
+the \texttt{Node} interface has many implementations, that we describe below.
+
+\begin{description}
+\item[Local implementations.]\index{node!local}
+These are actual nodes that run on the machine
+where they have been started. For instance, they can be a node
+of a larger blockchain network. Among them,
+\texttt{MokamintNode}\index{MokamintNode@{\texttt{MokamintNode}}}
+implements a node of a Mokamint\index{Mokamint} blockchain
+and will be presented in Sec.~\ref{subsec:mokamint_nodes};
+\texttt{TendermintNode}\index{TendermintNode@{\texttt{TendermintNode}}}
+implements a node of a Tendermint\index{Tendermint} blockchain
+and will be presented in Sec.~\ref{subsec:tendermint_nodes};
+\texttt{DiskNode}\index{DiskNode@{\texttt{DiskNode}}}
+implements a single-node blockchain in disk memory: this
+is useful for debugging, testing and learning, since it allows
+one to inspect the content of blocks, transactions and store;
+it will be presented in Sec.~\ref{subsec:disk_nodes}.
+Local nodes can be instantiated through the static
+factory methods of their supplier class. That method requires to specify
+parameters that are global to the network of nodes
+(\texttt{ConsensusConfig}\index{ConsensusConfig@{\texttt{ConsensusConfig}}}) and must be the same
+for all nodes in the network, and parameters that are specific to the given node
+of the network that is being started
+and can be different from node to node
+(\texttt{MokamintNodeConfig}\index{MokamintNodeConfig@{\texttt{MokamintNodeConfig}}} and similar).
+Some implementations have to ability to \emph{resume}.
+This means that they recover the state at the end of a previous execution, reconstruct the
+consensus parameters from that state and resume the execution from there, downloading
+and verifying blocks already processed by the network.
+%
+\item[Decorators.]\index{node!decorator}
+The \texttt{Node}\index{Node@{\texttt{Node}}} interface is implemented by some decorators as well.
+Typically, these decorators run some transactions on the decorated node,
+to simplify some tasks, such as the initialization of the node, the installation of jars into the node
+or the creation of accounts in the node. These decorators are views of the decorated node, in the sense
+that any method of the \texttt{Node} interface, invoked on the decorator, is forwarded
+to the decorated node, with the exception of the contextual methods that are executed locally
+on the specific node where they are invoked.
+We will discuss them in Sec.~\ref{sec:node_decorators}.
+%
+\item[Adaptors.]\index{node!adaptor}
+Very often, one wants to \emph{publish} a node online,
+so that he (and other programmers who need its service) can use it concurrently.
+This should be possible for all implementations of the
+\texttt{Node}\index{Node@{\texttt{Node}}} interface,
+such as \texttt{DiskNode}\index{DiskNode@{\texttt{DiskNode}}},
+\texttt{MokamintNode}\index{MokamintNode@{\texttt{MokamintNode}}},
+\texttt{TendermintNode}\index{TendermintNode@{\texttt{TendermintNode}}}
+and all present and future implementations.
+In other words, one would like to publish \emph{any}
+Hotmoka node as a service, accessible through the internet. This will be the subject
+of Sec.~\ref{sec:hotmoka_services}.
+Conversely, once a Hotmoka node has been published at some URI, say
+\url{ws://my.company.com}, it will be accessible through websockets. This complexity
+might make it complex, for a programmer, to use the published node.
+In that case, we can create an instance of the node that operates as
+a proxy to the network service, helping programmers integrate
+their software to the service in a seamless way. This \emph{remote} node still implements
+the \texttt{Node} interface, but simply forwards all its calls to the remote service
+(with the exception of the contextual methods, that are executed locally on
+the remote node itself). By programming against
+the same \texttt{Node} interface, it becomes easy for a programmer
+to swap a local node with a remote node, or vice versa. This mechanism is described
+in Sec.~\ref{sec:remote_nodes},
+where the adaptor interface \texttt{RemoteNode} in Fig.~\ref{fig:node_hierarchy} is presented.
+\end{description}
