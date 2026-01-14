@@ -45,9 +45,9 @@ the meaning of different language features of Takamaka.
 (See the \texttt{io-hotmoka-tutorial-examples-ponzi\_simple} project in \texttt{\hotmokaRepo{}})
 \end{center}
 
-Create a new Maven Java 21 (or later) project in Eclipse,
-named \texttt{io-hotmoka-tutorial-examples-ponzi}.
-You can do this by duplicating the project
+Create a new Maven Java 21 (or later) project in Eclipse. Use, as name for this project,
+the string \texttt{io-hotmoka-tutorial-examples-ponzi}.
+You can do this by duplicating the previous project
 \texttt{io-hotmoka-tutorial-examples-family}. Use the following \texttt{pom.xml}:
 %
 \begin{codebox}\begin{xmllst}
@@ -142,7 +142,7 @@ is a comparison between two Java \texttt{BigInteger}s and should be read as the
 more familiar \texttt{amount >= minimumInvestment}: the latter cannot be
 written in this form, since Java does not allow comparison operators
 to work on reference types.
-The use of \texttt{BigIntegerSupport}\index{BigIntegerSupport@{\texttt{BigIntegerSupport}}}
+Class \texttt{BigIntegerSupport}\index{BigIntegerSupport@{\texttt{BigIntegerSupport}}}
 is needed in order to charge gas proportionally
 to the size of the \texttt{BigInteger}s involved in the operation.
 The static method \texttt{io.takamaka.code.lang.Takamaka.require()}\index{require()@{\texttt{require()}}} is used to require

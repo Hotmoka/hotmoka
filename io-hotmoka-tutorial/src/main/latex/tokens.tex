@@ -110,3 +110,355 @@ The \texttt{ERC20Capped}\index{ERC20Capped@{\texttt{ERC20Capped}}} implementatio
 allows the specification of a maximal cap to the
 number of tokens in circulation. When new tokens get minted, it checks that the cap
 is not exceeded and throws an exception otherwise.
+
+\subsection{Implementing our own ERC20 token}\label{subsec:implementing_erc20}
+
+\begin{center}
+(See the \texttt{io-hotmoka-tutorial-examples-erc20} project in \texttt{\hotmokaRepo{}})
+\end{center}
+
+Let us define a token ledger class that allows only its creator the mint or burn tokens.
+We will call it \texttt{CryptoBuddy}. As Fig.~\ref{fig:erc20_hierarchy} shows,
+we plug it below the \texttt{ERC20} implementation, so that we inherit that implementation
+and do not need to reimplement the methods of the \texttt{IERC20} interface.
+
+Create in Eclipse a new Maven Java~21 (or later). Use, as name for this project, the string
+\texttt{io-hotmoka-tutorial-examples-erc20}.
+You can do this by duplicating the previous project \texttt{io-hotmoka-tutorial-examples-family}.
+Use the following \texttt{pom.xml}:
+%
+\begin{codebox}\begin{xmllst}
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>io.hotmoka</groupId>
+  <artifactId>io-hotmoka-tutorial-examples-erc20</artifactId>
+  <version>|\hotmokaVersion{}|</version>
+
+  <properties>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <maven.compiler.release>21</maven.compiler.release>
+  </properties>
+
+  <dependencies>
+    <dependency>
+      <groupId>io.hotmoka</groupId>
+      <artifactId>io-takamaka-code</artifactId>
+      <version>|\takamakaVersion{}|</version>
+    </dependency>
+  </dependencies>
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <version>3.11.0</version>
+      </plugin>
+    </plugins>
+  </build>
+
+</project>
+\end{xmllst}\end{codebox}
+%
+and the following \texttt{module-info.java}:
+%
+\begin{codebox}\begin{javalst}
+module erc20 {
+  requires io.takamaka.code;
+}
+\end{javalst}\end{codebox}
+%
+Create package \texttt{io.hotmoka.tutorial.examples.erc20}
+inside \texttt{src/main/java} and add
+the following \texttt{CryptoBuddy.java} source inside that package:
+%
+\begin{codebox}\begin{javalst}
+package io.hotmoka.tutorial.examples.erc20;
+
+import static io.takamaka.code.lang.Takamaka.require;
+
+import io.takamaka.code.lang.Contract;
+import io.takamaka.code.lang.FromContract;
+import io.takamaka.code.math.UnsignedBigInteger;
+import io.takamaka.code.tokens.ERC20;
+
+public class CryptoBuddy extends ERC20 {
+  private final Contract owner;
+
+  public @FromContract CryptoBuddy() {
+    super("CryptoBuddy", "CB");
+    owner = caller();
+    var initialSupply = new UnsignedBigInteger("200000");
+    var multiplier = new UnsignedBigInteger("10").pow(18);
+    _mint(caller(), initialSupply.multiply(multiplier)); // 200000 * 10 ^ 18
+  }
+
+  public @FromContract void mint(Contract account, UnsignedBigInteger amount) {
+    require(caller() == owner, "Lack of permission");
+    _mint(account, amount);
+  }
+
+  public @FromContract void burn(Contract account, UnsignedBigInteger amount) {
+    require(caller() == owner, "Lack of permission");
+    _burn(account, amount);
+  }
+}
+\end{javalst}\end{codebox}
+%
+The constructor of \texttt{CryptoBuddy} initializes the total supply by minting
+a very large number of tokens. They are initially owned by the creator of the contract,
+that is saved as \texttt{owner}. Methods \texttt{mint()} and \texttt{burn()} check
+that the owner is requesting
+the mint or burn and call the inherited protected methods in that case.
+
+You can generate the jar archive and install that jar in the node, by letting our first account pay:
+%
+\index{moka!jars install@{\texttt{jars install}}}
+\input{moka_jars_install_erc20_command}
+\input{moka_jars_install_erc20_output}
+%
+Finally, you can create an instance of the token class, by always letting our first account pay for that:
+%
+\index{moka!objects create@{\texttt{objects create}}}
+\input{moka_objects_create_erc20_command}
+\input{moka_objects_create_erc20_output}
+%
+The new ledger instance has been installed in the storage of the node now, at the address
+\texttt{\ercTwentyObjectShort{}}. It is possible to start interacting with that ledger instance, by transferring
+tokens between accounts. For instance, this can be done with the \texttt{moka objects call} command,
+that allows one to invoke the \texttt{transfer()} or \texttt{transferFrom()} methods of the ledger.
+It is possible to show the state of the ledger with the \texttt{moka objects show} command, although specific
+utilities will provide a more user-friendly view of the ledger in the future.
+
+\subsection{Richer than expected}\label{subsec:richer_than_expected}
+
+Every owner of an ERC20 token can decide to send some of its tokens to another
+contract \emph{C}, that will become an owner itself, if it was not already.
+This means that the ledger inside
+an \texttt{ERC20} implementation gets modified and some tokens get registered for
+the new owner \emph{C}. However, \emph{C} is not notified in any way of this transfer.
+This means that our contracts could be richer than we expect, if somebody
+has sent tokens to them, possibly inadvertently. In theory, we could
+scan the whole memory of a Hotmoka node, looking for implementations
+of the \texttt{IERC20} interface, and check if our contracts are registered inside them.
+Needless to say, this is computationally irrealistic.
+Moreover, even if we know that one of our contracts is waiting to receive
+some tokens, we don't know immediately when this happens, since
+the contract does not get notified of any transfer of tokens.
+
+This issue is inherent to the definition of the ERC20 standard in Ethereum
+and the implementation in Takamaka inherits this limitation, since it wants to stick
+as much as possible to the Ethereum standard. A solution to the problem
+would be to restrict the kind of owners that are allowed in Fig.~\ref{fig:erc20_hierarchy}.
+Namely, instead of allowing all instances of \texttt{Contract}, the signature of the methods could
+be restricted to owners of some interface type \texttt{IERC20Receiver}, with a single method
+\texttt{onReceive()} that gets called by the \texttt{ERC20} implementation, every time
+tokens get transferred to an \texttt{IERC20Receiver}.
+In this way, owners of ERC20 tokens get notified when they receive new tokens.
+This solution has never been implemented for ERC20 tokens in Ethereum, while
+it has been used in the ERC721 standard for non-fungible tokens, as we will
+show in the next section.
+
+\section{Non-fungible tokens (ERC721)}\label{sec:non_fungible_tokens}
+
+A non-fungible token\index{token!non-fungible} is implemented as a ledger that maps each token identifier to its owner.
+Ethereum provides the ERC721 specification~\cite{EntrikenSES18}\index{ERC721} for non-fungible tokens.
+There, a token identifier is an array of bytes. Takamaka uses, more generically,
+a \texttt{BigInteger}. Note that a \texttt{BigInteger} can be constructed from an array of bytes
+by using the constructor of class \texttt{BigInteger} that receives an array of bytes.
+In the ERC721 specification, token owners are contracts, although the implementation will check
+that only contracts implementing the
+\texttt{IERC721Receiver}\index{IERC721Receiver@{\texttt{IERC721Receiver}}} interface are added
+to an IERC721 ledger, or externally owned accounts.
+%
+\begin{commentbox}
+The reason for allowing externally owned accounts is probably a simplification,
+since Ethereum users own externally owned accounts and it is simpler
+to use such accounts directly inside an ERC721 ledger, instead of creating
+contracts of type \texttt{IERC721Receiver}. In any case, no other kind of contracts
+is allowed in standard ERC721 implementations.
+\end{commentbox}
+
+The hierarchy of the Takamaka classes for the ERC721 standard is shown
+in Fig.~\ref{fig:erc721_hierarchy}.
+%
+\begin{figure}[th]
+  \begin{center}
+    \includegraphics[width=0.65\textwidth]{pics/erc721}
+  \end{center}
+  \caption{The hierarchy of the ERC721 token implementations.}
+  \label{fig:erc721_hierarchy}
+\end{figure}
+
+As in the case of the ERC20 tokens, the interface
+\texttt{IERC721View}\index{IERC721View@{\texttt{IERC721View}}} contains
+the read-only operations that implement a ledger of non-fungible
+tokens: the \texttt{ownerOf()} method yields the owner of a given token and
+the \texttt{balanceOf()} method returns the number of tokens held by a given \texttt{account}.
+The \texttt{snapshot()}\index{snapshot()@{\texttt{snapshot()}}} method
+yields a frozen, read-only view of the latest state of the ledger.
+
+The \texttt{IERC721}\index{IERC721@{\texttt{IERC721}}} subinterface
+adds methods for token transfers.
+Please refer to their description given by the Ethereum standard.
+We just say here that
+the \texttt{transferFrom()} method moves a given token from its previous
+owner to a new owner. The caller of this method can be the owner of the
+token, but it can also be another contract, called \emph{operator},
+as long as the latter has
+been previously approved by the token owner, by using the
+\texttt{approve()} method. It is also possible to approve an operator for all
+one's tokens (or remove such approval), through the \texttt{setApprovalForAll()} method.
+The \texttt{getApproved()} method tells who is the operator approved for a given token
+(if any) and the \texttt{isApprovedForAll()} method tells if a given operator has been
+approved to transfer all tokens of a given \texttt{owner}. The \texttt{view()}\index{view()@{\texttt{view()}}} method
+yields a read-only view of the ledger, that reflects all future changes to the ledger.
+
+The implementation \texttt{ERC721}\index{ERC721@{\texttt{ERC721}}} provides standard implementations for all the methods
+of the interfaces \texttt{IERC721View} and \texttt{IERC721}, adding metadata information about the name and the
+symbol of the token and protected methods for minting and burning
+new tokens. These are meant to be called in subclasses, such as
+\texttt{ERC721Burnable}\index{ERC721Burnable@{\texttt{ERC721Burnable}}}. Namely,
+the latter adds a \texttt{burn()} method that allows the owner of a token
+(or its approved operator) to burn the token.
+
+As we have already said in Sec.~\ref{subsec:richer_than_expected},
+the owners of the tokens are declared as contracts
+in the \texttt{IERC721View} and \texttt{IERC721} interfaces, but the \texttt{ERC721} implementation
+actually requires them to be
+\texttt{IERC721Receiver}`s\index{IERC721Receiver@{\texttt{IERC721Receiver}}}
+or externally owned accounts.
+Otherwise, the methods of \texttt{ERC721} will throw an exception.
+Moreover, token owners that implement the \texttt{IERC721Receiver} interface
+get their \texttt{onReceive()} method called whenever new tokens are transferred to them.
+
+\begin{commentbox}
+The ERC721 standard requires \texttt{onReceive()} to return a special message, in order
+to prove that the contract actually executed that method. This is a very technical
+necessity of Solidity, whose first versions allowed one to call non-existent methods
+without getting an error. It is a sort of security measure, since Solidity
+has no \texttt{instanceof} operator and cannot check in any reliable
+way that the token owners are actually instances of the interface \texttt{IERC721Receiver}.
+The implementation in Solidity uses the ERC165
+standard~\cite{ReitwiessnerJVBFE18}\index{ERC165} for interface detection,
+but that standard is not a reliable replacement of \texttt{instanceof},
+since a contract can always pretend to belong to any contract type.
+Takamaka is Java and can use the \texttt{instanceof} operator, that works correctly.
+As a consequence, the \texttt{onReceive()} method in Takamaka needn't return any value.
+\end{commentbox}
+
+\subsection{Implementing our own ERC721 token}\label{subsec:implementing_erc721}
+
+\begin{center}
+(See the \texttt{io-hotmoka-tutorial-examples-erc721} project in \texttt{\hotmokaRepo{}})
+\end{center}
+
+Let us define a ledger for non-fungible tokens
+that only allows its creator the mint or burn tokens.
+We will call it \texttt{CryptoShark}. As Fig.~\ref{fig:erc721_hierarchy} shows,
+we plug it below the \texttt{ERC721} implementation, so that we inherit that implementation
+and do not need to reimplement the methods of the \texttt{IERC721} interface.
+The code is almost identical to that for the \texttt{CryptoBuddy} token defined
+in Sec.~\ref{subsec:implementing_erc20}.
+
+Create in Eclipse a new Maven Java~21 (or later) project. Use for this project the name
+\texttt{io-hotmoka-tutorial-examples-erc721}.
+You can do this by duplicating the previous project \texttt{io-hotmoka-tutorial-examples-family}.
+Use the following \texttt{pom.xml}:
+%
+\begin{codebox}\begin{xmllst}
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>io.hotmoka</groupId>
+  <artifactId>io-hotmoka-tutorial-examples-erc721</artifactId>
+  <version>|\hotmokaVersion{}|</version>
+
+  <properties>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <maven.compiler.release>21</maven.compiler.release>
+  </properties>
+
+  <dependencies>
+    <dependency>
+      <groupId>io.hotmoka</groupId>
+      <artifactId>io-takamaka-code</artifactId>
+      <version>|\takamakaVersion{}|</version>
+    </dependency>
+  </dependencies>
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <version>3.11.0</version>
+      </plugin>
+    </plugins>
+  </build>
+
+</project>
+\end{xmllst}\end{codebox}
+%
+and the following \texttt{module-info.java}:
+%
+\begin{codebox}\begin{javalst}
+module erc721 {
+  requires io.takamaka.code;
+}
+\end{javalst}\end{codebox}
+%
+Create package \texttt{io.hotmoka.tutorial.examples.erc721}
+inside \texttt{src/main/java} and add
+the following \texttt{CryptoShark.java} source inside that package:
+%
+\begin{codebox}\begin{javalst}
+package io.hotmoka.tutorial.examples.erc721;
+
+import static io.takamaka.code.lang.Takamaka.require;
+
+import java.math.BigInteger;
+
+import io.takamaka.code.lang.Contract;
+import io.takamaka.code.lang.FromContract;
+import io.takamaka.code.tokens.ERC721;
+
+public class CryptoShark extends ERC721 {
+  private final Contract owner;
+
+  public @FromContract CryptoShark() {
+    super("CryptoShark", "SHK");
+    owner = caller();
+  }
+
+  public @FromContract void mint(Contract account, BigInteger tokenId) {
+    require(caller() == owner, "Lack of permission");
+    _mint(account, tokenId);
+  }
+
+  public @FromContract void burn(BigInteger tokenId) {
+    require(caller() == owner, "Lack of permission");
+    _burn(tokenId);
+  }
+}
+\end{javalst}\end{codebox}
+%
+The constructor of \texttt{CryptoShark} takes note of the creator of the token.
+That creator is the only that is allowed to mint or burn tokens, as
+you can see in methods \texttt{mint()} and \texttt{burn()}.
+
+You can compile the file:
+%
+\begin{shellcommandbox}\begin{ttlst}
+cd io-takamaka-code-examples-erc721
+mvn clean install
+cd ..
+\end{ttlst}\end{shellcommandbox}
+%
+Then you can install that jar in the node and create an instance of the token
+exactly as we did for the \texttt{CryptoBuddy} ERC20 token in Sec.~\ref{subsec:implementing_erc20}.
