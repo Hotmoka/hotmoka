@@ -19,9 +19,11 @@ package io.hotmoka.tutorial;
 import static io.hotmoka.constants.Constants.HOTMOKA_VERSION;
 import static io.takamaka.code.constants.Constants.TAKAMAKA_VERSION;
 
+import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.PrintStream;
 import java.io.PrintWriter;
 import java.math.BigInteger;
@@ -29,6 +31,8 @@ import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.logging.LogManager;
 
 import io.hotmoka.crypto.cli.keys.KeysCreateOutputs;
@@ -38,6 +42,7 @@ import io.hotmoka.moka.JarsInstallOutputs;
 import io.hotmoka.moka.Moka;
 import io.hotmoka.moka.NodesManifestAddressOutputs;
 import io.hotmoka.moka.NodesTakamakaAddressOutputs;
+import io.hotmoka.moka.NodesTendermintInitOutputs;
 import io.hotmoka.moka.ObjectsCallOutputs;
 import io.hotmoka.moka.ObjectsCreateOutputs;
 import io.hotmoka.moka.ObjectsShowOutputs;
@@ -95,6 +100,11 @@ public class UpdateForNewNode2 {
 	 */
 	private final static String HOTMOKA_TUTORIAL_DIR = "hotmoka_tutorial";
 
+	/**
+	 * The version of Tendermint expected to be used for the experiments.
+	 */
+	private final static String TENDERMINT_VERSION = "0.34.15";
+
 	private static URI mokamintServer;
 	private static URI tendermintServer;
 
@@ -119,8 +129,8 @@ public class UpdateForNewNode2 {
 
 		// you can comment out some of the following lines if you only want to regenerate a subset of the experiments
 		new ExperimentsWithoutServer(outputDir, tempDir);
-		new ExperimentsWithMokamintServer(outputDir, tempDir);
-		new ExperimentsWithTendermintServer(outputDir, tempDir);
+		//new ExperimentsWithMokamintServer(outputDir, tempDir);
+		//new ExperimentsWithTendermintServer(outputDir, tempDir);
 	}
 
 	private static class ExperimentsWithoutServer extends Experiments {
@@ -132,6 +142,7 @@ public class UpdateForNewNode2 {
 		protected void generateFiles() throws Exception {
 			report("hotmokaVersion", HOTMOKA_VERSION);
 			report("takamakaVersion", TAKAMAKA_VERSION);
+			report("tendermintVersion", TENDERMINT_VERSION);
 			report("faustoEmail", "\\email{fausto.spoto@hotmoka.io}");
 			report("hotmokaRepo", HOTMOKA_REPOSITORY);
 			report("hotmokaTutorialDir", HOTMOKA_TUTORIAL_DIR.replace("_", "\\_"));
@@ -141,6 +152,34 @@ public class UpdateForNewNode2 {
 					+ TAKAMAKA_VERSION + "/io-takamaka-code-" + TAKAMAKA_VERSION + ".jar --init");
 			createOutputFile("moka_jars_verify_takamaka", Moka.jarsVerify(home + "/.m2/repository/io/hotmoka/io-takamaka-code/"
 					+ TAKAMAKA_VERSION + "/io-takamaka-code-" + TAKAMAKA_VERSION + ".jar --init"));
+
+			createCommandFile("tendermint_version", "tendermint version");
+			createOutputFile("tendermint_version", shell("tendermint version"));
+			createCommandFile("tendermint_testnet", "tendermint testnet --v 1 --n 0");
+			createOutputFile("tendermint_testnet", shell("tendermint testnet --v 1 --n 0"));
+			var output1 = KeysCreateOutputs.from(Moka.keysCreate("--name gamete.pem --output-dir=" + tempDir + " --password=chocolate --json"));
+			createCommandFile("moka_keys_create_gamete", "moka keys create --name=gamete.pem --password");
+			createOutputFile("moka_keys_create_gamete", "Enter value for --password (the password that will be needed later to use the key pair): mypassword\n" + output1);
+			report("gametePublicKeyBaseFiftyeight", output1.getPublicKeyBase58());
+
+			createCommandFile("moka_nodes_tendermint_init", "moka nodes tendermint init ~/.m2/repository/io/hotmoka/io-takamaka-code/"
+					+ TAKAMAKA_VERSION + "/io-takamaka-code-" + TAKAMAKA_VERSION + ".jar --public-key-of-gamete=" + output1.getPublicKeyBase58()
+					+ " --tendermint-config=mytestnet/node0");
+			var output2 = NodesTendermintInitOutputs.from(Moka.nodesTendermintInit(home.resolve(".m2/repository/io/hotmoka/io-takamaka-code/" + TAKAMAKA_VERSION + "/io-takamaka-code-" + TAKAMAKA_VERSION + ".jar")
+					+ " --public-key-of-gamete=" + output1.getPublicKeyBase58()
+					+ " --tendermint-config=" + tempDir.resolve("mytestnet/node0") + " --yes --exit-after-initialization --json"));
+			createOutputFile("moka_nodes_tendermint_init", output2.toString());
+
+			createCommandFile("moka_keys_bind_gamete", "moka keys bind gamete.pem --password");
+			StorageReference gamete = output2.getGamete();
+			createOutputFile("moka_keys_bind_gamete", "Enter value for --password (the password of the key pair): mypassword\n"
+					+ "The key pair of " + gamete + " has been saved as \"" + gamete + ".pem\".");
+
+			createCommandFile("moka_nodes_faucet", "moka nodes faucet 5000000 --password");
+			createOutputFile("moka_nodes_faucet", "Enter value for --password (the password of the key pair): mypassword\nThe threshold of the faucet has been set.");
+
+			createCommandFile("moka_nodes_tendermint_resume", "moka nodes tendermint resume");
+			createOutputFile("moka_nodes_tendermint_resume", Moka.nodesTendermintResume("--exit-after-initialization"));
 
 			Files.createDirectory(tempDir.resolve("instrumented"));
 			createCommandFile("moka_jars_instrument_takamaka", "mkdir instrumented\nmoka jars instrument ~/.m2/repository/io/hotmoka/io-takamaka-code/"
@@ -634,7 +673,7 @@ public class UpdateForNewNode2 {
 		}
 
 		protected void report(String command, String implementation) {
-			report("\\newcommand{\\" + command + "}{{" + implementation + "}}");
+			report("\\newcommand{\\" + command + "}{" + implementation + "}");
 		}
 
 		protected void report(String command, StorageReference reference) {
@@ -703,6 +742,25 @@ public class UpdateForNewNode2 {
 				System.setOut(originalOut);
 				System.setErr(originalErr);
 			}
+		}
+
+		protected String shell(String cmdline) throws IOException, InterruptedException, TimeoutException {
+			var process = new ProcessBuilder(new String[] {"bash", "-c", cmdline})
+					.redirectErrorStream(true)
+					.directory(tempDir.toFile())
+					.start();
+
+			var output = "";
+			var br = new BufferedReader(new InputStreamReader(process.getInputStream()));
+			String line = null;
+			while ( (line = br.readLine()) != null )
+				output += line + "\n";
+
+			//There should really be a timeout here.
+			if (!process.waitFor(120, TimeUnit.SECONDS))
+				throw new TimeoutException();
+
+			return output;
 		}
 	}
 

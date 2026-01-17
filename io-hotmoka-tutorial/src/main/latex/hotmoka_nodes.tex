@@ -62,10 +62,12 @@ is useful for debugging, testing and learning, since it allows
 one to inspect the content of blocks, transactions and store;
 it will be presented in Sec.~\ref{subsec:disk_nodes}.
 Local nodes can be instantiated through the static
-factory methods of their supplier class. That method requires to specify
-parameters that are global to the network of nodes
-(\texttt{ConsensusConfig}\index{ConsensusConfig@{\texttt{ConsensusConfig}}}) and must be the same
-for all nodes in the network, and parameters that are specific to the given node
+factory methods of their supplier classes
+\texttt{MokamintNodes}\index{MokamintNodes@{\texttt{MokamintNodes}}},
+\texttt{TendermintNodes}\index{TendermintNodes@{\texttt{TendermintNodes}}} and
+\texttt{DiskNodes}\index{DiskNodes@{\texttt{DiskNodes}}}.
+Those methods requires to specify
+parameters that are specific to the given node
 of the network that is being started
 and can be different from node to node
 (\texttt{MokamintNodeConfig}\index{MokamintNodeConfig@{\texttt{MokamintNodeConfig}}} and similar).
@@ -110,3 +112,225 @@ to swap a local node with a remote node, or vice versa. This mechanism is descri
 in Sec.~\ref{sec:remote_nodes},
 where the adaptor interface \texttt{RemoteNode} in Fig.~\ref{fig:node_hierarchy} is presented.
 \end{description}
+
+\section{Tendermint nodes}\label{sec:tendermint_nodes}
+
+Tendermint~\cite{Tendermint}\index{Tendermint}, now Ignite, is a
+Byzantine-fault tolerant engine for building blockchains, that
+replicates a finite-state machine on a network of nodes across the world.
+The finite-state machine is often referred to as a \emph{Tendermint app}.
+The nice feature of Tendermint is that it takes care of all
+issues related to networking and consensus, leaving to the
+developer only the task to develop the Tendermint app.
+
+\begin{figure}[th]
+  \begin{center}
+    \includegraphics[width=0.8\textwidth]{pics/hotmoka_tendermint}
+  \end{center}
+  \caption{The architecture of the Hotmoka node based on Tendermint.}
+  \label{fig:hotmoka_tendermint}
+\end{figure}
+
+There is a Hotmoka node that implements such a Tendermint app,
+for programming in Takamaka over Tendermint. We have already used that node
+in the previous chapter, since that installed at
+\texttt{\serverTendermint{}} is a node of that type.
+Fig.~\cite{fig:hotmoka_tendermint}
+shows the architecture of a Tendermint Hotmoka node.
+It consists of a few components.
+The Hotmoka component is the Tendermint app that
+implements the transactions on the state, that is the installation
+of jars and the execution of code written in the Takamaka subset of Java. This part is the same in every
+implementation of a Hotmoka node, not only for this one based on Tendermint.
+The database that contains the state is implemented by
+using the Xodus transactional database by IntelliJ.
+What is specific here, however, is that transactions are put inside a blockchain
+implemented by Tendermint. The communication occurs, internally, through the two TCP ports
+26657 and 26658, that are the standard choice of Tendermint for communicating with an app.
+Clients can contact the Hotmoka node
+through any port, typically but not exclusively~8001 or~8002,
+as a service that implements the interface \texttt{Node} in Fig.~\ref{fig:node_hierarchy}.
+The node can live alone but is normally integrated with other Hotmoka nodes based on Tendermint, so that
+they execute and verify the same transactions, reaching the same state at the end. This happens through
+the TCP port 26656, that allows Tendermint instances to \emph{gossip}:
+they exchange transactions and information on peers and finally reach consensus.
+Each node can be configured to use a different port to communicate with clients,
+which is useful if, for instance, ports 8001 or 8002 (or both)
+are already used by some other service.
+Port 26656 must be the same for all nodes in the network, since they must communicate on
+a standard port.
+
+We can use \texttt{\serverTendermint{}} to play with
+accounts and Takamaka contracts. However, we might want to
+install our own node, part of the same blockchain network of \texttt{\serverTendermint{}}
+or part of a brand new blockchain. In the former case, our own node will execute
+the same transactions of \texttt{\serverTendermint{}}, so that we can be sure that they are
+executed according to the rules. In the latter case, we can have our own blockchain that
+executes our transactions only, instead of using a shared blockchain such as that
+at \texttt{\serverTendermint{}}.
+
+This section shows how you can start your own Hotmoka Tendermint node,
+consisting of a single validator node, hence part of its own blockchain.
+The process is not difficult but is a bit tedious,
+because it requires one to install Tendermint and to create
+its configuration files. Sec.~\ref{sec:tendermint_docker}
+provides a simpler alternative for reaching the same goal, by using the Docker tool.
+
+\begin{commentbox}
+We strongly suggest you to use Docker to install Hotmoka nodes, instead of the instructions
+in this section, hence please
+follow the instructions in Sec.~\ref{sec:tendermint_docker}.
+The current section only exists in order to understand what happens inside the Docker container.
+If you are not a developer, or if you are not interested in the topic, please skip this section and
+jump directly to the next chapter.
+\end{commentbox}
+
+In order to use a Tendermint Hotmoka node, the Tendermint executable must be
+installed in our machine, or our experiments will fail. The Hotmoka node
+works with Tendermint version \tendermintVersion{}, that can be downloaded in executable
+form from \url{https://github.com/tendermint/tendermint/releases/tag/v\tendermintVersion}.
+Be sure that you download the executable for the architecture of your computer
+and install it at a place that is
+part of the command-line path of your computer. You can then verify that Tendermint is
+correctly installed:
+%
+\input{tendermint_version_command}
+\input{tendermint_version_output}
+
+Before starting a local node of a Hotmoka blockchain based on Tendermint, you
+need to create the Tendermint configuration file. For instance, in order
+to run a single validator node with no non-validator nodes, you can create
+its configuration files as follows:
+%
+\input{tendermint_testnet_command}
+\input{tendermint_testnet_output}
+%
+This has created a directory \texttt{mytestnet/node0}
+for a single Tendermint node, that includes the configuration
+of the node and its private and public validator keys.
+
+Once this is done, you can create a key pair for the \emph{gamete}\index{gamete}
+of the node that you are going to start. This is an account that holds all initial
+crypto coins, if any. You perform this with moka:
+%
+\index{moka!keys create@{\texttt{keys create}}}
+\input{moka_keys_create_gamete_command}
+\input{moka_keys_create_gamete_output}
+
+You can start now a Hotmoka node based on Tendermint,
+that uses the Tendermint configuration
+directory that you have just created, and with a gamete controlled
+by the \texttt{gamete.pem} key pair,
+by using the \texttt{moka nodes tendermint init} command. You need
+to specify the jar of the runtime of Takamaka, that will
+be stored inside the node as \texttt{takamakaCode}: we use the
+local Maven's cache for that but you can alternatively download the
+\texttt{io.takamaka-code-\takamakaVersion{}.jar} file from Maven and refer to
+it in the following command line:
+%
+\index{moka!nodes tendermint init@{\texttt{nodes tendermint init}}}
+\input{moka_nodes_tendermint_init_command}
+\input{moka_nodes_tendermint_init_output}
+
+This command has done a lot! It has created an instance
+of \texttt{TendermintNode}; it has stored the
+\texttt{io-takamaka-code-\takamakaVersion{}.jar} file
+inside it; it has created
+a Java object, called manifest, that contains other objects, including
+an externally-owned account gamete, whose public key is
+that provided with \texttt{-{}-public-key-of-gamete};
+it has initialized the balance of the gamete to
+the a default initial supply. Finally, this command
+has published an internet service at the URI \url{ws://localhost:8001},
+reachable through websocket connections, that exports the API of the node.
+
+\begin{commentbox}
+By default, \texttt{moka nodes tendermint init} publishes the service at port 8001.
+This can be changed with its \texttt{-{}-port} option. Moreover, it uses a default
+initial supply for the gamete that can be changed with the \texttt{-{}-initial-supply} option.
+Finally, it uses a Hotmoka chain identifier identical to that of the underlying Tendermint
+network, specified inside the Tendermint configuration files created by \texttt{tendermint testnet}.
+If you want to override it, you can either
+edit such configuration files or use the \texttt{-{}-chain-id} option (in the latter case,
+the chain identifiers of Hotmoka and Tendermint may be different, which is perfectly fine).
+\end{commentbox}
+
+In order to use the gamete, you should bind its key to its actual storage
+reference in the node, on your local machine. Open another shell,
+move inside the directory holding the keys of the gamete and run:
+%
+\index{moka!nodes keys bind@{\texttt{nodes keys bind}}}
+\input{moka_keys_bind_gamete_command}
+\input{moka_keys_bind_gamete_output}
+%
+This operation has created a pem file whose name is that of the storage reference of the gamete.
+With this file, it is possible to run transactions on behalf of the gamete.
+%
+\begin{commentbox}
+You do not need the \texttt{-{}-uri} option above, since \url{ws://localhost:8001} is the default
+URI for moka.
+\end{commentbox}
+
+Your computer exports a Hotmoka node now, running on Tendermint. You can verify this with
+\texttt{moka nodes manifest show}.
+Moreover, if your computer is reachable at some address \texttt{my.machine}
+and if its 8001 port is open to the outside world,
+then anybody can contact
+your node at \url{ws://my.machine:8001}, query your node and run transactions on it.
+However, what has been created is a Tendermint node where all initial coins are inside
+the gamete. By using the gamete, \emph{you} can fill the node with objects
+and accounts now, and in general run all transactions you want.
+However, other users, who do not know the keys of the gamete,
+will not be able to run any non-\texttt{@View} transaction on your node.
+If you want to open a faucet\index{faucet}, so that other users can gain droplets of coins
+(see examples in Sec.~\ref{sec:creation_account}),
+you must add the \texttt{-{}-open-unsigned-faucet} option to the \texttt{moka nodes tendermint init}
+command above. If you do that, you can then go into another shell (since the previous one is busy with the
+execution of the node), in a directory holding the key pair file of the gamete, and type:
+%
+\index{moka!nodes faucet@{\texttt{nodes faucet}}}
+\input{moka_nodes_faucet_command}
+\input{moka_nodes_faucet_output}
+%
+This set the maximal amount of coins that
+the faucet is willing to give away at each request (its \emph{flow}). You can re-run the
+\texttt{moka nodes faucet}
+command many times, in order to change the flow of the faucet, or close it completely.
+Needless to say, only the owner of the keys of the gamete can run the \texttt{moka nodes faucet} command,
+which is why the key pair file of the gamete must be in the directory where you run it.
+
+After opening a faucet with a sufficient flow, anybody can
+re-run, for instance, the examples of Ch.~\ref{ch:getting_started_with_hotmoka} by replacing
+\texttt{\serverMokamint{}} with \url{ws://my.machine:8001}: your computer will serve
+the requests and run the transactions.
+
+If you turn off your Hotmoka node based on Tendermint, its state remains saved inside the
+\texttt{chain} directory: the \texttt{chain/tendermint} subdirectory is where Tendermint stores the blocks
+of the chain; while \texttt{chain/hotmoka} contains the Xodus database,
+consisting of the storage objects created in blockchain.
+Try for instance to stop the Tendermint node that we initialized before
+(press enter in the window where it was running).
+You can subsequently resume that node from its latest state, by typing:
+%
+\index{moka!nodes tendermint resume@{\texttt{nodes tendermint resume}}}
+\input{moka_nodes_tendermint_resume_command}
+\input{moka_nodes_tendermint_resume_output}
+
+There is a log file that can be useful to check the state of our Hotmoka-Tendermint node.
+Namely, \texttt{tendermint.log} contains the log of Tendermint itself. It can be interesting
+to inspect which blocks are committed and when:
+%
+\begin{shellbox}\begin{ttlst}
+I[2025-06-11|10:13:24.143] Version info, module=main
+  tendermint_version=@tendermint_version block=11 p2p=8
+I[2025-06-11|10:13:24.169] Started node module=main
+  nodeInfo="{ProtocolVersion:{P2P:8 Block:11 App:0}
+I[2025-06-11|10:13:25.234] executed block module=state
+  height=630 num_valid_txs=2 num_invalid_txs=0
+I[2025-06-11|10:13:25.408] committed state module=state
+  height=630 num_txs=0
+  app_hash=A30F89457141AB7E94F71456871396FD9D30CA8E9F66998C6E3E3079D40849F
+\end{ttlst}\end{shellbox}
+%
+In this log, the block height increases and the application hash changes,
+reflecting the fact that the state has been modified.

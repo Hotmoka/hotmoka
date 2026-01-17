@@ -343,14 +343,36 @@ public class Moka extends AbstractCLI {
 	}
 
 	/**
-	 * Runs the {@code moka tendermint validators help} command with the given arguments.
+	 * Runs the {@code moka nodes tendermint init} command with the given arguments.
+	 * 
+	 * @param args the arguments
+	 * @return what the moka tool has written into the standard output
+	 * @throws IOException if the construction of the return value failed
+	 */
+	public static String nodesTendermintInit(String args) throws IOException {
+		return run("nodes tendermint init " + args);
+	}
+
+	/**
+	 * Runs the {@code moka nodes tendermint resume} command with the given arguments.
+	 * 
+	 * @param args the arguments
+	 * @return what the moka tool has written into the standard output
+	 * @throws IOException if the construction of the return value failed
+	 */
+	public static String nodesTendermintResume(String args) throws IOException {
+		return run("nodes tendermint resume " + args);
+	}
+
+	/**
+	 * Runs the {@code moka nodes tendermint validators help} command with the given arguments.
 	 * 
 	 * @param args the arguments
 	 * @return what the moka tool has written into the standard output
 	 * @throws IOException if the construction of the return value failed
 	 */
 	public static String nodesTendermintValidatorsHelp(String args) throws IOException {
-		return run("nodes nodes tendermint validators help " + args);
+		return run("nodes tendermint validators help " + args);
 	}
 
 	/**

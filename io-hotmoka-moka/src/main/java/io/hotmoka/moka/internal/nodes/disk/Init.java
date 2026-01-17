@@ -58,6 +58,9 @@ public class Init extends AbstractNodeInit {
 	@Option(names = "--consensus-config", paramLabel = "<path>", description = "the consensus configuration of the Hotmoka network, in TOML format", converter = ConsensusConfigOptionConverter.class)
 	private ConsensusConfig<?, ?> consensusConfig;
 
+	@Option(names = "--exit-after-initialization", description = "exit immediately after the initialization of the new blockchain node", defaultValue="false")
+	private boolean exitAfterInitialization;
+
 	@Override
 	protected void execute() throws CommandException {
 		DiskNodeConfig localNodeConfig = mkLocalConfig();
@@ -69,7 +72,9 @@ public class Init extends AbstractNodeInit {
 			var service = NodeServices.of(node, getPort())) {
 
 			report(new Output(initialized.gamete(), URI.create("ws://localhost:" + getPort())), NodesDiskInitOutputs.Encoder::new);
-			waitForEnterKey();
+
+			if (!exitAfterInitialization)
+				waitForEnterKey();
 		}
 		catch (IOException e) {
 			throw new CommandException("Cannot access file \"" + getTakamakaCode() + "\"!", e);

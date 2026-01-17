@@ -46,6 +46,9 @@ public class Resume extends AbstractNodeResume {
 	@Option(names = "--tendermint-config", paramLabel = "<path>", description = "the directory containing the configuration of the underlying Tendermint engine; this is a directory containing config/ and data/ that can be generated, for instance, by the tendermint init command of Tendermint; if missing, a default configuration for a one-validator network will be used; this will be copied inside the directory specified by --chain-dir")
 	private Path tendermintConfig;
 
+	@Option(names = "--exit-after-initialization", description = "exit immediately after the initialization of the new blockchain node", defaultValue="false")
+	private boolean exitAfterInitialization;
+
 	@Override
 	protected void execute() throws CommandException {
 		TendermintNodeConfig localNodeConfig = mkLocalConfig();
@@ -53,7 +56,9 @@ public class Resume extends AbstractNodeResume {
 		try (var node = TendermintNodes.resume(localNodeConfig); var service = NodeServices.of(node, getPort())) {
 			var output = new Output(URI.create("ws://localhost:" + getPort()));
 			report(output, NodesTendermintResumeOutputs.Encoder::new);
-			waitForEnterKey();
+
+			if (!exitAfterInitialization)
+				waitForEnterKey();
 		}
 		catch (FailedDeploymentException e) {
 			throw new CommandException("Cannot deploy the service at port " + getPort());

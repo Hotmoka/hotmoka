@@ -80,6 +80,9 @@ public class Resume extends AbstractNodeResume {
 	@Option(names = "--password-of-mokamint-node", description = "the password of the key pair of the Mokamint node", interactive = true, defaultValue = "")
     private char[] passwordOfKeysOfMokamintNode;
 
+	@Option(names = "--exit-after-initialization", description = "exit immediately after the initialization of the new blockchain node", defaultValue="false")
+	private boolean exitAfterInitialization;
+
 	@Override
 	protected void execute() throws CommandException {
 		try {
@@ -112,7 +115,9 @@ public class Resume extends AbstractNodeResume {
 					try (var service = NodeServices.of(node, getPort())) {
 						var output = new Output(URI.create("ws://localhost:" + getPort()), mokamintNodePublicURI, URI.create("ws://localhost:" + mokamintPortRestricted));
 						report(output, NodesMokamintResumeOutputs.Encoder::new);
-						waitForEnterKey();
+	
+						if (!exitAfterInitialization)
+							waitForEnterKey();
 					}
 					catch (FailedDeploymentException e) {
 						throw new CommandException("Cannot deploy the service at port " + getPort());

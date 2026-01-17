@@ -130,6 +130,7 @@ public class Init extends AbstractNodeInit {
 					try (var initialized = MokamintInitializedNodes.of(node, consensus, getTakamakaCode()); var service = NodeServices.of(node, getPort())) {
 						var output = new Output(initialized.gamete(), URI.create("ws://localhost:" + getPort()), mokamintNodePublicURI, URI.create("ws://localhost:" + mokamintPortRestricted));
 						report(output, NodesMokamintInitOutputs.Encoder::new);
+
 						if (!exitAfterInitialization)
 							waitForEnterKey();
 					}
