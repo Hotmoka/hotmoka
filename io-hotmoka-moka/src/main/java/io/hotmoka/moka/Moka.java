@@ -420,6 +420,17 @@ public class Moka extends AbstractCLI {
 	}
 
 	/**
+	 * Runs the {@code moka nodes disk init} command with the given arguments.
+	 * 
+	 * @param args the arguments
+	 * @return what the moka tool has written into the standard output
+	 * @throws IOException if the construction of the return value failed
+	 */
+	public static String nodesDiskInit(String args) throws IOException {
+		return run("nodes disk init " + args);
+	}
+
+	/**
 	 * Runs the {@code moka objects help} command with the given arguments.
 	 * 
 	 * @param args the arguments

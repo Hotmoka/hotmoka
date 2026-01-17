@@ -259,7 +259,7 @@ In order to use the gamete, you should bind its key to its actual storage
 reference in the node, on your local machine. Open another shell,
 move inside the directory holding the keys of the gamete and run:
 %
-\index{moka!nodes keys bind@{\texttt{nodes keys bind}}}
+\index{moka!keys bind@{\texttt{keys bind}}}\index{key|binding}
 \input{moka_keys_bind_gamete_command}
 \input{moka_keys_bind_gamete_output}
 %
@@ -334,3 +334,81 @@ I[2025-06-11|10:13:25.408] committed state module=state
 %
 In this log, the block height increases and the application hash changes,
 reflecting the fact that the state has been modified.
+
+\section{Disk nodes}\label{subsec:disk_nodes}
+
+The Hotmoka nodes of the previous sections form a real blockchain.
+They are perfect for deploying a blockchain where we can program smart contracts in
+Takamaka. Nevertheless, they are slow for debugging: transactions are committed every few seconds,
+by default. Hence, if we want to see the result of a transaction,
+we have to wait for some seconds at least.
+Moreover, Tendermint does not allow one to see the effects of each single transaction,
+in a simple way. For testing, debugging and didactical purposes, it would be simpler to have a light node
+that behaves like a blockchain, allows access to blocks and transactions as text files,
+but is not a blockchain. This is the goal of the \texttt{DiskNode}s.\index{DiskNode@{\texttt{DiskNode}}}
+They are not part of an actual blockchain since they do not propagate transactions
+in a peer-to-peer network, on which consensus is imposed. But they are very
+handy because they allow one to inspect, very easily, the requests sent to
+the node and the corresponding responses.
+
+You can start a disk Hotmoka node, with an open faucet, exactly as you did,
+in the previous sections for a Mokamint or Tendermint node, but using the \texttt{moka nodes disk init}
+command instead of \texttt{moka nodes [mokamint|tendermint] init}. You do not need any Mokamint or Tendermint configuration
+this time, but still need a key to control the gamete of the node, that you can create
+exactly as for the previous Hotmoka nodes.
+You then specify the Base58-encoded public key when starting the node:
+%
+\index{moka!nodes disk init@{\texttt{nodes disk init}}}
+\input{moka_nodes_disk_init_command}
+\input{moka_nodes_disk_init_output}
+%
+Then, in another shell, you can bind the gamete and open the flow of the faucet, as we did
+for the other kinds of Hotmoka nodes.
+
+You should have noticed any apparent difference with the previous kinds of Hotmoka nodes,
+but for the fact that this node is faster,
+its default chain identifier is the empty string and it has no validators. Blocks and transactions are
+inside the \texttt{chain} directory, that this time contains a nice textual representation of requests and
+responses:
+%
+\input{tree_chain_command}
+\input{tree_chain_output}
+
+\begin{commentbox}
+The exact ids and the number of these transactions will be different in your computer.
+\end{commentbox}
+
+There are blocks \texttt{b0},\ldots,\texttt{b7}, each containing a variable number of transactions.
+Each transaction is reported with its id and the pair request/response that the node has computed
+for it. They are text files, that you can open to understand what is happening inside the node.
+
+The transactions shown above are those that have initialized the node and
+opened the faucet. The last transaction inside the last block is a \emph{reward}
+transaction, that distributes the earnings of the block to the (zero, for disk nodes) validators
+and increases block height and number of transactions in the manifest.
+
+Spend some time looking at the \texttt{request.txt} and \texttt{response.txt} files.
+For instance, the transaction inside \texttt{b2} should be the one that created the gamete
+account. Print its \texttt{request.txt} file:
+%
+\index{transaction!request}
+\input{cat_gamete_creation_request_command}
+\input{cat_gamete_creation_request_output}
+%
+You can see that this is a request to create a gamete: it specifies the initial amount of crypto coins
+held in the gamete and the public key of the gamete, which is what we passed when we initialized the node
+(in base64 format, since it is more compact, in general). Print its response now:
+%
+\index{transaction!response}
+\input{cat_gamete_creation_response_command}
+\input{cat_gamete_creation_response_output}
+%
+You can see that this response reports the storage reference of the gamete that has been created.
+Moreover, responses typically report a set of \emph{updates}, as in this case.
+Updates are the side-effects on the state of the node,
+induced by the transaction. Each update is a triple, that specifies a change in the value
+of a field of a storage object. In this case, the updates describe the initial
+state of the gamete object; for instance, an update states that
+the balance of the gamete has been set to the initial supply for the node;
+another states that the \texttt{maxFaucet} field of the gamete has been set to 0: this might be modified
+later through a transaction triggered by the \texttt{moka nodes faucet} command.

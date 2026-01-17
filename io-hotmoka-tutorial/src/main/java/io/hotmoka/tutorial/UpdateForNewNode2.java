@@ -167,7 +167,9 @@ public class UpdateForNewNode2 {
 					+ " --tendermint-config=mytestnet/node0");
 			var output2 = NodesTendermintInitOutputs.from(Moka.nodesTendermintInit(home.resolve(".m2/repository/io/hotmoka/io-takamaka-code/" + TAKAMAKA_VERSION + "/io-takamaka-code-" + TAKAMAKA_VERSION + ".jar")
 					+ " --public-key-of-gamete=" + output1.getPublicKeyBase58()
-					+ " --tendermint-config=" + tempDir.resolve("mytestnet/node0") + " --yes --exit-after-initialization --json"));
+					+ " --tendermint-config=" + tempDir.resolve("mytestnet/node0")
+					+ " --chain-dir=" + tempDir.resolve("chain-tendermint")
+					+ " --yes --exit-after-initialization --json"));
 			createOutputFile("moka_nodes_tendermint_init", output2.toString());
 
 			createCommandFile("moka_keys_bind_gamete", "moka keys bind gamete.pem --password");
@@ -179,37 +181,58 @@ public class UpdateForNewNode2 {
 			createOutputFile("moka_nodes_faucet", "Enter value for --password (the password of the key pair): mypassword\nThe threshold of the faucet has been set.");
 
 			createCommandFile("moka_nodes_tendermint_resume", "moka nodes tendermint resume");
-			createOutputFile("moka_nodes_tendermint_resume", Moka.nodesTendermintResume("--exit-after-initialization"));
+			createOutputFile("moka_nodes_tendermint_resume", Moka.nodesTendermintResume("--chain-dir=" + tempDir.resolve("chain-tendermint") + " --exit-after-initialization"));
 
-			Files.createDirectory(tempDir.resolve("instrumented"));
+			createCommandFile("moka_nodes_disk_init", "moka nodes disk init ~/.m2/repository/io/hotmoka/io-takamaka-code/"
+					+ TAKAMAKA_VERSION + "/io-takamaka-code-" + TAKAMAKA_VERSION + ".jar --public-key-of-gamete=" + output1.getPublicKeyBase58()
+					+ " --open-unsigned-faucet");
+			var output3 = Moka.nodesDiskInit(home.resolve(".m2/repository/io/hotmoka/io-takamaka-code/" + TAKAMAKA_VERSION + "/io-takamaka-code-" + TAKAMAKA_VERSION + ".jar")
+					+ " --public-key-of-gamete=" + output1.getPublicKeyBase58()
+					+ " --chain-dir=" + tempDir.resolve("chain-disk")
+					+ " --open-unsigned-faucet --yes --exit-after-initialization");
+			createOutputFile("moka_nodes_disk_init", output3);
+
+			createCommandFile("tree_chain", "tree chain/hotmoka/store");
+			var storeDir = tempDir.resolve("chain-disk").resolve("hotmoka").resolve("store");
+			createOutputFile("tree_chain", shell("tree " + storeDir + " --noreport --charset=ascii").replace("chain-disk", "chain"));
+
+			createCommandFile("cat_gamete_creation_request", "cat chain/hotmoka/store/b2/0-*/request.txt");
+			createOutputFile("cat_gamete_creation_request", shell("cat " + storeDir.resolve("b2").resolve("0-*").resolve("request.txt")));
+			createCommandFile("cat_gamete_creation_response", "cat chain/hotmoka/store/b2/0-*/response.txt");
+			createOutputFile("cat_gamete_creation_response", shell("cat " + storeDir.resolve("b2").resolve("0-*").resolve("response.txt")));
+			
+			var instrumented = tempDir.resolve("instrumented");
+			Files.createDirectory(instrumented);
 			createCommandFile("moka_jars_instrument_takamaka", "mkdir instrumented\nmoka jars instrument ~/.m2/repository/io/hotmoka/io-takamaka-code/"
 					+ TAKAMAKA_VERSION + "/io-takamaka-code-" + TAKAMAKA_VERSION + ".jar instrumented/io-takamaka-code-" + TAKAMAKA_VERSION + ".jar --init");
 			createOutputFile("moka_jars_instrument_takamaka", Moka.jarsInstrument(home + "/.m2/repository/io/hotmoka/io-takamaka-code/"
-					+ TAKAMAKA_VERSION + "/io-takamaka-code-" + TAKAMAKA_VERSION + ".jar instrumented/io-takamaka-code-" + TAKAMAKA_VERSION + ".jar --init"));
+					+ TAKAMAKA_VERSION + "/io-takamaka-code-" + TAKAMAKA_VERSION + ".jar "
+					+ instrumented.resolve("io-takamaka-code-" + TAKAMAKA_VERSION + ".jar") + " --init"));
 
 			createCommandFile("moka_jars_instrument_family", "moka jars instrument ~/.m2/repository/io/hotmoka/io-hotmoka-tutorial-examples-family/"
 					+ HOTMOKA_VERSION + "/io-hotmoka-tutorial-examples-family-" + HOTMOKA_VERSION
 					+ ".jar instrumented/io-hotmoka-tutorial-examples-family-" + HOTMOKA_VERSION
 					+ ".jar --libs instrumented/io-takamaka-code-" + TAKAMAKA_VERSION + ".jar");
 			createOutputFile("moka_jars_instrument_family", Moka.jarsInstrument(home + "/.m2/repository/io/hotmoka/io-hotmoka-tutorial-examples-family/"
-					+ HOTMOKA_VERSION + "/io-hotmoka-tutorial-examples-family-" + HOTMOKA_VERSION
-					+ ".jar instrumented/io-hotmoka-tutorial-examples-family-" + TAKAMAKA_VERSION + ".jar --libs instrumented/io-takamaka-code-" + TAKAMAKA_VERSION + ".jar"));
+					+ HOTMOKA_VERSION + "/io-hotmoka-tutorial-examples-family-" + HOTMOKA_VERSION + ".jar "
+					+ instrumented.resolve("io-hotmoka-tutorial-examples-family-" + TAKAMAKA_VERSION + ".jar")
+					+ " --libs " + instrumented.resolve("io-takamaka-code-" + TAKAMAKA_VERSION + ".jar")));
 
 			createCommandFile("moka_jars_verify_family_errors", "moka jars verify ~/.m2/repository/io/hotmoka/io-hotmoka-tutorial-examples-family_errors/"
 					+ HOTMOKA_VERSION + "/io-hotmoka-tutorial-examples-family_errors-" + HOTMOKA_VERSION
 					+ ".jar --libs instrumented/io-takamaka-code-" + TAKAMAKA_VERSION + ".jar");
 			createOutputFile("moka_jars_verify_family_errors", Moka.jarsVerify(home + "/.m2/repository/io/hotmoka/io-hotmoka-tutorial-examples-family_errors/"
-					+ HOTMOKA_VERSION + "/io-hotmoka-tutorial-examples-family_errors-" + HOTMOKA_VERSION
-					+ ".jar --libs instrumented/io-takamaka-code-" + TAKAMAKA_VERSION + ".jar"));
+					+ HOTMOKA_VERSION + "/io-hotmoka-tutorial-examples-family_errors-" + HOTMOKA_VERSION + ".jar --libs "
+					+ instrumented.resolve("io-takamaka-code-" + TAKAMAKA_VERSION + ".jar")));
 
 			createCommandFile("moka_jars_instrument_family_errors", "moka jars instrument ~/.m2/repository/io/hotmoka/io-hotmoka-tutorial-examples-family_errors/"
 					+ HOTMOKA_VERSION + "/io-hotmoka-tutorial-examples-family_errors-" + HOTMOKA_VERSION
 					+ ".jar instrumented/io-hotmoka-tutorial-examples-family_errors-" + HOTMOKA_VERSION
 					+ ".jar --libs instrumented/io-takamaka-code-" + TAKAMAKA_VERSION + ".jar");
 			createOutputFile("moka_jars_instrument_family_errors", Moka.jarsInstrument(home + "/.m2/repository/io/hotmoka/io-hotmoka-tutorial-examples-family_errors/"
-					+ HOTMOKA_VERSION + "/io-hotmoka-tutorial-examples-family_errors-" + HOTMOKA_VERSION
-					+ ".jar instrumented/io-hotmoka-tutorial-examples-family_errors-" + HOTMOKA_VERSION
-					+ ".jar --libs instrumented/io-takamaka-code-" + TAKAMAKA_VERSION + ".jar"));
+					+ HOTMOKA_VERSION + "/io-hotmoka-tutorial-examples-family_errors-" + HOTMOKA_VERSION + ".jar "
+					+ instrumented.resolve("io-hotmoka-tutorial-examples-family_errors-" + HOTMOKA_VERSION + ".jar")
+					+ " --libs " + instrumented.resolve("io-takamaka-code-" + TAKAMAKA_VERSION + ".jar")));
 		}
 	}
 
