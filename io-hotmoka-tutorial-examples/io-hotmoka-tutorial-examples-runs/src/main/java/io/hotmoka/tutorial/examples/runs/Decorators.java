@@ -53,8 +53,8 @@ public class Decorators {
 
     // the path of the runtime Takamaka jar, inside Maven's cache
     var takamakaCodePath = Paths.get
-      (System.getProperty("user.home") +
-      "/.m2/repository/io/hotmoka/io-takamaka-code/" + TAKAMAKA_VERSION
+      (System.getProperty("user.home")
+      + "/.m2/repository/io/hotmoka/io-takamaka-code/" + TAKAMAKA_VERSION
       + "/io-takamaka-code-" + TAKAMAKA_VERSION + ".jar");
 
     // the path of the user jar to install
@@ -72,13 +72,14 @@ public class Decorators {
    	  .setPublicKeyOfGamete(keys.getPublic()).build();
 
 	try (var node = DiskNodes.init(config)) {
-      // first view: store the io-takamaka-code jar and create manifest and gamete
+      // first decorator: store the io-takamaka-code jar
+      // and create manifest and gamete
 	  var initialized = DiskInitializedNodes.of(node, consensus, takamakaCodePath);
 
-      // second view: store the family jar: the gamete will pay for that
+      // second decorator: store the family jar: the gamete will pay for that
       var nodeWithJars = JarsNodes.of(node, initialized.gamete(), keys.getPrivate(), familyPath);
 
-	  // third view: create two accounts, the first with 10,000,000 units of coin
+	  // third decorator: create two accounts, the first with 10,000,000 coins
       // and the second with 20,000,000 units of coin; the gamete will pay
       var nodeWithAccounts = AccountsNodes.of
         (node, initialized.gamete(), keys.getPrivate(),
@@ -87,9 +88,9 @@ public class Decorators {
       System.out.println("manifest: " + node.getManifest());
       System.out.println("family jar: " + nodeWithJars.jar(0));
       System.out.println("account #0: " + nodeWithAccounts.account(0) +
-                         "\n  with private key " + nodeWithAccounts.privateKey(0));
+        "\n  with private key " + nodeWithAccounts.privateKey(0));
       System.out.println("account #1: " + nodeWithAccounts.account(1) +
-                         "\n  with private key " + nodeWithAccounts.privateKey(1));
+        "\n  with private key " + nodeWithAccounts.privateKey(1));
     }
   }
 }

@@ -23,7 +23,7 @@
       <artifactId>io-hotmoka-helpers</artifactId>
       <version>${hotmoka.version}</version>
     </dependency>
-       <dependency>
+    <dependency>
       <groupId>io.hotmoka</groupId>
       <artifactId>io-hotmoka-node-tendermint</artifactId>
       <version>${hotmoka.version}</version>

@@ -259,7 +259,7 @@ In order to use the gamete, you should bind its key to its actual storage
 reference in the node, on your local machine. Open another shell,
 move inside the directory holding the keys of the gamete and run:
 %
-\index{moka!keys bind@{\texttt{keys bind}}}\index{key|binding}
+\index{moka!keys bind@{\texttt{keys bind}}}\index{key!binding}
 \input{moka_keys_bind_gamete_command}
 \input{moka_keys_bind_gamete_output}
 %
@@ -412,3 +412,401 @@ state of the gamete object; for instance, an update states that
 the balance of the gamete has been set to the initial supply for the node;
 another states that the \texttt{maxFaucet} field of the gamete has been set to 0: this might be modified
 later through a transaction triggered by the \texttt{moka nodes faucet} command.
+
+\section{Logs}\label{sec:logs}
+
+The moka tool generates a \texttt{hotmoka.log.*}\index{hotmoka.log@{\texttt{hotmoka.log}}}\index{logs}
+log file. Therefore, that file is generated also
+for the \texttt{moka nodes} commants that initialize or resume a Hotmoka node.
+In that case, the logs will report which transactions have been
+processed, together with potential errors.
+%
+\begin{commentbox}
+The \texttt{hotmoka.log} file is normally rotated across successive or very long executions of moka.
+Therefore, look for files such as \texttt{hotmoka.log.0} or \texttt{hotmoka.log.1} to find the logs of the
+specific execution of moka that you are interested in.
+\end{commentbox}
+
+The content of the logs, in the case of the execution of a Hotmoka node, might look like:
+%
+\input{cat_hotmoka_log_command}
+\input{cat_hotmoka_log_output}
+
+If you want to follow in real time what is happening inside your node,
+you can run for instance \texttt{tail -f hotmoka.log.0}: this
+will hang and print the new log entries as they are generated.
+Assuming that you have a local node running in your machine, try for instance in another shell
+to run \texttt{moka nodes manifest show}: you will see in the log all new entries related
+to the execution of the methods to access
+the information on the node printed by the last command.
+%
+\begin{commentbox}
+Hotmoka nodes started with Docker disable the generation of the log files and dump
+logs to the standard output, where they can be accessed with the \texttt{docker logs} command.
+Therefore, they do not generate any \texttt{hotmoka.log} file. See next chapter for information.
+\end{commentbox}
+
+\section{Node decorators}\label{sec:node_decorators}
+
+\begin{center}
+(See the \texttt{io-hotmoka-tutorial-examples-runs} project in \texttt{\hotmokaRepo{}})
+\end{center}
+
+There are some frequent actions that can be performed in code on a Hotmoka node.
+Typically, these actions consist in a sequence of transactions. A few examples are:
+%
+\begin{enumerate}
+\item The creation of an externally owned account\index{account!creation}. This requires the creation
+	of its private and public keys and the instantiation of an
+	\texttt{io.takamaka.code.lang.ExternallyOwnedAccount}. It is not a difficult
+	procedure, but it is definitely tedious and occurs frequently.
+\item The installation of a jar\index{jar!installation} in a node. This requires a transaction for installing
+	code in the node. It requires also to parse the jar into bytes and identify the
+	number of gas units for the transaction, depending on the size of the jar.
+\item The initialization of a node\index{node!initialization}. Namely, local nodes start empty, that is,
+	their store does not contain anything at the beginning, not even their manifest
+	object. This initialization is rather technical and detail might change in future
+	versions of Hotmoka. Performing this initialization by hand leads to fragile
+	and error-prone code.
+\end{enumerate}
+
+In all these examples, Hotmoka provides decorators\index{node!decorator},
+that is, implementations of the
+\texttt{Node} interface built from an existing \texttt{Node} object. A decorator is just an alias
+of the decorated node, but adds some functionality or performs some action on it.
+Fig.~\ref{fig:node_hierarchy} shows that there are decorators for each of the three
+situations enumerated above.
+
+In order to understand the use of node decorators and appreciate their existence,
+let us write a Java class that creates a \texttt{DiskNode}, initially empty;
+then it initializes that node; subsequently it installs our \texttt{io-hotmoka-tutorial-examples-family-\hotmokaVersion{}.jar}
+file from Sec.~\ref{sec:calling_method} in the node and finally creates two accounts in the node.
+We stress the fact that these actions
+can be performed in code by using calls to the node interface (Fig.~\ref{fig:node_hierarchy}) or
+through the moka tool. Here, however, we want to perform them
+in code, simplified with the use of node decorators.
+
+Create the following \texttt{Decorators.java} class inside the
+\texttt{io.hotmoka.tutorial.examples.runs} package of the
+\texttt{io-hotmoka-tutorial-examples-runs} project:
+%
+\index{DiskNodes@{\texttt{DiskNodes}}}
+\index{DiskInitializedNodes@{\texttt{DiskInitializedNodes}}}
+\index{JarsNodes@{\texttt{JarsNodes}}}
+\index{AccountsNode@{\texttt{AccountsNodes}}}
+\begin{codebox}\begin{javalst}
+package io.hotmoka.tutorial.examples.runs;
+
+import static io.hotmoka.constants.Constants.HOTMOKA_VERSION;
+import static io.takamaka.code.constants.Constants.TAKAMAKA_VERSION;
+
+import java.math.BigInteger;
+import java.nio.file.Paths;
+import java.security.KeyPair;
+
+import io.hotmoka.crypto.Entropies;
+import io.hotmoka.crypto.SignatureAlgorithms;
+import io.hotmoka.helpers.AccountsNodes;
+import io.hotmoka.helpers.JarsNodes;
+import io.hotmoka.node.ConsensusConfigBuilders;
+import io.hotmoka.node.disk.DiskInitializedNodes;
+import io.hotmoka.node.disk.DiskNodeConfigBuilders;
+import io.hotmoka.node.disk.DiskNodes;
+
+public class Decorators {
+ 
+  public static void main(String[] args) throws Exception {
+    var config = DiskNodeConfigBuilders.defaults().build();
+
+    // the path of the runtime Takamaka jar, inside Maven's cache
+    var takamakaCodePath = Paths.get
+      (System.getProperty("user.home")
+      + "/.m2/repository/io/hotmoka/io-takamaka-code/" + TAKAMAKA_VERSION
+      + "/io-takamaka-code-" + TAKAMAKA_VERSION + ".jar");
+
+    // the path of the user jar to install
+    var familyPath = Paths.get(System.getProperty("user.home")
+      + "/.m2/repository/io/hotmoka/io-hotmoka-tutorial-examples-family/"
+      + HOTMOKA_VERSION
+      + "/io-hotmoka-tutorial-examples-family-" + HOTMOKA_VERSION + ".jar");
+
+    // create a key pair for the gamete
+    var signature = SignatureAlgorithms.ed25519();
+    var entropy = Entropies.random();
+    KeyPair keys = entropy.keys("mypassword", signature);
+    var consensus = ConsensusConfigBuilders.defaults()
+   	  .setInitialSupply(BigInteger.valueOf(1_000_000_000))
+   	  .setPublicKeyOfGamete(keys.getPublic()).build();
+
+	 try (var node = DiskNodes.init(config)) {
+      // first decorator: store the io-takamaka-code jar
+      // and create manifest and gamete
+      var initialized = DiskInitializedNodes.of(node, consensus, takamakaCodePath);
+
+      // second decorator: store the family jar: the gamete will pay for that
+      var nodeWithJars = JarsNodes.of(node, initialized.gamete(), keys.getPrivate(), familyPath);
+
+      // third decorator: create two accounts, the first with 10,000,000 coins
+      // and the second with 20,000,000 units of coin; the gamete will pay
+      var nodeWithAccounts = AccountsNodes.of
+        (node, initialized.gamete(), keys.getPrivate(),
+        BigInteger.valueOf(10_000_000), BigInteger.valueOf(20_000_000));
+
+      System.out.println("manifest: " + node.getManifest());
+      System.out.println("family jar: " + nodeWithJars.jar(0));
+      System.out.println("account #0: " + nodeWithAccounts.account(0) +
+        "\n  with private key " + nodeWithAccounts.privateKey(0));
+      System.out.println("account #1: " + nodeWithAccounts.account(1) +
+        "\n  with private key " + nodeWithAccounts.privateKey(1));
+    }
+  }
+}
+\end{javalst}\end{codebox}
+%
+Run class \texttt{Decorators}:
+%
+\input{mvn_exec_decorators_command}
+\input{mvn_exec_decorators_output}
+%
+As you can see, the use of decorators has avoided us the burden of
+programming transaction requests, explicitly, and makes our code more robust,
+since future versions of Hotmoka will update the implementation of the decorators,
+while their interface will remain untouched, shielding our code from modifications.
+
+As we have already said, decorators are
+views of the same node, just seen through different lenses
+(Java interfaces). Hence, further transactions can be run on
+\texttt{node} or \texttt{initialized} or \texttt{nodeWithJars} or \texttt{nodeWithAccounts},
+with the same effects. Moreover, it is not necessary to close all such nodes: closing \texttt{node} at
+the end of the try-with-resource will actually close all of them, since they are the same node.
+
+There exist classes for initializing other kinds of Hotmoka nodes in code, such as the classes
+\texttt{MokamintInitializedNodes}\index{MokamintInitializedNodes@{\texttt{MokamintInitializedNodes}}}
+and \texttt{TendermintInitializedNodes}\index{TendermintInitializedNodes@{\texttt{TendermintInitializedNodes}}}.
+
+\section{Node services}\label{sec:node_services}
+
+\begin{center}
+(See the \texttt{io-hotmoka-tutorial-examples-runs} project in \texttt{\hotmokaRepo{}})
+\end{center}
+
+This section shows how we can publish a Hotmoka node online, by using Java code,
+so that it becomes a
+network service that can be used, concurrently, by many remote clients.
+Namely, we will show how to publish a blockchain node based on Tendermint, but the code
+is similar if you want to publish a memory Hotmoka node or any other Hotmoka node.
+
+Remember that we have already published our nodes online, as network services,
+by using the command \texttt{moka nodes [disk|mokamint|tendermint] init}.
+Here, however, we want to do the same operation in code.
+
+Create a class \texttt{Publisher.java} inside the package
+\texttt{io.hotmoka.tutorial.examples.runs}
+of the \texttt{io-hotmoka-tutorial-examples-runs} project.
+Use the following code for the class:
+%
+\index{TendermintNodes@{\texttt{TendermintNodes}}}
+\index{NodeServices@{\texttt{NodeServices}}}
+\begin{codebox}\begin{javalst}
+package io.hotmoka.tutorial.examples.runs;
+
+import java.math.BigInteger;
+import java.nio.file.Paths;
+import java.security.KeyPair;
+
+import io.hotmoka.crypto.Entropies;
+import io.hotmoka.crypto.SignatureAlgorithms;
+import io.hotmoka.node.service.NodeServices;
+import io.hotmoka.node.tendermint.TendermintConsensusConfigBuilders;
+import io.hotmoka.node.tendermint.TendermintInitializedNodes;
+import io.hotmoka.node.tendermint.TendermintNodeConfigBuilders;
+import io.hotmoka.node.tendermint.TendermintNodes;
+import io.takamaka.code.constants.Constants;
+
+public class Publisher {
+  public static void main(String[] args) throws Exception {
+    var config = TendermintNodeConfigBuilders.defaults().build();
+
+    // the path of the runtime Takamaka jar, inside Maven's cache
+    var takamakaCodePath = Paths.get
+      (System.getProperty("user.home") +
+      "/.m2/repository/io/hotmoka/io-takamaka-code/" + Constants.TAKAMAKA_VERSION +
+      "/io-takamaka-code-" + Constants.TAKAMAKA_VERSION + ".jar");
+
+    // create a key pair for the gamete
+    var signature = SignatureAlgorithms.ed25519();
+    var entropy = Entropies.random();
+    KeyPair keys = entropy.keys("password", signature);
+    var consensus = TendermintConsensusConfigBuilders.defaults()
+      .setPublicKeyOfGamete(keys.getPublic())
+      .setInitialSupply(BigInteger.valueOf(100_000_000))
+      .build();
+
+    try (var original = TendermintNodes.init(config);
+      // uncomment the next line if you want to publish an initialized node
+      // var initialized = TendermintInitializedNodes.of(original, consensus, takamakaCodePath);
+      var service = NodeServices.of(original, 8001)) {
+
+      System.out.println("\nPress ENTER to turn off the server and exit this program");
+      System.in.read();
+    }
+  }
+}
+\end{javalst}\end{codebox}
+%
+We have already seen that \texttt{original} is a Hotmoka node based on Tendermint.
+The following line makes the feat:
+%
+\begin{codebox}\begin{javalst}
+var service = NodeServices.of(original, 8001);
+\end{javalst}\end{codebox}
+%
+Variable \texttt{service} holds a Hotmoka \emph{node service}, that is, an actual network service that adapts
+the \texttt{original} node to a web API that is published at localhost, at port 8001.
+The service is an \texttt{AutoCloseable} object: it starts when it is created and gets shut down 
+when its \texttt{close()} method is invoked, which occurs, implicitly, at the end of the
+scope of the try-with-resources. Hence, this service remains online until the user
+presses the ENTER key and terminates the service (and the program).
+
+Run class \texttt{Publisher}:
+%
+\input{mvn_exec_publisher_command}
+%
+It should work for a few seconds and then start waiting for the ENTER key. Do not press such key yet!
+Since \texttt{original} is not initialized yet, it has no manifest and no gamete. Its store is just empty
+at the moment. You can verify that by running \texttt{moka nodes manifest show}, whose result should be:
+%
+\begin{shellbox}\begin{ttlst}
+The remote service is misbehaving: are you sure that it is actually published at ws://localhost:8001 and that it is initialized and accessible?
+\end{ttlst}\end{shellbox}
+%
+since it cannot find a manifest in the node.
+
+Therefore, let us initialize the node before publishing it, so that it is already
+initialized when published. Press ENTER to terminate the service, then modify
+the \texttt{Publisher.java} class by uncommenting the use of the \texttt{InitializedNode} decorator,
+whose goal is to create manifest and gamete of the node
+and install the basic classes of the Takamaka runtime inside the node.
+%
+\begin{commentbox}
+Note that we have published \texttt{original}:
+%
+\begin{codebox}\begin{javalst}
+var service = NodeServices.of(original, 8001);
+\end{javalst}\end{codebox}
+%
+but we could have published \texttt{initialized} instead:
+%
+\begin{codebox}\begin{javalst}
+var service = NodeServices.of(initialized, 8001);
+\end{javalst}\end{codebox}
+%
+The result would be the same, since both are views of the same node object.
+Moreover, note that we have initialized the node inside the try-with-resources,
+before publishing the service as the last of the three resources.
+This ensures that the node, when published, is already initialized.
+In principle, publishing an uninitialized node, as done previously, exposes
+to the risk that somebody else might initialize the node, hence taking its control
+since he will set the keys of the gamete.
+\end{commentbox}
+
+If you re-run class \texttt{Publisher} now and retry the \texttt{moka nodes manifest show} command, you should see
+the manifest of the now initialized node on the screen.
+%
+\begin{commentbox}
+A Hotmoka node, once published, can be accessed by many
+users, \emph{concurrently}. This is not a problem, since Hotmoka nodes are thread-safe and can
+be used in parallel by many users. Of course, this does not mean that there are no
+race conditions at the application level. As a simple example, if two users operate
+with the same paying externally owned account, their wallets might suffer from race
+conditions on the nonce of the account and they might see requests
+rejected because of an incorrect nonce. The situation is the same here as in Ethereum,
+for instance. In practice, each externally owned account should be controlled
+by a single wallet at a time.
+\end{commentbox}
+
+\section{Remote nodes}\label{sec:remote_nodes}
+
+A service can be published and its methods can be called through JSON queries.
+This is relatively easy for methods such as \texttt{getManifest()} and
+\texttt{getConfig()} of the interface \texttt{Node}. However, it
+becomes harder if we want to call methods of \texttt{Node} that need parameters, such
+as \texttt{getState()} or the many add/post/run methods for scheduling transactions on
+the node. Parameters should be passed as JSON payload of the websockets connection, in a format
+that is hard to remember, easy to get wrong and possibly changing in the future.
+Moreover, the JSON responses must be parsed back.
+In principle, this can be done by hand or through software that builds the
+requests for the server and interprets its responses.
+Nevertheless, it is not the suggested way to proceed.
+
+A typical solution to this problem is to provide a software SDK, that is, a library
+that takes care of serializing the requests into JSON and deserializing
+the responses from JSON. Roughly speaking, this is the approach taken in Hotmoka.
+More precisely, we can forget about the details of the JSON serialization
+and deserialization of requests and responses and only program against the \texttt{Node} interface,
+by using an adaptor of a published Hotmoka service into a \texttt{Node}. This adaptor is called
+a \emph{remote} Hotmoka node\index{node!remote}.
+
+We have used remote nodes from the very beginning of this tutorial.
+Namely, if you go back to Sec.~\ref{sec:jar_installation},
+you will see that we have built a Hotmoka node from a remote service:
+%
+\index{RemoteNodes@{\texttt{RemoteNodes}}}
+\begin{codebox}\begin{javalst}
+try (var node = RemoteNodes.of(new URI(args[0]), 150000)) {
+  ...
+}
+\end{javalst}\end{codebox}
+%
+The \texttt{RemoteNodes.of(...)} method adapts a remote service into a Hotmoka node,
+so that we can call all its methods (Fig.~\ref{fig:node_hierarchy}). The
+\texttt{150000} parameter is the timeout, in milliseconds, for connecting to the service
+and for the methods called on the remote node.
+
+\section{Sentry nodes}\label{sec:sentry_nodes}
+
+We have seen that a \texttt{Node} can be published as a Hotmoka service:
+in a machine \texttt{my.validator.com} we can execute:
+%
+\begin{codebox}\begin{javalst}
+TendermintNodeConfig config = TendermintNodeConfigBuilders.defaults().build();
+
+try (Node original = TendermintNodes.init(config);
+  NodeService service = NodeServices.of(original, 8001)) {
+  ...
+}
+\end{javalst}\end{codebox}
+%
+The service will be published on the internet at \url{ws://my.validator.com:8001}.
+Moreover, in another machine \texttt{my.sentry.com},
+that Hotmoka service can be adapted into a remote node
+that, itself, can be published on that machine:
+%
+\begin{codebox}\begin{javalst}
+try (Node validator = RemoteNodes.of(URI.create("ws://my.validator:8001"), 80000);
+  NodeService service = NodeServices.of(validator, 8001)) {
+  ...
+}
+\end{javalst}\end{codebox}
+%
+The service will be published at \url{ws://my.sentry.com:8001}.
+
+We can continue this process as much as we want, but let us stop at this point.
+Programmers can connect to the service published at
+\url{ws://my.sentry.com:8001} and send requests to it. That service is just a bridge
+that forwards everything to the service at \url{ws://my.validator.com:8001}.
+It might not be immediately clear why this intermediate step could be useful
+or desirable. The motivation is that we could keep the (precious) validator
+machine under a firewall that allows connections with \texttt{my.sentry.com} only.
+As a consequence, in case of DOS attacks, the sentry node will receive
+the attack and possibly crash, while the validator continues to operate as usual:
+it will continue to interact with the other validators and take part in the validation
+of blocks. Moreover, since many sentries can be connected to a single validator, the latter
+remains accessible through the other sentries, if needed.
+This is an effective way to mitigate the problem of DOS attacks to validator nodes.
+
+The idea of using sentry nodes against DOS attacks is not new for proof-of-stake networks,
+whose validators are considered as precious resources that must be protected. It is used, for
+instance, in Cosmos networks~\cite{CosmosSentry}.
+However, note how it is easy, with Hotmoka, to build such a network architecture
+by using network services and remote nodes.

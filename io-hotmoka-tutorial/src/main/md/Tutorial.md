@@ -6553,9 +6553,9 @@ public class Decorators {
       System.out.println("manifest: " + node.getManifest());
       System.out.println("family jar: " + nodeWithJars.jar(0));
       System.out.println("account #0: " + nodeWithAccounts.account(0) +
-                         "\n  with private key " + nodeWithAccounts.privateKey(0));
+        "\n  with private key " + nodeWithAccounts.privateKey(0));
       System.out.println("account #1: " + nodeWithAccounts.account(1) +
-                         "\n  with private key " + nodeWithAccounts.privateKey(1));
+        "\n  with private key " + nodeWithAccounts.privateKey(1));
     }
   }
 }

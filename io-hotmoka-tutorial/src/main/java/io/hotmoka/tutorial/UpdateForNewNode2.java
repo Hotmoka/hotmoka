@@ -52,6 +52,7 @@ import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.api.updates.UpdateOfStorage;
 import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.tutorial.examples.runs.Auction;
+import io.hotmoka.tutorial.examples.runs.Decorators;
 import io.hotmoka.tutorial.examples.runs.Events;
 import io.hotmoka.tutorial.examples.runs.Family;
 import io.hotmoka.tutorial.examples.runs.FamilyExported;
@@ -200,7 +201,10 @@ public class UpdateForNewNode2 {
 			createOutputFile("cat_gamete_creation_request", shell("cat " + storeDir.resolve("b2").resolve("0-*").resolve("request.txt")));
 			createCommandFile("cat_gamete_creation_response", "cat chain/hotmoka/store/b2/0-*/response.txt");
 			createOutputFile("cat_gamete_creation_response", shell("cat " + storeDir.resolve("b2").resolve("0-*").resolve("response.txt")));
-			
+
+			createCommandFile("cat_hotmoka_log", "cat ~/hotmoka.log.0 | tail -10");
+			createOutputFile("cat_hotmoka_log", shell("cat " + home.resolve("hotmoka.log.0") + " | tail -10"));
+
 			var instrumented = tempDir.resolve("instrumented");
 			Files.createDirectory(instrumented);
 			createCommandFile("moka_jars_instrument_takamaka", "mkdir instrumented\nmoka jars instrument ~/.m2/repository/io/hotmoka/io-takamaka-code/"
@@ -233,6 +237,12 @@ public class UpdateForNewNode2 {
 					+ HOTMOKA_VERSION + "/io-hotmoka-tutorial-examples-family_errors-" + HOTMOKA_VERSION + ".jar "
 					+ instrumented.resolve("io-hotmoka-tutorial-examples-family_errors-" + HOTMOKA_VERSION + ".jar")
 					+ " --libs " + instrumented.resolve("io-takamaka-code-" + TAKAMAKA_VERSION + ".jar")));
+
+			createCommandFile("mvn_exec_decorators", "cd io-hotmoka-tutorial-examples-runs\nmvn clean install exec:exec -Dexec.executable=\"java\" -Dexec.args=\"-cp %classpath io.hotmoka.tutorial.examples.runs.Decorators\"");
+			String runDecoratorsMain = run(() -> Decorators.main(new String[] {}));
+			createOutputFile("mvn_exec_decorators", runDecoratorsMain);
+
+			createCommandFile("mvn_exec_publisher", "cd io-hotmoka-tutorial-examples-runs\nmvn clean install exec:exec -Dexec.executable=\"java\" -Dexec.args=\"-cp %classpath io.hotmoka.tutorial.examples.runs.Publisher\"");
 		}
 	}
 
