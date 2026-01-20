@@ -810,3 +810,232 @@ whose validators are considered as precious resources that must be protected. It
 instance, in Cosmos networks~\cite{CosmosSentry}.
 However, note how it is easy, with Hotmoka, to build such a network architecture
 by using network services and remote nodes.
+
+\section{Signatures and quantum-resistance}\label{sec:quantum}
+
+Hotmoka is agnostic \wrt{} the algorithm used for signing requests. This means that it is
+possible to deploy Hotmoka nodes that sign requests with distinct signature algorithms.
+Of course, if nodes must re-execute the same transactions, such as in the case of a
+blockchain, then all nodes of the blockchain must use the same algorithm for
+the transactions signed by each given account, or otherwise
+they will not be able to reach consensus.
+Yet, any fixed algorithm can be chosen for each account. In principle, it is even possible to use
+an algorithm that does not sign the transactions, if the identity of the callers of the
+transactions needn't be verified. However, this might be sensible in private networks only.
+
+The default signature algorithm used by a node is specified at construction time, as a configuration
+parameter. For instance, the code\index{setSignatureForRequests()@{\texttt{setSignatureForRequests()}}}
+%
+\begin{codebox}\begin{javalst}
+var config = TendermintNodeConfigBuilders.defaults().build();
+var consensus = TendermintConsensusConfigBuilders.defaults()
+  .setPublicKeyOfGamete(keys.getPublic())
+  .setInitialSupply(SUPPLY)
+  ...
+  .setSignatureForRequests(SignatureAlgorithms.ed25519()) // this is the default
+  .build();
+
+try (var node = TendermintNodes.init(config);
+     var initialized = TendermintInitializedNodes.of(node, consensus, takamakaCodePath)) {
+  ...
+}
+\end{javalst}\end{codebox}
+%
+starts a Tendermint-based blockchain node that uses the ed25519 signature algorithm
+as default signature algorithm for the requests.
+Requests sent to that node can be signed as follows:
+%
+\begin{codebox}\begin{javalst}
+// recover the algorithm used by the node
+SignatureAlgorithm signature = node.getConfig().getSignatureForRequests();
+
+// create a key pair for that algorithm
+KeyPair keys = signature.getKeyPair();
+
+// create a signer object with the private key of the key pair
+Signer<SignedTransactionRequest<?>> signer = signature.getSigner
+  (keys.getPrivate(), SignedTransactionRequest<?>::toByteArrayWithoutSignature);
+
+// create an account having public key keys.getPublic()
+var account = ....
+
+// create a transaction request on behalf of the account
+ConstructorCallTransactionRequest request
+  = TransactionRequests.constructorCall(signer, account, ...);
+
+// send the request to the node
+node.addConstructorCallTransaction(request);
+\end{javalst}\end{codebox}
+%
+In the example above, we have explicitly specified
+to use ed25519 as default signature algorithm. That is what is chosen
+if nothing is specified at configuration-time.
+Consequently, there is no need to specify that algorithm in the
+configuration object and that is why we never did it in the previous chapters.
+But it is possible to configure nodes with other default signature algorithms.
+For instance:
+%
+\begin{codebox}\begin{javalst}
+var consensus = TendermintConsensusConfigBuilders.defaults()
+  .setPublicKeyOfGamete(keys.getPublic())
+  .setInitialSupply(SUPPLY)
+  ...
+  .setSignatureForRequests(SignatureAlgorithms.sha256dsa()) // this replaces the default
+  .build();
+\end{javalst}\end{codebox}
+%
+configures a node that uses sha256dsa as default signature algorithm, while
+%
+\begin{codebox}\begin{javalst}
+var consensus = TendermintConsensusConfigBuilders.defaults()
+  .setPublicKeyOfGamete(keys.getPublic())
+  .setInitialSupply(SUPPLY)
+  ...
+  .setSignatureForRequests(SignatureAlgorithms.empty())
+  .build();
+\end{javalst}\end{codebox}
+%
+configures a node that uses the empty signature as default signature algorithm; it is an
+algorithm that accepts all signatures, in practice disabling signature checking.
+
+It is possible to specify a quantum-resistant signature algorithm\index{quantum resistance} as default,
+that is, one that belongs to
+a family of algorithms that are expected to be immune from attacks performed through
+a quantistic computer. For instance,
+%
+\begin{codebox}\begin{javalst}
+var consensus = TendermintConsensusConfigBuilders.defaults()
+  .setPublicKeyOfGamete(keys.getPublic())
+  .setInitialSupply(SUPPLY)
+  ...
+  .setSignatureForRequests(SignatureAlgorithms.qtesla1())
+  .build();
+\end{javalst}\end{codebox}
+%
+configures a node that uses the quantum-resistant qtesla-p-I algorithm as default signature algorithm,
+while
+%
+\begin{codebox}\begin{javalst}
+var consensus = TendermintConsensusConfigBuilders.defaults()
+  .setPublicKeyOfGamete(keys.getPublic())
+  .setInitialSupply(SUPPLY)
+  ...
+  .setSignatureForRequests(SignatureAlgorithms.qtesla3())
+  .build();
+\end{javalst}\end{codebox}
+%
+configures a node that uses the quantum-resistant qtesla-p-III
+algorithm as default signature algorithm, that is expected to be more resistant than
+qtesla-p-I but has larger signatures than qtesla-p-I.
+
+Quantum-resistance is an important aspect of future-generation blockchains.
+However, at the time of this writing, a quantum attack is mainly a theoretical
+possibility, while the large size of quantum-resistant keys and signatures is
+already a reality and a node using a qtesla signature algorithm \emph{as default}
+might exhaust the disk space of your computer very quickly. In practice, it is better
+to use a quantum-resistant signature algorithm only for a subset of the transactions, whose
+quantum-resistance is deemed important. Instead, one should use a lighter algorithm
+(such as the default ed25519) for all other transactions. This is possible because
+Hotmoka nodes allow one to mix transactions signed with distinct algorithms.
+Namely, one can use ed25519 as default algorithm, for all transactions signed
+by instances of \texttt{ExternallyOwnedAccount}s,
+with the exception of those transactions that are signed by instances of
+the interface \texttt{AccountQTESLA1}\index{AccountQTESLA1@{\texttt{AccountQTESLA1}}},
+such as the class \texttt{ExternallyOwnedAccountQTESLA1}\index{ExternallyOwnedAccountQTESLA1@{\texttt{ExternallyOwnedAccountQTESLA1}}},
+or of the interface \texttt{AccountQTESLA3}\index{AccountQTESLA3@{\texttt{AccountQTESLA3}}},
+such as the class \texttt{ExternallOwnedAccountQTESLA3}\index{ExternallOwnedAccountQTESLA3@{\texttt{ExternallOwnedAccountQTESLA3}}},
+or of the interface \texttt{AccountSHA256DSA}\index{AccountSHA256DSA@{\texttt{AccountSHA256DSA}}},
+such as the class \texttt{ExternallOwnedAccountSHA256DSA}\index{ExternallOwnedAccountSHA256DSA@{\texttt{ExternallOwnedAccountSHA256DSA}}}
+(see Fig.~\ref{fig:contract_hierarchy}).
+Namely, if the caller of a transaction is an \texttt{AccountQTESLA1}, then the
+request of the transaction must be signed with the qtesla-p-I algorithm.
+If the caller of a transaction is an \texttt{AccountQTESLA3}, then the
+request of the transaction must be signed with the qtesla-p-III algorithm.
+If the caller of a transaction is an \texttt{AccountSHA256DSA}, then the
+request of the transaction must be signed with the sha256dsa algorithm.
+If the caller of a transaction is an \texttt{AccountED25519}, then the
+request of the transaction must be signed with the ed25519 algorithm.
+In practice, this allows specific transactions to override the default signature
+algorithm for the node.
+
+Let us for instance create an account that uses the default signature algorithm for the node.
+We charge its creation to the faucet of the node:
+%
+\index{moka!keys create@{\texttt{keys create}}}
+\input{moka_keys_create_account7_command}
+\input{moka_keys_create_account7_output}
+%
+\index{moka!accounts create@{\texttt{accounts create}}}
+\input{moka_accounts_create_account7_command}
+\input{moka_accounts_create_account7_output}
+%
+You can check the class of the new account with the \texttt{moka objects show} command:
+%
+\index{ExternallyOwnedAccountED25519@{\texttt{ExternallyOwnedAccountED25519}}}
+\index{moka!objects show@{\texttt{objects show}}}
+\input{moka_objects_show_account7_command}
+\input{moka_objects_show_account7_output}
+%
+As you can see, an account has been created, that uses the default ed25519
+signature algorithm of the node.
+Assume that we want to create an account now, that always uses the sha256dsa signature algorithm instead,
+regardless of the default signature algorithm of the node. We can specify that when invoking the
+\texttt{moka accounts create} command:
+%
+\index{moka!keys create@{\texttt{keys create}}}
+\input{moka_keys_create_account8_command}
+\input{moka_keys_create_account8_output}
+%
+\index{moka!accounts create@{\texttt{accounts create}}}
+\input{moka_accounts_create_account8_command}
+\input{moka_accounts_create_account8_output}
+%
+This creation has been more expensive than for the previous account, because the public key of the
+sha256dsa algorithm is much longer than that for the ed25519 algorithm.
+You can verify this with the \texttt{moka objects show} command:
+%
+\index{moka!objects show@{\texttt{objects show}}}
+\input{moka_objects_show_account8_command}
+\input{moka_objects_show_account8_output}
+%
+Note that the class of the account is \texttt{ExternallyOwnedAccountSHA256DSA} this time.
+
+Let us create an account that uses the qtesla-p-I signature algorithm now:
+%
+\index{moka!keys create@{\texttt{keys create}}}
+\input{moka_keys_create_account9_command}
+\input{moka_keys_create_account9_output}
+%
+\index{moka!accounts create@{\texttt{accounts create}}}
+\input{moka_accounts_create_account9_command}
+\input{moka_accounts_create_account9_output}
+%
+The creation of this account has been still more expensive, since this kind of quantum-resistant
+keys are very large. Again, you can use the \texttt{moka object show}
+command to verify that it has class \texttt{ExternallyOwnedAccountQTESLA1}.
+
+Finally, let us use the previous qtesla-p-I account to create a qtesla-p-III account:
+%
+\index{moka!keys create@{\texttt{keys create}}}
+\input{moka_keys_create_account10_command}
+\input{moka_keys_create_account10_output}
+%
+\index{moka!accounts create@{\texttt{accounts create}}}
+\input{moka_accounts_create_account10_command}
+\input{moka_accounts_create_account10_output}
+%
+Note, again, the extremely high gas cost of this creation.
+
+Regardless of the kind of account, their use is always the same.
+The only difference is to use the right signature algorithm when signing
+a transaction, since it must match that of the caller account. This is automatic, if we
+use the moka tool. For instance, let us use our qtesla-p-I account to install
+the \texttt{io-hotmoka-tutorial-examples-family-\hotmokaVersion{}.jar} file from
+Sec.~\ref{sec:calling_method} in the node:
+%
+\index{moka!jars install@{\texttt{jars install}}}
+\input{moka_jars_install_family_quantum_command}
+\input{moka_jars_install_family_quantum_output}
+%
+The moka tool has understood that the payer is an account that signs with the
+qtesla-p-I algorithm and has signed the request accordingly.
