@@ -115,72 +115,18 @@ where the adaptor interface \texttt{RemoteNode} in Fig.~\ref{fig:node_hierarchy}
 
 \section{Tendermint nodes}\label{sec:tendermint_nodes}
 
-Tendermint~\cite{Tendermint}\index{Tendermint}, now Ignite, is a
-Byzantine-fault tolerant engine for building blockchains, that
-replicates a finite-state machine on a network of nodes across the world.
-The finite-state machine is often referred to as a \emph{Tendermint app}.
-The nice feature of Tendermint is that it takes care of all
-issues related to networking and consensus, leaving to the
-developer only the task to develop the Tendermint app.
-
-\begin{figure}[th]
-  \begin{center}
-    \includegraphics[width=0.8\textwidth]{pics/hotmoka_tendermint}
-  \end{center}
-  \caption{The architecture of the Hotmoka node based on Tendermint.}
-  \label{fig:hotmoka_tendermint}
-\end{figure}
-
-There is a Hotmoka node that implements such a Tendermint app,
-for programming in Takamaka over Tendermint. We have already used that node
-in the previous chapter, since that installed at
-\texttt{\serverTendermint{}} is a node of that type.
-Fig.~\cite{fig:hotmoka_tendermint}
-shows the architecture of a Tendermint Hotmoka node.
-It consists of a few components.
-The Hotmoka component is the Tendermint app that
-implements the transactions on the state, that is the installation
-of jars and the execution of code written in the Takamaka subset of Java. This part is the same in every
-implementation of a Hotmoka node, not only for this one based on Tendermint.
-The database that contains the state is implemented by
-using the Xodus transactional database by IntelliJ.
-What is specific here, however, is that transactions are put inside a blockchain
-implemented by Tendermint. The communication occurs, internally, through the two TCP ports
-26657 and 26658, that are the standard choice of Tendermint for communicating with an app.
-Clients can contact the Hotmoka node
-through any port, typically but not exclusively~8001 or~8002,
-as a service that implements the interface \texttt{Node} in Fig.~\ref{fig:node_hierarchy}.
-The node can live alone but is normally integrated with other Hotmoka nodes based on Tendermint, so that
-they execute and verify the same transactions, reaching the same state at the end. This happens through
-the TCP port 26656, that allows Tendermint instances to \emph{gossip}:
-they exchange transactions and information on peers and finally reach consensus.
-Each node can be configured to use a different port to communicate with clients,
-which is useful if, for instance, ports 8001 or 8002 (or both)
-are already used by some other service.
-Port 26656 must be the same for all nodes in the network, since they must communicate on
-a standard port.
-
-We can use \texttt{\serverTendermint{}} to play with
-accounts and Takamaka contracts. However, we might want to
-install our own node, part of the same blockchain network of \texttt{\serverTendermint{}}
-or part of a brand new blockchain. In the former case, our own node will execute
-the same transactions of \texttt{\serverTendermint{}}, so that we can be sure that they are
-executed according to the rules. In the latter case, we can have our own blockchain that
-executes our transactions only, instead of using a shared blockchain such as that
-at \texttt{\serverTendermint{}}.
-
 This section shows how you can start your own Hotmoka Tendermint node,
 consisting of a single validator node, hence part of its own blockchain.
 The process is not difficult but is a bit tedious,
 because it requires one to install Tendermint and to create
-its configuration files. Sec.~\ref{sec:tendermint_docker}
-provides a simpler alternative for reaching the same goal, by using the Docker tool.
+its configuration files. Sec.~\ref{sec:hotmoka_tendermint}
+provides a simpler alternative for reaching the same goal, by using docker.
 
 \begin{commentbox}
-We strongly suggest you to use Docker to install Hotmoka nodes, instead of the instructions
+We strongly suggest you to use docker to install Hotmoka nodes, instead of the instructions
 in this section, hence please
-follow the instructions in Sec.~\ref{sec:tendermint_docker}.
-The current section only exists in order to understand what happens inside the Docker container.
+follow the instructions in Sec.~\ref{sec:hotmoka_tendermint}.
+The current section only exists in order to understand what happens inside the docker container.
 If you are not a developer, or if you are not interested in the topic, please skip this section and
 jump directly to the next chapter.
 \end{commentbox}

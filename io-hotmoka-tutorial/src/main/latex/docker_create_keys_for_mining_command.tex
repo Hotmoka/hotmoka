@@ -1,0 +1,3 @@
+\begin{shellcommandbox}\begin{ttlst}
+docker run --name temp -it mokamint/mokamint:1.6.3 mokamint-node keys create --name miner.pem --password; docker cp temp:/home/mokamint/miner.pem .; docker rm temp
+\end{ttlst}\end{shellcommandbox}

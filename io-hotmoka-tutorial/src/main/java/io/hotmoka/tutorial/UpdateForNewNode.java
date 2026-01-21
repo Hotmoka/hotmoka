@@ -17,6 +17,7 @@ limitations under the License.
 package io.hotmoka.tutorial;
 
 import static io.hotmoka.constants.Constants.HOTMOKA_VERSION;
+import static io.mokamint.constants.Constants.MOKAMINT_VERSION;
 import static io.takamaka.code.constants.Constants.TAKAMAKA_VERSION;
 
 import java.io.BufferedReader;
@@ -118,15 +119,17 @@ public class UpdateForNewNode {
 	private final static Path HOME = Paths.get(System.getProperty("user.home"));
 
 	private static URI mokamintServer;
+	private static URI mokamintServerMining;
+	private static URI mokamintServerPublic;
 	private static URI tendermintServer;
 
 	private UpdateForNewNode() {}
 
 	/**
 	 * Edit the {@code parameters.tex} file by rerunning the experiments of the Hotmoka tutorial.
-	 * It allows one to specify the name of the directory where the files will be created and two further arguments,
+	 * It allows one to specify the name of the directory where the files will be created and four further arguments,
 	 * that are the URI of the remote nodes (for Mokamint and for Tendermint). The first defaults to
-	 * {@code src/main/latex/} and the last two default to {@code ws://panarea.hotmoka.io:8001}
+	 * {@code src/main/latex/} and the four two default to {@code ws://panarea.hotmoka.io:8001/8025/8030}
 	 * and {@code ws://panarea.hotmoka.io:8002}.
 	 * 
 	 * @param args the arguments
@@ -135,15 +138,17 @@ public class UpdateForNewNode {
 	public static void main(String[] args) throws Exception {
 		Path outputDir = args.length > 0 ? Paths.get(args[0]) : Paths.get("src/main/latex");
 		mokamintServer = new URI(args.length > 1 ? args[1] : "ws://panarea.hotmoka.io:8001");
-		tendermintServer = new URI(args.length > 2 ? args[2] : "ws://panarea.hotmoka.io:8002");
+		mokamintServerMining = new URI(args.length > 2 ? args[2] : "ws://panarea.hotmoka.io:8025");
+		mokamintServerPublic = new URI(args.length > 3 ? args[3] : "ws://panarea.hotmoka.io:8030");
+		tendermintServer = new URI(args.length > 4 ? args[4] : "ws://panarea.hotmoka.io:8002");
 		Path tempDir = Files.createTempDirectory("tmp");
 		System.out.println("Saving temporary files inside the directory " + tempDir);
 
 		// you can comment out some of the following lines if you only want to regenerate a subset of the experiments
 		new ExperimentsWithoutServer(outputDir, tempDir);
-		new ExperimentsQuantumWithMokamintServer(outputDir, tempDir);
-		new ExperimentsWithMokamintServer(outputDir, tempDir);
-		new ExperimentsWithTendermintServer(outputDir, tempDir);
+		//new ExperimentsQuantumWithMokamintServer(outputDir, tempDir);
+		//new ExperimentsWithMokamintServer(outputDir, tempDir);
+		//new ExperimentsWithTendermintServer(outputDir, tempDir);
 	}
 
 	private static class ExperimentsWithoutServer extends Experiments {
@@ -154,9 +159,12 @@ public class UpdateForNewNode {
 		@Override
 		protected void generateFiles() throws Exception {
 			report("hotmokaVersion", HOTMOKA_VERSION);
+			report("mokamintVersion", MOKAMINT_VERSION);
 			report("takamakaVersion", TAKAMAKA_VERSION);
 			report("tendermintVersion", TENDERMINT_VERSION);
 			report("faustoEmail", "\\email{fausto.spoto@hotmoka.io}");
+			report("serverMokamintMining", mokamintServerMining.toString());
+			report("serverMokamintPublic", mokamintServerPublic.toString());
 			report("hotmokaRepo", HOTMOKA_REPOSITORY);
 			report("hotmokaTutorialDir", HOTMOKA_TUTORIAL_DIR.replace("_", "\\_"));
 
@@ -254,6 +262,43 @@ public class UpdateForNewNode {
 			createOutputFile("mvn_exec_decorators", runDecoratorsMain);
 
 			createCommandFile("mvn_exec_publisher", "cd io-hotmoka-tutorial-examples-runs\nmvn clean install exec:exec -Dexec.executable=\"java\" -Dexec.args=\"-cp %classpath io.hotmoka.tutorial.examples.runs.Publisher\"");
+
+			var output4 = KeysCreateOutputs.from(Moka.keysCreate("--name miner.pem --output-dir=" + tempDir + " --password=sun --json"));
+			createCommandFile("docker_create_keys_for_mining", "docker run --name temp -it mokamint/mokamint:" + MOKAMINT_VERSION + " mokamint-node keys create --name miner.pem --password; docker cp temp:/home/mokamint/miner.pem .; docker rm temp");
+			createOutputFile("docker_create_keys_for_mining", "Enter value for --password (the password that will be needed later to use the key pair): sun\n" + output4);			
+
+			String minerPublicKeyBase58 = output4.getPublicKeyBase58();
+			createCommandFile("docker_config_miner", "docker run --log-driver local --rm -it -e MINER_PUBLIC_SERVICE_URI=" + mokamintServerMining + " -e PUBLIC_KEY_MINER_BASE58=" + minerPublicKeyBase58 + " -e PLOT_SIZE=\"5000\" -v miner_configuration:/home/mokamint/miner_configuration mokamint/mokamint:" + MOKAMINT_VERSION + " config-miner");
+
+			createCommandFile("docker_mine", "docker run --log-driver local --name miner --rm -it -e MINER_PUBLIC_SERVICE_URI=" + mokamintServerMining + " -v miner_configuration:/home/mokamint/miner_configuration mokamint/mokamint:" + MOKAMINT_VERSION + " mine");
+
+			createCommandFile("docker_check_balance", "docker run --rm -it mokamint/mokamint:" + MOKAMINT_VERSION + " mokamint-miner balance " + minerPublicKeyBase58 + " --uri " + mokamintServerMining);
+
+			createCommandFile("moka_keys_bind_miner", "moka keys bind miner.pem --password --uri=" + mokamintServer);
+
+			createCommandFile("docker_mokamint_config_clone", "docker run -it --rm -e PUBLIC_KEY_MINER_BASE58=" + minerPublicKeyBase58 + " -e MOKAMINT_PUBLIC_SERVICE_URI=" + mokamintServerPublic + " -e PLOT_SIZE=4000 -v chain:/home/hotmoka/chain -v hotmoka_mokamint:/home/hotmoka/hotmoka_mokamint hotmoka/mokamint-node:" + HOTMOKA_VERSION + " config-clone");
+
+			createCommandFile("docker_mokamint_go", "docker run -it --log-driver local --rm --name hotmoka -p 8001:8001 -p 8025:8025 -p 8030:8030 -p 127.0.0.1:8031:8031 -v chain:/home/hotmoka/chain -v hotmoka_mokamint:/home/hotmoka/hotmoka_mokamint hotmoka/mokamint-node:" + HOTMOKA_VERSION + " go");
+
+			var output5 = KeysCreateOutputs.from(Moka.keysCreate("--name gamete.pem --output-dir=" + tempDir + " --password=moon --json"));
+			createCommandFile("docker_create_keys_for_mokamint_gamete", "docker run --name temp -it hotmoka/mokamint-node:" + HOTMOKA_VERSION + " moka keys create --name gamete.pem --password; docker cp temp:/home/hotmoka/gamete.pem .; docker rm temp");
+			createOutputFile("docker_create_keys_for_mokamint_gamete", "Enter value for --password (the password that will be needed later to use the key pair): moon\n" + output5);			
+
+			String gametePublicKeyBase64 = output5.getPublicKeyBase64();
+			createCommandFile("docker_mokamint_config_new", "docker run -it --rm -e PUBLIC_KEY_MINER_BASE58=" + minerPublicKeyBase58 + " -e PUBLIC_KEY_GAMETE_BASE64=\"" + gametePublicKeyBase64 + "\" -e PLOT_SIZE=5000 -e CHAIN_ID=whale -e TARGET_BLOCK_CREATION_TIME=10000 -v chain:/home/hotmoka/chain -v hotmoka_mokamint:/home/hotmoka/hotmoka_mokamint hotmoka/mokamint-node:" + HOTMOKA_VERSION + " config-new");
+
+			createCommandFile("docker_mokamint_init", "docker run -it --rm -v chain:/home/hotmoka/chain -v hotmoka_mokamint:/home/hotmoka/hotmoka_mokamint hotmoka/mokamint-node:" + HOTMOKA_VERSION + " init");
+
+			createCommandFile("docker_tendermint_config_clone", "docker run -it --rm -e HOTMOKA_PUBLIC_SERVICE_URI=" + tendermintServer + " -e TARGET_BLOCK_CREATION_TIME=10000 -v chain:/home/hotmoka/chain -v hotmoka_tendermint:/home/hotmoka/hotmoka_tendermint hotmoka/tendermint-node:" + HOTMOKA_VERSION + " config-clone");
+
+			createCommandFile("docker_tendermint_go", "docker run -it --log-driver local --rm --name hotmoka -p 8001:8001 -p 26656:26656 -v chain:/home/hotmoka/chain -v hotmoka_tendermint:/home/hotmoka/hotmoka_tendermint hotmoka/tendermint-node:" + HOTMOKA_VERSION + " go");
+
+			createCommandFile("docker_create_keys_for_tendermint_gamete", "docker run --name temp -it hotmoka/tendermint-node:" + HOTMOKA_VERSION + " moka keys create --name gamete.pem --password; docker cp temp:/home/hotmoka/gamete.pem .; docker rm temp");
+			createOutputFile("docker_create_keys_for_tendermint_gamete", "Enter value for --password (the password that will be needed later to use the key pair): moon\n" + output5);
+
+			createCommandFile("docker_tendermint_config_new", "docker run -it --rm -e PUBLIC_KEY_GAMETE_BASE64=\"" + gametePublicKeyBase64 + "\" -e CHAIN_ID=whale -e TARGET_BLOCK_CREATION_TIME=10000 -v chain:/home/hotmoka/chain -v hotmoka_tendermint:/home/hotmoka/hotmoka_tendermint hotmoka/tendermint-node:" + HOTMOKA_VERSION + " config-new");
+
+			createCommandFile("docker_tendermint_init", "docker run -it --rm -v chain:/home/hotmoka/chain -v hotmoka_tendermint:/home/hotmoka/hotmoka_tendermint hotmoka/tendermint-node:" + HOTMOKA_VERSION + " init");
 		}
 	}
 

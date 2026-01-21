@@ -68,7 +68,7 @@
 \fancyfoot[R]{}
 
 \usepackage{makeidx} \makeindex
-\usepackage{xcolor}             % (Demonstration purposes only.)
+\usepackage{xcolor}
 \usepackage{hyperref,cleveref}  % LOAD THESE LAST!
 \usepackage{url}
 \DeclareUrlCommand\email{\urlstyle{tt}}
@@ -178,6 +178,13 @@ morekeywords={module,requires,exports,provides}
 
 \newcommand{\ie}{\emph{i.e.}\@}
 \newcommand{\wrt}{\emph{wrt.}\@}
+\newcommand{\leftplug}{\includegraphics[width=0.7cm]{pics/plug_left}}
+\newcommand{\rightplug}{\includegraphics[width=0.7cm]{pics/plug_right}}
+\newcommand{\ssd}{\includegraphics[width=0.8cm]{pics/ssd}}
+
+\colorlet{lightred}{red!50!white}
+\colorlet{lightviolet}{violet!50!white}
+\colorlet{verylightgray}{gray!25!white}
 
 \begin{document}
 
@@ -194,7 +201,8 @@ morekeywords={module,requires,exports,provides}
 \input{smart_contracts}
 \input{support_library}
 \input{tokens}
-\input{hotmoka_nodes}
+\input{blockchains}
+\input{nodes}
 \input{code_verification}
 
 \bibliographystyle{plain}

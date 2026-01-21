@@ -1,0 +1,572 @@
+\chapter{Hotmoka blockchains}\label{ch:hotmoka_blockchains}
+
+The experiments of the previous chapters have been performed on a
+Hotmoka node already existing online, part of a blockchain installed by somebody else.
+Namely, we have used the Hotmoka node at \url{\serverMokamint}, that is part
+of a blockchain based on a proof of space consensus algorithm~\cite{Spoto25}\index{proof of space},
+and the Hotmoka node at \url{\serverTendermint}, that is part of
+another blockchain, this time based on a proof of stake consensus algorithm~\cite{Kwon14}\index{proof of stake}.
+Both are able to execute Hotmoka transactions, store smart contracts and interact with them,
+but they are different for the way they create new blocks and
+synchronize their state among all the nodes
+of the blockchain they belong to. Namely, in the case of proof of space, each node
+of the blockchain increases the likelihood of winning the right to create a new block
+if it allocates a larger data structure on disk (typically, on SSD) than the other nodes of the
+same blockchain. Instead, in the case of proof of stake, only a restricted, modifiable set of nodes
+(called \emph{validators}\index{validator}) has the right to create new blocks,
+in a round-robin way, and the prize earned for the creation
+of a new block is proportional to the shares of validation power\index{validation power}
+owned by each validator.
+We do not enter into the (sometime religious) discussion about which consensus algorithm
+is the best. Probably none of them, as each of them (and others, that we do not even speak about here)
+has its advantages and drawbacks. What is important to highlight is that Hotmoka is not
+bound to a specific consensus algorithm, but is rather a software layer for the execution
+of smart contract transactions, that can be plugged on top of different consensus engines,
+giving rise to distinct blockchains with distinct consensus algorithms.
+
+This chapter shows how to build new blockchains or connect to existing blockchains,
+both for proof of space and for proof of stake consensus. It will present this by using docker,
+so that you do not need to install anything on your machine beyond docker itself.
+Namely, there exist preconfigured docker\index{docker} images that allow one to run Hotmoka nodes of
+a blockchain without preliminary, complex configuration. They are meant to simplify the
+life of users who just want to install nodes with a standard procedure that should cover
+most typical use cases. For less standard use cases, such docker images can be partially configured
+or Hotmoka nodes can be installed with Java code, as it will be shown later in Ch.~\ref{ch:hotmoka_nodes}.
+
+\section{Hotmoka blockchains based on Mokamint (proof of space)}\label{sec:hotmoka_mokamint}
+
+Hotmoka can run on top of a generic engine for proof of space consensus, called Mokamint~\ref{mokamint_github}.
+The latter implements the networking and consensus layers of a blockchain, leaving the application
+layer generic, so that it can be plugged on top of it. Hotmoka is one such application layer,
+but others may exist as well. Mokamint implements a consensus algorithm based on proof of space,
+derived from that of Burstcoin/Signum~\cite{Spoto25}. In such algorithm, the creation of a new
+block required to identification of a data structure, called \emph{nonce}, from a set of
+nonces precomputed on disk, in order to minimize the waiting time for the creation of the next block.
+The more nonces are precomputed on disk, the higher the likelihood of winning the competition for
+the creation of the next blocks. Nonces could in principle be recomputed on the fly at each
+block creation, but their computation is so complex that it becomes impossible to perform it
+in the short time between the creaton of successive blocks. From this point of view, proof of space
+is similar to Bitcoin's proof of work~\cite{Nakamoto08}, but the resource used for the competition
+is different: SSD instead of CPU. Consequently, proof of space has a minimal energy cost and can be
+run a cheap hardware as well. In particular, you can mine for Mokamint-based blockchains with a desktop machine
+or even with a mobile phone or tablet (see the Mokaminter Android app~\cite{mokaminter_google_play}).
+This becomes possible for Hotmoka as well, if run on top of Mokamint, as shown in this section.
+
+\begin{figure}[th]
+  \begin{center}
+    \begin{tikzpicture}[scale=1.1]
+      \draw [fill=lightviolet,thick] (0,1) rectangle +(3,1.5);
+      \draw[-, thick,dashed] (1.5,0.25) -- (1.5,1);
+      \draw [fill=yellow,thick] (0,-0.75) rectangle +(3,1);
+      \draw (1.5,-0.25) node {{\scriptsize peer1 (Hotmoka)}};
+      \draw (1.5,2) node {{\scriptsize peer1 (Mokamint)}};
+      \draw (1.5,1.5) node {{\scriptsize 8dE4pHgtvFAXgB\ldots}};
+      \draw [fill=lightviolet,thick] (0,4) rectangle +(3,1.5);
+      \draw[-, thick,dashed] (1.5,5.5) -- (1.5,6.25);
+      \draw [fill=yellow,thick] (0,6.25) rectangle +(3,1);
+      \draw (1.5,6.75) node {{\scriptsize peer2 (Hotmoka)}};
+      \draw (1.5,5) node {{\scriptsize peer2 (Mokamint)}};
+
+      \draw (4.3,6.75) node {\leftplug};
+      \draw (4.3,6.25) node {{\scriptsize remote client}};
+      \draw[-, thick] (3,6.75) -- (4,6.75);
+      \draw (5.5,6.75) node {{\scriptsize port 80}};
+      
+      \draw (1.5,4.5) node {{\scriptsize AhYvJj737BtY24\ldots}};
+
+      \draw [fill=lightred,thick] (4,4.85) rectangle +(4,0.8);
+      \draw (5.5,5.25) node {{\scriptsize GaWKnFs1s2syow\ldots}};
+      \draw (6,5.9) node {{\scriptsize local miner}};
+      \draw (7.4,5.25) node {\ssd};
+      \draw[-, thick] (3,5.25) -- (4,5.25);
+
+      \draw (4.3,4.1) node {\leftplug};
+      \draw (4.3,3.6) node {{\scriptsize remote miner}};
+      \draw[-, thick] (3,4.1) -- (4,4.1);
+      \draw (5.6,4.1) node {{\scriptsize port 8026}};
+
+      \draw [fill=lightred,thick] (4,2) rectangle +(4,0.8);
+      \draw (6,3.1) node {{\scriptsize local miner}};
+      \draw (5.5,2.4) node {{\scriptsize FbXZjuFsZvQ1Ae\ldots}};
+      \draw (7.4,2.4) node {\ssd};
+      \draw[-, thick] (3,2.4) -- (4,2.4);
+
+      \draw[-, thick, dashed] (1.5,2.5) -- (1.5,4);
+      \draw (0.8,2.7) node {{\scriptsize port 8030}};
+      \draw (0.8,3.7) node {{\scriptsize port 8032}};
+
+      \draw (4.3,1.1) node {\leftplug};
+      \draw (4.3,0.6) node {{\scriptsize remote miner}};
+      \draw[-, thick] (3,1.1) -- (4,1.1);
+      %\visible<1>{\draw (5.6,1.1) node {{\scriptsize port 8025}};}
+      
+      \draw (4.3,-0.2) node {\leftplug};
+      \draw (4.3,-0.7) node {{\scriptsize remote client}};
+      \draw[-, thick] (3,-0.2) -- (4,-0.2);
+      \draw (5.6,-0.2) node {{\scriptsize port 8001}};
+
+      \draw [fill=verylightgray,dashed] (6.3,0.2) rectangle +(6,1.6);
+      \draw[-, thick, dashed] (4.8,1.1) -- (6.4,1.1);
+      \draw (5.6,1.4) node {{\scriptsize port 8025}};
+      \draw[-, thick] (7.15,1.1) -- (8.1,1.1);
+      \draw [fill=lightred,thick] (8.2,0.7) rectangle +(4,0.8);
+      \draw (6.8,1.1) node {\rightplug};
+      \draw (10.1,0.4) node {{\scriptsize local miner in our machine}};
+      \draw (9.5,1.1) node {{\scriptsize our public key}};
+      \draw (11.6,1.1) node {\ssd};
+    \end{tikzpicture}
+  \end{center}
+  \caption{The network architecture of a couple of Hotmoka nodes based on Mokamint.}\label{fig:hotmoka_mokamint_network}
+\end{figure}
+
+Fig.~\ref{fig:hotmoka_mokamint_network} shows the network architecture of a couple
+of Hotmoka nodes based on Mokamint, that are two peers of the same blockchain. The two Mokamint instantiations
+communicate between each other, in order to exchange blocks and synchronize their copy of the blockchain.
+Each Mokamint instantiation runs an instance of Hotmoka, that specifies the semantics of the transactions
+that can be executed on the blockchain. Each peer exports the node interface (Fig.~\ref{fig:node_hierarchy}),
+respectively, in this example, at port 80 and 8001. Remote clients, such as moka or Mokito, can connect to such
+ports and run transactions on the nodes, that will be automatically executed in all peers.
+Fig.~\ref{fig:hotmoka_mokamint_network} shows that each peer runs a local miner\index{miner!local}, that is, a software
+tool that finds nonces on disk in order to create the next blocks. It is well possible to have peers
+without any miner, in which case they just synchronize their copy of the blockchain but do not contribute
+new blocks. However, for simplicity, our docker images will always provide a local miner to a node.
+As the same figure shows,
+some peer might allow the connection of \emph{remote miners}\index{miner!remote},
+that is, miners, identical to the local ones,
+but running as a remote network service. This allows peers to exploit the willingness of remote users
+to provide mining power to them by just plugging remote miners, without running a full node. If such remote miners
+contribute to the creation of new blocks,
+the prize for this creation will be shared between the peer and the remote miners.
+
+\subsection{Start a remote miner for an existing node based on Mokamint}\label{subsec:mining_hotmoka_mokamint}
+
+The simplest scenario is that of a user who wants to provide mining power to an existing node of a blockchain
+based on Mokamint, such as \url{\serverMokamint}. This user does not want to run a full node of the blockchain,
+for instance because he does not want to perfom a long synchronization, nor hold a copy of the full blockchain
+in his machine, or maybe because his internet connection is not stable enough for running a full node, or
+just because he does not want to keep his machine always on, day and night. This user can contribute
+to the creation of new blocks, and earn crypto for this, by running a remote miner
+for an existing Hotmoka node based on Mokamint (Fig.~\ref{fig:hotmoka_mokamint_network}),
+which can be done in two ways. The simplest is to run the
+Mokaminter Android app~\cite{mokaminter_google_play} on a mobile phone or tablet. This should be so
+simple that we do not really describe it here: just install the app and try starting mining. The other possibility
+is to mine on a local machine, and we describe it here. In both cases, the miner is identified by a key pair,
+that is where the crypto earned for mining gets sent. The key is created automatically by Mokaminter,
+while it must be created manually when mining on a local machine.
+
+There is a docker image for running a remote miner for Mokamint~\cite{mokamint_dockerhub}.
+You first need to create a key pair that will identify you as a miner of the blockchain, then create a mining configuration,
+compatible with the Mokamint node that you are going to mine for, that includes a plot file for mining.
+The larger this plot file, the more likely it is that the miner will be selected for creating the next blocks
+of the blockchain and more coins will be earned by your miner, on average.
+For instance, in order to mine for the Mokamint node running the Hotmoka testnet
+and published at \url{\serverMokamintMining}, you start with the creation of the key pair
+that will identify you as a miner:
+%
+\input{docker_create_keys_for_mining_command}
+\input{docker_create_keys_for_mining_output}
+%
+\begin{commentbox}
+We create the key pair inside a docker container above and then export it outside.
+Thus is because, in this chapter, we perform everything with the docker tool only.
+You can of course do the same by invoking \texttt{moka keys create} directly if you
+have installed on your local machine (Sec.~\ref{subsubsec:moka_local}).
+\end{commentbox}
+%
+The command above asks for a password, that you will use to control the key pair,
+it creates the key pair in your local file system, named \texttt{miner.pem},
+and prints its public key.
+Write down the password on paper, since it is not possible to recover it if lost.
+Save \texttt{miner.pem} in a safe place as well.
+
+You can create the mining configuration now:
+%
+\index{docker!docker config\_miner@{\texttt{config\_miner}}}
+\input{docker_config_miner_command}
+%
+You can replace 5000 with any other positive number of nonces in order to increase or decrease the size of the plot file.
+
+After a mining configuration has been created, you can start mining:
+%
+\index{docker!docker mine@{\texttt{mine}}}
+\input{docker_mine_command}
+%
+You should see on the screen the flow of the logs of the miner.
+You can terminate the miner by pressing the ENTER key.
+Or you can leave the miner working in the background
+by pressing CTRL+p followed by CTRL-q, as always with docker.
+
+You can stop an already running miner by simply stopping its docker container (\texttt{docker stop miner}).
+You can restart a stopped miner by running the above \texttt{mine} command again.
+You normally do not recreate the mining configuration when you restart a miner: its creation is a one-shot action.
+Nevertheless, you can recreate the configuration if, for instance, you want to change the size of the plot file.
+For that, stop your miner (if running) and just rerun the docker command for \texttt{config-miner}.
+Once the mining configuration has been recreated, you can restart your miner with \texttt{mine}.
+
+Your miner will earn coins for the mining activity. You can check the current balance of the public key
+that identifies your miner, as follows:
+%
+\index{docker!docker balance@{\texttt{balance}}}
+\input{docker_check_balance_command}
+%
+When the balance will finally be non-zero, you can bind the public key to the actual account that holds its crypto coins, with
+%
+\index{moka!keys bind@{\texttt{keys bind}}}
+\input{moka_keys_bind_miner_command}
+%
+that requires you to have \texttt{moka} installed in your machine (Sec.~\ref{subsubsec:moka_local})
+and to be run in the directory where you have saved the key pair file \texttt{miner.pem}.
+
+\subsection{Start a node of an existing blockchain based on Mokamint}\label{subsec:join_hotmoka_mokamint}
+
+This is the most typical situation. Namely, this occurs if you want to join an existing blockchain,
+with a node that mines new blocks and receives blocks created by the other peers.
+This docker image provides a script for this situation. This script includes the creation of
+a local miner as well, or otherwise your node would not be able to mine new blocks.
+Because of this, the scripts deal with two key pairs: the former identifies the node,
+and is kept inside the machine running the script, and the latter identifies the miner,
+can be stored elsewhere and only its public key is needed here.
+
+The process is consequently split in two:
+%
+\begin{itemize}	
+\item configure the node (\texttt{config-clone});
+\item run the node (\texttt{go}).
+\end{itemize}
+%
+Each phase is the execution of a script inside this docker image. The script
+\texttt{config-clone} is meant to be run only once, while \texttt{go} can be run, stopped and run again,
+whenever you want to start, stop and restart a node. You can also pause it and unpause it.
+The reason for splitting the process in two scripts is that it allows one
+to manually edit the configuration created by \texttt{config-clone} before running the node,
+although we will not show this here. Moreover, having distinct scripts allows \texttt{go}
+to be stopped and run again, repeatedly, whenever you want to stop and restart a node.
+
+The following instructions assume that you have a reliable internet connection.
+If the connection is too slow, or flickering, or if it disconnects for some time,
+the synchronization of the node will likely fail. In that case, stop and restart \texttt{go} later, hoping
+to complete the synchronization, eventually. Please consider that the synchronization of the node
+requires to download all the history of the blockchain that you are joining, which might take time
+(hours, days, even weeks, depending on the age of the blockchain and the quality of the internet
+connection).
+
+\subsubsection{Configure the node (\texttt{config-clone})}\label{subsubsec:mokamint_config_clone}
+
+The \texttt{config-clone} script creates the configuration directory of a node
+that joins an existing Hotmoka blockchain based on the Mokamint proof of space engine.
+For that, you must specify the URI of a node of this blockchain, from where
+the configuration information will be fetched. This is important, since all nodes of the
+same blockchain must have the same consensus parameters.
+
+The first thing to do is to create a key pair for the miner of the new node
+that you want to start. You can do this as in Sec.~\ref{subsec:mining_hotmoka_mokamint},
+hence generating \texttt{miner.pem}.
+
+You can then run the script that configures the node. Use for it the base58-encoded public key
+of the key pair that you have created above. Specify \url{\serverMokamintPublic}
+as the URI of a node of the blockchain to join.
+Specify the size of the plot file to use for the proof of space:
+the larger, the more blocks will be created by your node, but also more disk space
+will be allocated for mining. We will use two volumes: \texttt{chain} will contain
+the actual blockchain data and \texttt{hotmoka\_mokamint} will contain the configuration
+information created for the node. By using volumes, we can share that information
+across successive invocations of docker:
+%
+\input{docker_mokamint_config_clone_command}
+%
+Note that the script above will create another key pair (and ask you about the relative password),
+that will be kept \emph{inside} the container. This key pair identifies the node
+and will be used to sign the blocks that the node will create. It must remain inside the container,
+although you may want to extract a copy from the container to your local host.
+
+\subsubsection{Run the node (\texttt{go})}\label{subsubsec:mokamint_go}
+
+After configuring the node, you can run it with the go script:
+%
+\input{docker_mokamint_go_command}
+%
+The command above will start a node of the same blockchain of \url{\serverMokamint},
+that allows connections to the ports:
+%
+\begin{description}
+\item[8001:] this is the port where the Hotmoka node is published by default;
+	it can be used to contact the node, install and run smart contracts;
+\item[8025:] this is the port where mining services can connect by default;
+	mining services help your node produce new blocks; note that this requires to open
+	a remote miner in your node, listening at port 8025 (\texttt{mokamint-node miners add});
+\item[8030:] this is the port where Mokamint can be reached for public queries, by default;
+\item[8031:] this is the port where Mokamint can be reached for restricted operations, by default;
+	note the we have restricted its access to localhost only,
+	since we do not want our Mokamint node to be freely reconfigured remotely.
+\end{description}
+%
+After the command above, you should see that the node will start up and begin synchronizing
+from \url{\serverMokamintPublic}. This will take some time (hours, days, weeks\ldots) depending
+on the age of the cloned blockchain and on the speed of your internet connection.
+You can leave the container in the backrground by entering CTRL+p, CTRL+q, as always in docker.
+
+You can then monitor the progress of the synchronization by entering the running container
+and executing the \texttt{mokamint-node} command:
+%
+\begin{shellcommandbox}\begin{ttlst}
+docker exec -it hotmoka /bin/bash
+\end{ttlst}\end{shellcommandbox}
+%
+and then inside the container:
+%
+\begin{shellcommandbox}\begin{ttlst}
+hotmoka@e41eda9afd3b: mokamint-node chain ls 10
+\end{ttlst}\end{shellcommandbox}
+%
+You can also see the manifest of the node, that is identical to that of any other node of the joined blockchain:
+%
+\begin{shellcommandbox}\begin{ttlst}
+hotmoka@e41eda9afd3b: moka nodes manifest show
+\end{ttlst}\end{shellcommandbox}
+%
+Remember that you can always check the logs of a running docker container, for instance with:
+%
+\begin{shellcommandbox}\begin{ttlst}
+docker logs -f hotmoka
+\end{ttlst}\end{shellcommandbox}
+
+\subsection{Start a node of a new blockchain based on Mokamint}\label{subsec:start_hotmoka_mokamint}
+
+This situation is much rarer. It occurs when you want to start a brand new blockchain from scratch,
+by minting its genesis block and initializing its store. Later, other nodes can join the new blockchain
+with the technique described in Sec.~\ref{subsec:join_hotmoka_mokamint}.
+
+The docker image of Hotmoka provides scripts for starting a brand new blockchain.
+These scripts include the creation of a local miner as well, or otherwise your node
+would not be able to mine new blocks. Because of this, the scripts deal with two key pairs:
+the first identifies the node, and is kept inside the machine running the script,
+and the second identifies the miner, can be stored elsewhere and only
+its public key is needed for starting the node.
+
+The process is consequently split in three:
+%
+\begin{itemize}
+\item configure the node (\texttt{config-new})
+\item initialize the node (\texttt{init})
+\item run the node (\texttt{go})
+\end{itemize}
+%
+Each phase is the execution of a script inside the docker image. The scripts \texttt{config-new}
+and \texttt{init} are meant to be run only once, while \texttt{go} can be run, stopped and run again,
+whenever you want to start or stop a node. You can also pause it and unpause it.
+The reason for splitting the process in three scripts is that it allows one to manually edit
+the configuration created by \texttt{config-new} before initializing and running the node,
+although we will not show this here. Moreover, having distinct scripts allows \texttt{go}
+to be stopped and run again, repeatedly, whenever you want to stop and restart a node.
+
+\subsubsection{Configure the node (\texttt{config-new})}\label{subsubsec:mokamint_config_new}
+
+The configuration requires the creation of a brand new key pair that will identify the miner of the node.
+You can do this as in Sec.~\ref{subsec:mining_hotmoka_mokamint},
+hence generating \texttt{miner.pem}.
+Moreover, you will need another key pair, for the gamete\index{gamete} account.
+This is an account of Hotmoka that holds all cryptocurrency minted at start-up (if any).
+It can also be used as faucet of the node, if your node allows a free faucet.
+In any case, you need a key pair for the gamete account as well.
+Therefore, follow the instructions in Sec.~\ref{subsec:mining_hotmoka_mokamint} and create
+\texttt{gamete.pem} as well:
+%
+\input{docker_create_keys_for_mokamint_gamete_command}
+\input{docker_create_keys_for_mokamint_gamete_output}
+%
+You can now configure the node, by specifying the public key of the miner and that of the gamete:
+%
+\input{docker_mokamint_config_new_command}
+%
+Note that the public key of the miner is reported in base58,
+while that of the gamete is reported in base64, currently.
+The target block creation time, in milliseconds, is the average time between the creation of two successive blocks.
+The chain identifier identifies the new network and must be used, for instance,
+in the transaction requests sent to the Hotmoka nodes of the network.
+The script above will prompt for the password of the key pair used for signing the new blocks, that it creates.
+Enter your chosen password or leave it blank. The script will configure the node and create a plot file for its miner.
+
+\subsubsection{Initialize the node (\texttt{init})}\label{subsubsec:mokamint_init_node}
+
+The initialization of the node consists in the execution of a few initial transactions
+that create the genesis block, the manifest and the gas station of the node. You can do this with:
+%
+\input{docker_mokamint_init_command}
+%
+This will take a few seconds. You should see the logs of the executed transactions,
+until the script terminates.
+
+\subsubsection{Run the node (\texttt{go})}\label{subsubsec:mokamint_go_new_node}
+
+Once the node has been configured and initialized, you can run it.
+Follow for this the instructions reported in Sec.~\ref{subsec:join_hotmoka_mokamint}
+for the \texttt{go} script.
+
+\section{Hotmoka blockchains based on Tendermint (proof of stake)}\label{sec:hotmoka_tendermint}
+
+Tendermint~\cite{Tendermint}\index{Tendermint}, now Ignite, is a
+Byzantine-fault tolerant engine for building blockchains, that
+replicates a finite-state machine on a network of nodes across the world.
+The finite-state machine is often referred to as a \emph{Tendermint app}.
+The nice feature of Tendermint is that it takes care of all
+issues related to networking and consensus, leaving to the
+developer only the task to develop the Tendermint app.
+
+\begin{figure}[th]
+  \begin{center}
+    \includegraphics[width=0.8\textwidth]{pics/hotmoka_tendermint}
+  \end{center}
+  \caption{The architecture of the Hotmoka node based on Tendermint.}
+  \label{fig:hotmoka_tendermint}
+\end{figure}
+
+There is a docker image that implements a Hotmoka node as a Tendermint app
+for programming in Takamaka over Tendermint. We have already used that node
+previously, since that installed at
+\texttt{\serverTendermint{}} is a node of that type.
+Fig.~\cite{fig:hotmoka_tendermint}
+shows the architecture of a Tendermint Hotmoka node.
+It consists of a few components.
+The Hotmoka component is the Tendermint app that
+implements the transactions on the state, that is the installation
+of jars and the execution of code written in the Takamaka subset of Java. This part is the same in every
+implementation of a Hotmoka node, not only for this one based on Tendermint.
+The database that contains the state is implemented by
+using the Xodus transactional database by IntelliJ.
+What is specific here, however, is that transactions are put inside a blockchain
+implemented by Tendermint. The communication occurs, internally, through the two TCP ports
+26657 and 26658, that are the standard choice of Tendermint for communicating with an app.
+Clients can contact the Hotmoka node
+through any port, typically but not exclusively~8001 or~8002, as a websocket service.
+The node can live alone but is normally integrated with other Hotmoka nodes based on Tendermint, so that
+they execute and verify the same transactions, reaching the same state at the end. This happens through
+the TCP port 26656, that allows Tendermint instances to \emph{gossip}:
+they exchange transactions and information on peers and finally reach consensus.
+Each node can be configured to use a different port to communicate with clients,
+which is useful if, for instance, ports 8001 or 8002 (or both)
+are already used by some other service.
+Port 26656 must be the same for all nodes in the network, since they must communicate on
+a standard port.
+
+We can use \texttt{\serverTendermint{}} to play with
+accounts and Takamaka contracts. However, we might want to
+install our own node, part of the same blockchain network of \texttt{\serverTendermint{}}
+or part of a brand new blockchain. In the former case, our own node will execute
+the same transactions of \texttt{\serverTendermint{}}, so that we can be sure that they are
+executed according to the rules. In the latter case, we can have our own blockchain that
+executes our transactions only, instead of using a shared blockchain such as that
+at \texttt{\serverTendermint{}}.
+
+\subsection{Start a node of an existing blockchain based on Tendermint}\label{subsec:join_hotmoka_tendermint}
+
+As for Hotmoka nodes based on Mokamint~\cite{subsec:join_hotmoka_mokamint}, this task is split in two scripts,
+\texttt{config-clone} and \text{go}.
+
+\subsubsection{Configure the node (\texttt{config-clone})}\label{subsubsec:tendermint_config_clone}
+
+The \texttt{config-clone} script creates the configuration directory of a node
+that joins an existing Hotmoka blockchain based on the Tendermint byzantine
+consensus engine. For that, you must specify the URI of a node of this blockchain,
+from where the configuration information will be fetched, such as
+\url{\serverTendermint}. This is important, since all nodes of the
+same blockchain must have the same consensus parameters.
+You must also specify the average block creation rate of the blockchain,
+that in the case of \url{\serverTendermint} is $10,000$ milliseconds.
+We will use two volumes: \texttt{chain} will contain the actual blockchain data
+and \texttt{hotmoka\_tendermint} will contain the configuration information
+created for the node. By using volumes, we can share that information
+across successive invocations of docker.
+
+You can then run the script that configures the node.
+%
+\input{docker_tendermint_config_clone_command}
+%
+The script above will create a key pair with empty password, that will be kept inside the container.
+This key pair identifies the node and will be used to sign the blocks that the node will create,
+if it will ever become a validator of the network. It must remain inside the container,
+although you may want to extract a copy from the container to your local host.
+
+\subsubsection{Run the node (\texttt{go})}\label{subsubsec:tendermint_go}
+
+After configuring the node, you can run it with the go script:
+%
+\input{docker_tendermint_go_command}
+%
+The command above will start a node of the same blockchain of \url{\serverTendermint},
+that allows connections to the ports:
+%
+\begin{description}
+\item[8001:] this is the port where the Hotmoka node is published by default;
+	it can be used to contact the node, install and run smart contracts;
+\item[26656:] this is the port where the Tendermint engine communicates with its peers.
+\end{description}
+%
+After the command above, you should see that the node will start up and begin synchronizing
+from \url{\serverTendermint}. This will take some time (hours, days, weeks\ldots) depending
+on the age of the cloned blockchain and on the speed of your internet connection.
+You can leave the container in the backrground by entering CTRL+p, CTRL+q, as always in docker.
+
+You can then enter the running container and check the manifest of the node,
+that is identical to that of any other node of the joined blockchain:
+%
+\begin{shellcommandbox}\begin{ttlst}
+docker exec -it hotmoka /bin/bash
+\end{ttlst}\end{shellcommandbox}
+%
+and then inside the container:
+%
+\begin{shellcommandbox}\begin{ttlst}
+hotmoka@e41eda9afd3b: moka nodes manifest show
+\end{ttlst}\end{shellcommandbox}
+%
+Remember that you can always check the logs of a running docker container, for instance with:
+%
+\begin{shellcommandbox}\begin{ttlst}
+docker logs -f hotmoka
+\end{ttlst}\end{shellcommandbox}
+
+The resulting node will not be a validator. For that, you need to buy some validation power
+from a validator who is willing to sell it to you.
+Check the \texttt{moka nodes tendermint validators}\index{moka!nodes tendermint validators@{\texttt{nodes tendermint validators}}} commands.
+
+\subsection{Start a node of a new blockchain based on Tendermint}\label{subsec:start_hotmoka_mokamint}
+
+As in Sec.~\ref{subsec:start_hotmoka_tendermint}, this task is split in three scripts,
+\texttt{config-new}, \texttt{init} and \texttt{go}.
+
+\subsubsection{Configure the node (\texttt{config-new})}\label{subsubsec:tendermint_config_new}
+
+You will need a key pair, for the gamete\index{gamete} account.
+This is an account of Hotmoka that holds all cryptocurrency minted at start-up (if any).
+It can also be used as faucet of the node, if your node allows a free faucet.
+You can follow the instructions in Sec.~\ref{subsec:mining_hotmoka_mokamint} and create
+\texttt{gamete.pem} as well:
+%
+\input{docker_create_keys_for_tendermint_gamete_command}
+\input{docker_create_keys_for_tendermint_gamete_output}
+%
+You can now configure the node, by specifying the public key of the gamete:
+%
+\input{docker_tendermint_config_new_command}
+%
+Note that the public key of the gamete is reported in base64, currently.
+The target block creation time, in milliseconds, is the average time between
+the creation of two successive blocks. The chain identifier identifies
+the new network and must be used, for instance, in the transaction
+requests sent to the Hotmoka nodes of the network.
+
+\subsubsection{Initialize the node (\texttt{init})}\label{subsubsec:tendermint_init_node}
+
+The initialization of the node consists in the execution of a few initial transactions
+that create the genesis block, the manifest and the gas station of the node. You can do this with:
+%
+\input{docker_tendermint_init_command}
+%
+This will take a few seconds. You should see the logs of the executed transactions,
+until the script terminates.
+
+\subsubsection{Run the node (\texttt{go})}\label{subsubsec:tendermint_go_new_node}
+
+Once the node has been configured and initialized, you can run it.
+Follow for this the instructions reported in Sec.~\ref{subsec:join_hotmoka_tendermint}
+for the \texttt{go} script.

@@ -23,6 +23,7 @@ module io.hotmoka.tutorial {
 	requires io.hotmoka.node;
 	requires io.hotmoka.tutorial.examples.runs;
 	requires io.hotmoka.crypto.cli;
+	requires io.mokamint.constants;
 	requires io.takamaka.code.constants;
 	requires java.logging;
 }

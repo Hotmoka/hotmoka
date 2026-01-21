@@ -45,6 +45,11 @@
       <artifactId>io-takamaka-code-constants</artifactId>
       <version>${io.takamaka.code.version}</version>
     </dependency>
+    <dependency>
+      <groupId>io.mokamint</groupId>
+      <artifactId>io-mokamint-constants</artifactId>
+      <version>${mokamint.version}</version>
+    </dependency>
   </dependencies>
 
   <profiles>

@@ -1,0 +1,3 @@
+\begin{shellcommandbox}\begin{ttlst}
+docker run -it --log-driver local --rm --name hotmoka -p 8001:8001 -p 26656:26656 -v chain:/home/hotmoka/chain -v hotmoka_tendermint:/home/hotmoka/hotmoka_tendermint hotmoka/tendermint-node:1.11.4 go
+\end{ttlst}\end{shellcommandbox}
