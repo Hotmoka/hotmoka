@@ -281,6 +281,132 @@ I[2025-06-11|10:13:25.408] committed state module=state
 In this log, the block height increases and the application hash changes,
 reflecting the fact that the state has been modified.
 
+\subsection{Shared entities}\label{subsec:shared_entities}
+
+This section describes how the set of validators
+is implemented in Hotmoka. Namely, the validation power\index{validation power} of the network is expressed as a
+total quantity shared among all validator nodes. For instance, when we have shown the manifest of the
+nodes (\texttt{moka nodes manifest show}), we have seen information about the only validator in the subsequent form:
+%
+\begin{shellbox}\begin{ttlst}
+validator #0: b437832a688dbb89b145d380b7cb3eb841d7cb09fb600d27be43cd670e8b43f9#0
+  id: 030203B36BA4EDF0182D7D40D7EA7FE34A9415B4
+  balance: 1568
+  staked: 4704
+  power: 1000000
+\end{ttlst}\end{shellbox}
+%
+This means that validator \#0 has a \emph{power} of 1000000. If it were the only validator of the network,
+also the total power of the validators of the network would be 1000000.
+A validator can decide to sell part of its power or all its power to
+another validator, resulting in a network with a single (different) validator or with more validators.
+For instance, it might sell 200000 units of power to another validator \#1, resulting
+in a network with two validators: validator \#0 with 800000 units of power and
+validator \#1 with 200000 units of power.
+
+What said above means that the set of validators are a sort of \emph{entity} that shares validation
+power among the single validators. Validation power can be sold and bought. The number of
+validators and their power is consequently dynamic. In some sense, this mechanism
+resembles the market of shares of a corporation.
+
+\begin{figure}[th]
+  \begin{center}
+    \includegraphics[width=0.8\textwidth]{pics/entities}
+  \end{center}
+  \caption{The hierarchy of entities and validators classes.}
+  \label{fig:entities_hierarchy}
+\end{figure}
+
+Hotmoka has an interface that represents entities whose shares can be dynamically sold and bought
+among \emph{shareholders}. Fig.~\ref{fig:entities_hierarchy} shows this
+\texttt{SharedEntity}\index{SharedEntity@{\texttt{SharedEntity}}}\index{shared entity}
+interface. As you can see in the figure, the notion of validators\index{validator}
+is just a special case of shared entity (see also~\ref{SpotoMGB23}).
+It is possible to use shared entities to represent other concepts, such as
+a distributed autonomous organization, or a voting community.
+Here, however, we focus on their use to represent the set
+of the validators of a proof of stake blockchain.
+
+In general, two concepts are specific to each implementation of shared entities:
+who are the potential shareholders and how offers for selling shares work.
+Therefore, two generic types specify the interface \texttt{SharedEntity<S,O>}:
+\texttt{S} is the type of the shareholders and \texttt{O} is the type of the sale offers of shares.
+The \texttt{SharedEntityView}\index{SharedEntityView@{\texttt{SharedEntityView}}}
+interface at the top of the hierarchy in Fig.~\ref{fig:entities_hierarchy} defines
+the read-only operations on a shared entity. This view is static, in the sense
+that it does not specify the operations for transfers of shares. Therefore, its
+only type parameter is \texttt{S}: any contract can play the role of the type for the
+shareholders of the entity. Method \texttt{getShares()} yields the current
+shares of the entity (who owns how much).
+Method \texttt{isShareholder()} checks if an object is a shareholder. Method
+\texttt{sharesOf()} yields the number of shares that a shareholder owns. As typical in Takamaka,
+the \texttt{snapshot()} method allows one to create a frozen read-only copy of an entity
+(in constant time), useful when an entity must be queried from a client without
+the risk of race conditions if another client is modifying the same entity concurrently.
+
+The \texttt{SharedEntity} subinterface adds methods for transfer of shares.
+It includes an inner class \texttt{Offer}\index{Offer@{\texttt{Offer}}}
+that models sale offers: it specifies
+who is the seller of the shares, how many shares are being sold, the requested
+price and the expiration of the offer. Method \texttt{isOngoing()} checks if an offer has
+not expired yet. Implementations can subclass \texttt{Offer} if they need more specific
+offers. Offers can be placed on sale by calling the \texttt{place()} method with a sale
+offer. This method is annotated as \texttt{@FromContract} since the caller must be
+identified as the owner of the shares
+(or otherwise anybody could sell the shares of anybody else) and as
+\texttt{@Payable} so that implementations can require to pay a ticket to place shares on
+sale. The sale offer is passed as a parameter to \texttt{place()}, hence it must have been
+created before calling that method. The set of all sale offers is available through
+\texttt{getOffers()}. Method \texttt{sharesOnSaleOf()} yields the cumulative number of shares on
+sale for a given shareholder. Who wants to buy shares calls method \texttt{accept()} with
+the accepted offer and with itself as \texttt{buyer}
+and becomes a new shareholder or increases its cumulative number of shares
+(if it was already a shareholder). Also this method is \texttt{@Payable}, since its caller
+must pay \texttt{ticket >= offer.cost} coins to the seller. This means that shareholders
+must be able to receive payments and that is why \texttt{S extends PayableContract}.
+The \texttt{SimpleSharedEntity}\index{SimpleSharedEntity@{\texttt{SimpleSharedEntity}}}
+class implements the shared entity algorithms, that subclasses can redefine if they want.
+
+Hotmoka models validator nodes as
+objects of class \texttt{Validator}\index{Validator@{\texttt{Validator}}},
+that are externally owned accounts with an extra identifier
+(Fig.~\ref{fig:entities_hierarchy}).
+In the specific case of a Hotmoka blockchain built over Tendermint, validators
+are instances of the subclass
+\texttt{TendermintED25519Validator}\index{TendermintED25519Validator@{\texttt{TendermintED25519Validator}}},
+whose identifier is derived from their
+ed25519 public key. This identifier is public information, reported
+in the blocks or easily eavesdropped.
+The \texttt{Validators}\index{Validators@{\texttt{Validators}}}
+interface in Fig.~\ref{fig:entities_hierarchy}
+extends the \texttt{SharedEntity} interface, fixes the shareholders
+to be instances of \texttt{Validator} and adds a method
+\texttt{getStake()} that yields the amount of coins
+at stake for each given validator (if the validator misbehaves, its stake will
+be slashed).
+
+The \texttt{AbstractValidators}\index{AbstractValidators@{\texttt{AbstractValidators}}}
+class implements the set of validators and the distribution
+of the reward and is a subclass of \texttt{SimpleSharedEntity} (Fig.~\ref{fig:entities_hierarchy}).
+Shares are voting power in this case. It has a subclass
+for each kind of Hotmoka node, so that the distribution of the reward at each
+block creation can be implemented differently in each node type.
+Namely, there exist subclasses
+\texttt{TendermintValidators}\index{TendermintValidators@{\texttt{TendermintValidators}}},
+\texttt{MokamintValidators}\index{MokamintValidators@{\texttt{MokamintValidators}}} and
+\texttt{DiskValidators}\index{DiskValidators@{\texttt{DiskValidators}}}.
+The first subclass restricts the type of the validators to be
+\texttt{TendermintED25519Validator}. At each
+block committed, Hotmoka calls the reward method of such subclasses in order
+to reward the validators (if any) that behaved correctly and slash those that
+misbehaved, possibly removing them from the set of validators. Moreover, such methods
+are responsible for minting new coins at each block creation.
+In the case of Tendermint nodes, at block creation time,
+Hotmoka calls method \texttt{getShares()} and informs
+the underlying Tendermint engine about the identifiers of the validator nodes
+for the next blocks. Tendermint expects such validators to mine and vote the
+subsequent blocks, until a change in the set of validators occurs.
+
 \section{Disk nodes}\label{subsec:disk_nodes}
 
 The Hotmoka nodes of the previous sections form a real blockchain.

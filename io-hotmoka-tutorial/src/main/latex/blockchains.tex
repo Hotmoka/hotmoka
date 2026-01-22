@@ -16,7 +16,7 @@ same blockchain. Instead, in the case of proof of stake, only a restricted, modi
 (called \emph{validators}\index{validator}) has the right to create new blocks,
 in a round-robin way, and the prize earned for the creation
 of a new block is proportional to the shares of validation power\index{validation power}
-owned by each validator.
+owned by each validator. Other nodes can just verify the transactions.
 We do not enter into the (sometime religious) discussion about which consensus algorithm
 is the best. Probably none of them, as each of them (and others, that we do not even speak about here)
 has its advantages and drawbacks. What is important to highlight is that Hotmoka is not
@@ -138,7 +138,7 @@ to provide mining power to them by just plugging remote miners, without running 
 contribute to the creation of new blocks,
 the prize for this creation will be shared between the peer and the remote miners.
 
-\subsection{Start a remote miner for an existing node based on Mokamint}\label{subsec:mining_hotmoka_mokamint}
+\subsection{Start a remote miner for an existing node}\label{subsec:mining_hotmoka_mokamint}
 
 The simplest scenario is that of a user who wants to provide mining power to an existing node of a blockchain
 based on Mokamint, such as \url{\serverMokamint}. This user does not want to run a full node of the blockchain,
@@ -217,7 +217,7 @@ When the balance will finally be non-zero, you can bind the public key to the ac
 that requires you to have \texttt{moka} installed in your machine (Sec.~\ref{subsubsec:moka_local})
 and to be run in the directory where you have saved the key pair file \texttt{miner.pem}.
 
-\subsection{Start a node of an existing blockchain based on Mokamint}\label{subsec:join_hotmoka_mokamint}
+\subsection{Start a node of an existing blockchain}\label{subsec:join_hotmoka_mokamint}
 
 This is the most typical situation. Namely, this occurs if you want to join an existing blockchain,
 with a node that mines new blocks and receives blocks created by the other peers.
@@ -330,7 +330,7 @@ Remember that you can always check the logs of a running docker container, for i
 docker logs -f hotmoka
 \end{ttlst}\end{shellcommandbox}
 
-\subsection{Start a node of a new blockchain based on Mokamint}\label{subsec:start_hotmoka_mokamint}
+\subsection{Start the first node of a new blockchain}\label{subsec:start_hotmoka_mokamint}
 
 This situation is much rarer. It occurs when you want to start a brand new blockchain from scratch,
 by minting its genesis block and initializing its store. Later, other nodes can join the new blockchain
@@ -457,7 +457,7 @@ executed according to the rules. In the latter case, we can have our own blockch
 executes our transactions only, instead of using a shared blockchain such as that
 at \texttt{\serverTendermint{}}.
 
-\subsection{Start a node of an existing blockchain based on Tendermint}\label{subsec:join_hotmoka_tendermint}
+\subsection{Start a node of an existing blockchain}\label{subsec:join_hotmoka_tendermint}
 
 As for Hotmoka nodes based on Mokamint~\cite{subsec:join_hotmoka_mokamint}, this task is split in two scripts,
 \texttt{config-clone} and \text{go}.
@@ -529,7 +529,7 @@ The resulting node will not be a validator. For that, you need to buy some valid
 from a validator who is willing to sell it to you.
 Check the \texttt{moka nodes tendermint validators}\index{moka!nodes tendermint validators@{\texttt{nodes tendermint validators}}} commands.
 
-\subsection{Start a node of a new blockchain based on Tendermint}\label{subsec:start_hotmoka_mokamint}
+\subsection{Start a node of a new blockchain}\label{subsec:start_hotmoka_mokamint}
 
 As in Sec.~\ref{subsec:start_hotmoka_tendermint}, this task is split in three scripts,
 \texttt{config-new}, \texttt{init} and \texttt{go}.
@@ -570,3 +570,157 @@ until the script terminates.
 Once the node has been configured and initialized, you can run it.
 Follow for this the instructions reported in Sec.~\ref{subsec:join_hotmoka_tendermint}
 for the \texttt{go} script.
+
+\subsection{Manifest and validators}\label{subsec:manifest_and_validators}
+
+The information reported by \texttt{moka nodes manifest show} refers to two accounts that have been
+created during the initialization of the node:
+%
+\begin{shellbox}\begin{ttlst}
+gamete: fcc6ad9a4cd4109dcb554df6f1d951f770d42cdb4c2caeb8fa713c1d4189b4fa#0
+  balance: 1000000000000000000000000000000000
+  maxFaucet: 0
+
+validator #0: b437832a688dbb89b145d380b7cb3eb841d7cb09fb600d27be43cd670e8b43f9#0
+  id: 030203B36BA4EDF0182D7D40D7EA7FE34A9415B4
+  balance: 1568
+  staked: 4704
+  power: 1000000
+\end{ttlst}\end{shellbox}
+%
+We already know the first one, that is, the gamete\index{gamete}.
+Its private key is not stored in the docker container
+but must be available to the person who started the container.
+Normally, it is the key that was created before starting the node (with \texttt{moka keys create}
+or similar) and
+that is later bound to the storage address of the gamete (with \texttt{moka keys bind}). If you
+followed the instructions in the previous sections, you should have a
+\texttt{gamete.pem} file in your file system, for the gamete. With that pem file,
+you have \emph{superuser} rights,
+in the sense that you can, for instance,
+open and close the faucet\index{faucet} (but only if you configured the new blockchain
+with the \texttt{ALLOWS\_UNSIGNED\_FAUCET} option set to true).
+Moreover, the gamete owns all cryptocurrency initially minted for the node (if any).
+With that, you can create and fund as many new accounts
+as you want and in general run any transaction you like.
+
+There is a second account that has been created. Namely, the \emph{validator}\index{validator} account.
+This is an externally owned account that gets remunerated for every
+non-\texttt{@View}\index{View@{\texttt{View}}}
+transaction run in the node and included in blockchain. At
+the beginning, the balance of a validator is 0. This increases for each non-\texttt{@View}
+transaction executed in the blockchain. Namely, the gas
+consumed for such transactions gets forwarded to the validators of the blockchain, at its current price,
+in proportion to their validation power\index{validation power}.
+If there is only a single validator, everything goes to it.
+It is important to note that only a portion of this prize lands, immediately, in full,
+in the balance of the validators: the rest is \emph{staked}\index{staking}
+for each validator, that is, kept in the validators contract
+as a motivation for the validators to behave correctly. In the future, if a validator misbehaves
+(that is, if it does not validate the transactions correctly or does not validate them at all) then
+its stake will be reduced by a percent that is called \emph{slashing}\index{slashing}.
+This is by default $1\%$ for validators that do not validate correctly and $0.5\%$ for
+validators that do not validate at all (for instance, they are down).
+The staked amount will be forwarded to a validator only when it will sell all its
+validation power to another validator and stop being a validator.
+
+The power of a validator expresses also the weight of its votes: in order to validate a transaction,
+at least two thirds of the validation power must agree on the outcome of the transaction, or
+otherwise the network will hang.
+This mechanism is inherited from the underlying Tendermint engine and might be different
+in other Hotmoka nodes in the future. However, the idea that power represents the weight
+of a validator will likely remain.
+
+Validators also receive a prize at the end of the creation of each block of the blockchain,
+when coins are minted and distributed to the validators in proportion to their validation power.
+
+Therefore, validator accounts receives payments for the validation of transactions
+and the creation of new blocks.
+But who controls this validators? It turns out that the \texttt{config-init} command
+has created the key pair of the validator inside the configuration directory of the node.
+You can see it if you access the \texttt{hotmoka\_tendermint} volume where the container operates.
+You must be root to do that:
+%
+\begin{shellcommandbox}\begin{ttlst}
+sudo ls /var/lib/docker/volumes/hotmoka_tendermint/_data
+\end{ttlst}\end{shellcommandbox}
+%
+\begin{shellbox}\begin{ttlst}
+consensus_config.toml  local_config.toml  tendermint_config  validator.pem
+\end{ttlst}\end{shellbox}
+%
+In alternative, you can use the \texttt{docker exec} command to run a command inside the container.
+You do not need to be root, but need to know the id of the running container (\texttt{docker ps} might help you):
+%
+\begin{shellcommandbox}\begin{ttlst}
+docker exec c1407e499ad67465318704da1fcb6e9b88ee94faceb7c4b86e00ab4775590b3f /bin/ls hotmoka_tendermint
+\end{ttlst}\end{shellcommandbox}
+%
+\begin{shellbox}\begin{ttlst}
+consensus_config.toml
+local_config.toml
+tendermint_config
+validator.pem
+\end{ttlst}\end{shellbox}
+%
+Who owns that key controls the validator. Therefore, you might wanto to move it in your host machine:
+%
+\begin{shellcommandbox}\begin{ttlst}
+docker cp c1407e499:/home/hotmoka/hotmoka_tendermint/validator.pem .
+\end{ttlst}\end{shellcommandbox}
+%
+\begin{shellbox}\begin{ttlst}
+Successfully copied 2.05kB
+\end{ttlst}\end{shellbox}
+
+As a final remark about the key of the validator, note that it \emph{must} be the same
+key that the underlying Tendermint engine uses in order to identify the node in the network
+and vote for validation. If that is not the case, the validator account in the
+manifest will not be recognized as a working validator and will be slashed for
+not behaving. Eventually, it will be expulsed from the set of validators.
+Tendermint stores the key that it uses to identify the node in another file, inside
+its configuration, and in JSON format:
+%
+\begin{shellcommandbox}\begin{ttlst}
+docker exec c1407e499 /bin/ls hotmoka_tendermint/tendermint_config/config
+\end{ttlst}\end{shellcommandbox}
+%
+\begin{shellbox}\begin{ttlst}
+config.toml
+genesis.json
+node_key.json
+priv_validator_key.json
+\end{ttlst}\end{shellbox}
+%
+This file must remain in the node, or otherwise Tendermint cannot vote for validation.
+The docker \texttt{config-clone} and \texttt{config-new} scripts magically ensure that,
+correctly, this file contains the same key
+as \texttt{validator.pem}, although in a different format.
+
+\subsection{Become a validator}\label{subsec:become_validator}
+
+The configuration of a Hotmoka Tendermint node, created thorugh the \texttt{config-clone}
+or \texttt{config-new} commands,
+contains a \texttt{validator.pem} key pair file, as said above. You can use that file to create an actual
+account object, a candidate for becoming a validator of the network. You can do this with the
+\texttt{moka nodes tendermint validators create}\index{moka!nodes tendermint validators create@{\texttt{nodes tendermint validators create}}}
+command, which is similar to
+\texttt{moka accounts create} but creates instances of
+\texttt{TendermintED25519Validator}\index{TendermintED25519Validator@{\texttt{TendermintED25519Validator}}}.
+Once you have a validator object for your \texttt{validator.pem}, you can become an actual validator
+when one of the existing validators decides to sell (part of) its shares and you buy it.
+The seller validator creates a sale offer with the
+\texttt{moka nodes tendermint validators sell}\index{moka!nodes tendermint validators sell@{\texttt{nodes tendermint validators sell}}}
+command. The sale offer will be visible in the manifest of the node and can be bought with
+the \texttt{moka nodes tendermint validators buy}\index{moka!nodes tendermint validators buy@{\texttt{nodes tendermint validators buy}}}
+command. After that, the buyer will be a new validator of the network.
+
+\begin{commentbox}
+It is important to note that a validator node is assumed to be reachable from the outside world
+and up, also overnight. Most home desktop computers, connected through a modem, have no public IP
+that can be used to reach them from the outside world (the public IP of the modem reaches the modem
+itself, not the computer). Therefore, if you try to use a home machine to become a validator, your
+machine will be immediately slashed for being uneachable and it will be removed from the set of validators,
+immediately after becoming one. You need a machine with a public IP for being a validator, such as
+for instance a machine on a rental service.
+\end{commentbox}
