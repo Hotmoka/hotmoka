@@ -77,17 +77,26 @@ public class TendermintInitializedNodeImpl extends AbstractInitializedNode<Tende
 	}
 
 	@Override
+	protected TendermintConsensusConfig<?, ?> editConsensus(TendermintConsensusConfig<?, ?> consensus) throws TimeoutException, InterruptedException {
+		var localConfig = getParent().getLocalConfig();
+		var tendermintConfigFile = new TendermintConfigFile(localConfig);
+		var poster = new TendermintPoster(localConfig, tendermintConfigFile.getTendermintPort());
+
+		// we force the genesis time of the blockchain and the chain identifier to coincide with that
+		// of the underlying Tendermint engine
+		return consensus.toBuilder()
+				.setChainId(poster.getTendermintChainId())
+				.setGenesisTime(poster.getGenesisTime())
+				.build();
+	}
+
+	@Override
 	protected StorageReference mkValidatorsBuilder(TendermintConsensusConfig<?, ?> consensus, TransactionReference takamakaCode) 
 			throws TransactionRejectedException, TransactionException, CodeExecutionException, ClosedNodeException, UnexpectedCodeException, TimeoutException, InterruptedException {
 
 		var localConfig = getParent().getLocalConfig();
 		var tendermintConfigFile = new TendermintConfigFile(localConfig);
 		var poster = new TendermintPoster(localConfig, tendermintConfigFile.getTendermintPort());
-
-		consensus = consensus.toBuilder()
-				.setChainId(poster.getTendermintChainId())
-				.setGenesisTime(poster.getGenesisTime())
-				.build();
 
 		// we create validators corresponding to those declared in the configuration file of the Tendermint node
 		TendermintValidator[] tendermintValidators = poster.getTendermintValidators();

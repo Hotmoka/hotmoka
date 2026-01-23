@@ -53,7 +53,7 @@ public abstract class AbstractInitializedNode<N extends Node, C extends Consensu
 	 * @throws ClosedNodeException if the node is already closed
 	 * @throws UnexpectedCodeException if the Takamaka code in the store of the node is unexpected
 	 */
-	public AbstractInitializedNode(N parent, C consensus, Path takamakaCode)
+	protected AbstractInitializedNode(N parent, C consensus, Path takamakaCode)
 			throws TransactionRejectedException, TransactionException, CodeExecutionException, IOException, TimeoutException, InterruptedException, ClosedNodeException, UnexpectedCodeException {
 
 		super(parent, consensus, takamakaCode);

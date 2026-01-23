@@ -64,7 +64,7 @@ public abstract class InitializedNodeImpl<N extends Node, C extends ConsensusCon
 	 * Creates a decorated node with basic Takamaka classes, gamete and manifest.
 	 * 
 	 * @param parent the node to decorate
-	 * @param consensus the consensus parameters that will be set for the node
+	 * @param editedConsensus the consensus parameters that will be set for the node
 	 * @param takamakaCode the jar containing the basic Takamaka classes
 	 * @throws TransactionRejectedException if some transaction gets rejected
 	 * @throws TransactionException if some transaction fails
@@ -75,10 +75,12 @@ public abstract class InitializedNodeImpl<N extends Node, C extends ConsensusCon
 	 * @throws ClosedNodeException if the node is already closed
 	 * @throws UnexpectedCodeException if the Takamaka code in the store of the node is unexpected
 	 */
-	public InitializedNodeImpl(N parent, C consensus, Path takamakaCode)
+	protected InitializedNodeImpl(N parent, C consensus, Path takamakaCode)
 			throws TransactionRejectedException, TransactionException, CodeExecutionException, IOException, TimeoutException, InterruptedException, ClosedNodeException, UnexpectedCodeException {
 
 		super(parent);
+
+		consensus = editConsensus(consensus);
 
 		// we install the jar containing the basic Takamaka classes
 		TransactionReference takamakaCodeReference = parent.addJarStoreInitialTransaction(TransactionRequests.jarStoreInitial(Files.readAllBytes(takamakaCode)));
@@ -113,6 +115,20 @@ public abstract class InitializedNodeImpl<N extends Node, C extends ConsensusCon
 
 		// we install the manifest and initialize the node
 		parent.addInitializationTransaction(TransactionRequests.initialization(takamakaCodeReference, manifest));
+	}
+
+	/**
+	 * Modifies the consensus provided by the user, fixing some properties
+	 * in an implementation-specific way. This allows one to impose some consistency constraint
+	 * on the consensus parameters.
+	 * 
+	 * @param consensus the original consensus configuration provided to the constructor
+	 * @return the actual consensus configuration used for the initialization of the node
+	 * @throws TimeoutException if the operation times out
+	 * @throws InterruptedException if the current thread gets interrupted before completing the operation
+	 */
+	protected C editConsensus(C consensus) throws TimeoutException, InterruptedException {
+		return consensus; // subclasses may redefine
 	}
 
 	/**
