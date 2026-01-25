@@ -5,12 +5,10 @@
 mkdir -p target/pdf
 rm -r target/pdf/*
 cp src/main/latex/*.tex target/pdf
-LC_ALL=C sed -i 's/[^[:print:][:cntrl:]]//g' target/pdf/moka_nodes_manifest_show_output.tex
+%LC_ALL=C sed -i 's/[^[:print:][:cntrl:]]//g' target/pdf/moka_nodes_manifest_show_output.tex
 cp src/main/latex/biblio.bib target/pdf
 cp -r src/main/resources/pics target/pdf
 cd target/pdf
 pdflatex tutorial.tex
 
 cd ../..
-
-

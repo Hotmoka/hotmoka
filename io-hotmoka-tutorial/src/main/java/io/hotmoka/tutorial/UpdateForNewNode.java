@@ -151,6 +151,9 @@ public class UpdateForNewNode {
 		new ExperimentsWithTendermintServer(outputDir, tempDir);
 	}
 
+	/**
+	 * Generates Latex files and commands that do not need to contact a remote server.
+	 */
 	private static class ExperimentsWithoutServer extends Experiments {
 		private ExperimentsWithoutServer(Path outputDir, Path tempDir) throws Exception {
 			super(outputDir, LATEX_FILE_NAME, tempDir);
@@ -163,10 +166,23 @@ public class UpdateForNewNode {
 			report("takamakaVersion", TAKAMAKA_VERSION);
 			report("tendermintVersion", TENDERMINT_VERSION);
 			report("faustoEmail", "\\email{fausto.spoto@hotmoka.io}");
+			report("serverMokamint", mokamintServer.toString());
 			report("serverMokamintMining", mokamintServerMining.toString());
 			report("serverMokamintPublic", mokamintServerPublic.toString());
+			report("serverTendermint", tendermintServer.toString());
 			report("hotmokaRepo", HOTMOKA_REPOSITORY);
 			report("hotmokaTutorialDir", HOTMOKA_TUTORIAL_DIR.replace("_", "\\_"));
+
+			createCommandFile("git_clone_hotmoka", "git clone --branch v" + HOTMOKA_VERSION + " " + HOTMOKA_REPOSITORY);
+			createCommandFile("mvn_clean_install", "mvn clean install");
+			createOutputFile("moka_help", Moka.help(""));
+			createCommandFile("moka_version", "moka --version");
+			createOutputFile("moka_help_objects", Moka.help("objects"));
+			createOutputFile("moka_objects_help_show", Moka.objectsHelp("show"));
+
+			createCommandFile("docker_run_moka", "docker run -it --rm hotmoka/mokamint-node:" + HOTMOKA_VERSION + " moka --version");
+			createCommandFile("install_moka", "mkdir -p ~/Gits\ncd ~/Gits\ngit clone --branch v" + HOTMOKA_VERSION + " " + HOTMOKA_REPOSITORY + "\ncd hotmoka\nmvn clean install -DskipTests");
+			createCommandFile("export_path_moka", "export PATH=~/Gits/hotmoka/io-hotmoka-moka/src/main/bash:$PATH");
 
 			createCommandFile("moka_jars_verify_takamaka", "moka jars verify ~/.m2/repository/io/hotmoka/io-takamaka-code/"
 					+ TAKAMAKA_VERSION + "/io-takamaka-code-" + TAKAMAKA_VERSION + ".jar --init");
@@ -309,23 +325,13 @@ public class UpdateForNewNode {
 
 		@Override
 		protected void generateFiles() throws Exception {
-			report("serverMokamint", mokamintServer.toString());
-			createCommandFile("git_clone_hotmoka", "git clone --branch v" + HOTMOKA_VERSION + " " + HOTMOKA_REPOSITORY);
-			createCommandFile("mvn_clean_install", "mvn clean install");
-			createOutputFile("moka_help", Moka.help(""));
-			createCommandFile("moka_version", "moka --version");
-			createOutputFile("moka_help_objects", Moka.help("objects"));
-			createOutputFile("moka_objects_help_show", Moka.objectsHelp("show"));
 			createOutputFile("moka_nodes_manifest_show", Moka.nodesManifestShow("--uri " + mokamintServer));
-			createCommandFile("docker_run_moka", "docker run -it --rm hotmoka/mokamint-node:" + HOTMOKA_VERSION + " moka --version");
-			createCommandFile("install_moka", "mkdir -p ~/Gits\ncd ~/Gits\ngit clone --branch v" + HOTMOKA_VERSION + " " + HOTMOKA_REPOSITORY + "\ncd hotmoka\nmvn clean install -DskipTests");
-			createCommandFile("export_path_moka", "export PATH=~/Gits/hotmoka/io-hotmoka-moka/src/main/bash:$PATH");
-			
+
 			var output1 = NodesTakamakaAddressOutputs.from(Moka.nodesTakamakaAddress("--uri=" + mokamintServer + " --json --timeout=" + TIMEOUT));
 			TransactionReference takamakaCode = output1.getTakamakaCode();
 			report("takamakaCode", takamakaCode);
 			reportShort("takamakaCode", takamakaCode);
-		
+
 			var output2 = NodesManifestAddressOutputs.from(Moka.nodesManifestAddress("--uri=" + mokamintServer + " --json --timeout=" + TIMEOUT));
 			StorageReference manifest = output2.getManifest();
 			report("manifest", manifest);
@@ -361,8 +367,7 @@ public class UpdateForNewNode {
 			String publicKeyAccount1Base64 = output8.getPublicKeyBase64();
 			report("accountOnePublicKeyBaseSixtyfour", publicKeyAccount1Base64);
 			report("accountOneTendermintAddress", output8.getTendermintAddress());
-			String publicKeyAccount1Base64Short = publicKeyAccount1Base64.substring(0, 16) + "\\ldots";
-			report("accountOnePublicKeyBaseSixtyfourShort", publicKeyAccount1Base64Short);
+			reportShort("accountOnePublicKeyBaseSixtyfour", publicKeyAccount1Base64);
 		
 			var account1Balance = 50000000000000L;
 			report("accountOneBalance", Long.toString(account1Balance));
@@ -715,7 +720,6 @@ public class UpdateForNewNode {
 
 		@Override
 		protected void generateFiles() throws Exception {
-			report("serverTendermint", tendermintServer.toString());
 			createCommandFile("moka_keys_create_account4", "moka keys create --name=account4.pem --password");
 			String output = Moka.keysCreate("--name account4.pem --output-dir=" + tempDir + " --password=banana");
 			createOutputFile("moka_keys_create_account4", "Enter value for --password (the password that will be needed later to use the key pair): banana\n" + output);
@@ -723,7 +727,7 @@ public class UpdateForNewNode {
 			createCommandFile("moka_keys_create_account5", "moka keys create --name=account5.pem --password");
 			output = Moka.keysCreate("--name account5.pem --output-dir=" + tempDir + " --password=mango");
 			createOutputFile("moka_keys_create_account5", "Enter value for --password (the password that will be needed later to use the key pair): mango\n" + output);
-			
+
 			createCommandFile("moka_keys_create_account6", "moka keys create --name=account6.pem --password");
 			output = Moka.keysCreate("--name account6.pem --output-dir=" + tempDir + " --password=strawberry");
 			createOutputFile("moka_keys_create_account6", "Enter value for --password (the password that will be needed later to use the key pair): strawberry\n" + output);
@@ -813,7 +817,11 @@ public class UpdateForNewNode {
 		}
 
 		protected void reportShort(String command, TransactionReference reference) {
-			report(command + "Short", reference.toString().substring(0, 16) + "\\ldots");
+			reportShort(command, reference.toString());
+		}
+
+		protected void reportShort(String command, String s) {
+			report(command + "Short", s.substring(0, 16) + "\\ldots");
 		}
 
 		protected void createCommandFile(String filename, String content) throws FileNotFoundException {

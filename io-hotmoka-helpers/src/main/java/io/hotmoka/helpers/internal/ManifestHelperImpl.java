@@ -156,120 +156,120 @@ public class ManifestHelperImpl implements ManifestHelper {
 	private String asString() throws TransactionRejectedException, TransactionException, CodeExecutionException, TimeoutException, InterruptedException, UnexpectedCodeException, ClosedNodeException {
 		var builder = new StringBuilder();
 
-		builder.append("├─ takamaka code: ").append(takamakaCode).append("\n");
-		builder.append("└─ manifest: ").append(manifest).append("\n");
+		builder.append("|-- takamaka code: ").append(takamakaCode).append("\n");
+		builder.append("`-- manifest: ").append(manifest).append("\n");
 
 		String genesisTime = node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
 				(gamete, _100_000, takamakaCode, MethodSignatures.GET_GENESIS_TIME, manifest))
 				.orElseThrow(() -> new UnexpectedVoidMethodException(MethodSignatures.GET_GENESIS_TIME))
 				.asReturnedString(MethodSignatures.GET_GENESIS_TIME, UnexpectedValueException::new);
-		builder.append("   ├─ genesis time: ").append(genesisTime).append("\n");
+		builder.append("   |-- genesis time: ").append(genesisTime).append("\n");
 
-		builder.append("   ├─ chain id: ").append(getChainId()).append("\n");
+		builder.append("   |-- chain id: ").append(getChainId()).append("\n");
 
 		int maxDependencies = node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
 				(manifest, _100_000, takamakaCode, MethodSignatures.GET_MAX_DEPENDENCIES, manifest))
 				.orElseThrow(() -> new UnexpectedVoidMethodException(MethodSignatures.GET_MAX_DEPENDENCIES))
 				.asReturnedInt(MethodSignatures.GET_MAX_DEPENDENCIES, UnexpectedValueException::new);
 
-		builder.append("   ├─ max dependencies: ").append(maxDependencies).append("\n");
+		builder.append("   |-- max dependencies: ").append(maxDependencies).append("\n");
 
 		long maxCumulativeSizeOfDependencies = node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
 				(manifest, _100_000, takamakaCode, MethodSignatures.GET_MAX_CUMULATIVE_SIZE_OF_DEPENDENCIES, manifest))
 				.orElseThrow(() -> new UnexpectedVoidMethodException(MethodSignatures.GET_MAX_CUMULATIVE_SIZE_OF_DEPENDENCIES))
 				.asReturnedLong(MethodSignatures.GET_MAX_CUMULATIVE_SIZE_OF_DEPENDENCIES, UnexpectedValueException::new);
 
-		builder.append("   ├─ max cumulative size of dependencies: ").append(maxCumulativeSizeOfDependencies).append("\n");
+		builder.append("   |-- max cumulative size of dependencies: ").append(maxCumulativeSizeOfDependencies).append("\n");
 
 		long maxRequestSize = node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
 				(manifest, _100_000, takamakaCode, MethodSignatures.GET_MAX_REQUEST_SIZE, manifest))
 				.orElseThrow(() -> new UnexpectedVoidMethodException(MethodSignatures.GET_MAX_REQUEST_SIZE))
 				.asReturnedLong(MethodSignatures.GET_MAX_REQUEST_SIZE, UnexpectedValueException::new);
 
-		builder.append("   ├─ max request size: ").append(maxRequestSize).append("\n");
+		builder.append("   |-- max request size: ").append(maxRequestSize).append("\n");
 
 		boolean allowsUnsignedFaucet = node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
 				(manifest, _100_000, takamakaCode, MethodSignatures.ALLOWS_UNSIGNED_FAUCET, manifest))
 				.orElseThrow(() -> new UnexpectedVoidMethodException(MethodSignatures.ALLOWS_UNSIGNED_FAUCET))
 				.asReturnedBoolean(MethodSignatures.ALLOWS_UNSIGNED_FAUCET, UnexpectedValueException::new);
 
-		builder.append("   ├─ allows unsigned faucet: ").append(allowsUnsignedFaucet).append("\n");
+		builder.append("   |-- allows unsigned faucet: ").append(allowsUnsignedFaucet).append("\n");
 
 		boolean skipsVerification = node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
 				(manifest, _100_000, takamakaCode, MethodSignatures.SKIPS_VERIFICATION, manifest))
 				.orElseThrow(() -> new UnexpectedVoidMethodException(MethodSignatures.SKIPS_VERIFICATION))
 				.asReturnedBoolean(MethodSignatures.SKIPS_VERIFICATION, UnexpectedValueException::new);
 
-		builder.append("   ├─ skips verification: ").append(skipsVerification).append("\n");
+		builder.append("   |-- skips verification: ").append(skipsVerification).append("\n");
 
 		String signature = node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
 				(manifest, _100_000, takamakaCode, MethodSignatures.GET_SIGNATURE, manifest))
 				.orElseThrow(() -> new UnexpectedVoidMethodException(MethodSignatures.GET_SIGNATURE))
 				.asReturnedString(MethodSignatures.GET_SIGNATURE, UnexpectedValueException::new);
 
-		builder.append("   ├─ signature: ").append(signature).append("\n");
+		builder.append("   |-- signature: ").append(signature).append("\n");
 
-		builder.append("   ├─ gamete: ").append(gamete).append("\n");
+		builder.append("   |-- gamete: ").append(gamete).append("\n");
 
 		BigInteger balanceOfGamete = node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
 				(manifest, _100_000, takamakaCode, MethodSignatures.BALANCE, gamete))
 				.orElseThrow(() -> new UnexpectedVoidMethodException(MethodSignatures.BALANCE))
 				.asReturnedBigInteger(MethodSignatures.BALANCE, UnexpectedValueException::new);
 
-		builder.append("   │  ├─ balance: ").append(balanceOfGamete).append("\n");
+		builder.append("   |  |-- balance: ").append(balanceOfGamete).append("\n");
 
 		BigInteger maxFaucet = node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
 				(manifest, _100_000, takamakaCode, MethodSignatures.GET_MAX_FAUCET, gamete))
 				.orElseThrow(() -> new UnexpectedVoidMethodException(MethodSignatures.GET_MAX_FAUCET))
 				.asReturnedBigInteger(MethodSignatures.GET_MAX_FAUCET, UnexpectedValueException::new);
 
-		builder.append("   │  └─ max faucet: ").append(maxFaucet).append("\n");
+		builder.append("   |  `-- max faucet: ").append(maxFaucet).append("\n");
 
-		builder.append("   ├─ gas station: ").append(gasStation).append("\n");
+		builder.append("   |-- gas station: ").append(gasStation).append("\n");
 
 		BigInteger initialGasPrice = node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
 				(manifest, _100_000, takamakaCode, MethodSignatures.GET_INITIAL_GAS_PRICE, gasStation))
 				.orElseThrow(() -> new UnexpectedVoidMethodException(MethodSignatures.GET_INITIAL_GAS_PRICE))
 				.asReturnedBigInteger(MethodSignatures.GET_INITIAL_GAS_PRICE, UnexpectedValueException::new);
 
-		builder.append("   │  ├─ initial gas price: ").append(initialGasPrice).append("\n");
+		builder.append("   |  |-- initial gas price: ").append(initialGasPrice).append("\n");
 
 		BigInteger gasPrice = node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
 				(manifest, _100_000, takamakaCode, MethodSignatures.GET_GAS_PRICE, gasStation))
 				.orElseThrow(() -> new UnexpectedVoidMethodException(MethodSignatures.GET_GAS_PRICE))
 				.asReturnedBigInteger(MethodSignatures.GET_GAS_PRICE, UnexpectedValueException::new);
 
-		builder.append("   │  ├─ gas price: ").append(gasPrice).append("\n");
+		builder.append("   |  |-- gas price: ").append(gasPrice).append("\n");
 
 		BigInteger maxGasPerTransaction = node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
 				(manifest, _100_000, takamakaCode, MethodSignatures.GET_MAX_GAS_PER_TRANSACTION, gasStation))
 				.orElseThrow(() -> new UnexpectedVoidMethodException(MethodSignatures.GET_MAX_GAS_PER_TRANSACTION))
 				.asReturnedBigInteger(MethodSignatures.GET_MAX_GAS_PER_TRANSACTION, UnexpectedValueException::new);
 
-		builder.append("   │  ├─ max gas per transaction: ").append(maxGasPerTransaction).append("\n");
+		builder.append("   |  |-- max gas per transaction: ").append(maxGasPerTransaction).append("\n");
 
 		boolean ignoresGasPrice = node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
 				(manifest, _100_000, takamakaCode, MethodSignatures.IGNORES_GAS_PRICE, gasStation))
 				.orElseThrow(() -> new UnexpectedVoidMethodException(MethodSignatures.IGNORES_GAS_PRICE))
 				.asReturnedBoolean(MethodSignatures.IGNORES_GAS_PRICE, UnexpectedValueException::new);
 
-		builder.append("   │  ├─ ignores gas price: ").append(ignoresGasPrice).append("\n");
+		builder.append("   |  |-- ignores gas price: ").append(ignoresGasPrice).append("\n");
 
 		BigInteger targetGasAtReward = node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
 				(manifest, _100_000, takamakaCode, MethodSignatures.GET_TARGET_GAS_AT_REWARD, gasStation))
 				.orElseThrow(() -> new UnexpectedVoidMethodException(MethodSignatures.GET_TARGET_GAS_AT_REWARD))
 				.asReturnedBigInteger(MethodSignatures.GET_TARGET_GAS_AT_REWARD, UnexpectedValueException::new);
 
-		builder.append("   │  ├─ target gas at reward: ").append(targetGasAtReward).append("\n");
+		builder.append("   |  |-- target gas at reward: ").append(targetGasAtReward).append("\n");
 
 		long oblivion = node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
 				(manifest, _100_000, takamakaCode, MethodSignatures.GET_OBLIVION, gasStation))
 				.orElseThrow(() -> new UnexpectedVoidMethodException(MethodSignatures.GET_OBLIVION))
 				.asReturnedLong(MethodSignatures.GET_OBLIVION, UnexpectedValueException::new);
 
-		builder.append(String.format("   │  └─ oblivion: %d (ie. %.2f%%)\n", oblivion, 100.0 * oblivion / 1_000_000));
+		builder.append(String.format("   |  `-- oblivion: %d (ie. %.2f%%)\n", oblivion, 100.0 * oblivion / 1_000_000));
 
-		builder.append("   ├─ validators: ").append(validators).append("\n");
+		builder.append("   |-- validators: ").append(validators).append("\n");
 
 		StorageReference shares;
 		{
@@ -307,27 +307,27 @@ public class ManifestHelperImpl implements ManifestHelper {
 					.orElseThrow(() -> new UnexpectedVoidMethodException(MethodSignatures.TENDERMINT_VALIDATORS_GET_BUYER_SURCHARGE))
 					.asReturnedInt(MethodSignatures.TENDERMINT_VALIDATORS_GET_BUYER_SURCHARGE, UnexpectedValueException::new);
 
-			builder.append(String.format("   │  ├─ surcharge for buying validation power: %d (ie. %.6f%%)\n", buyerSurcharge, buyerSurcharge / 1_000_000.0));
+			builder.append(String.format("   |  |-- surcharge for buying validation power: %d (ie. %.6f%%)\n", buyerSurcharge, buyerSurcharge / 1_000_000.0));
 
 			int slashingForMisbehaving = node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall(manifest, _100_000, takamakaCode, MethodSignatures.TENDERMINT_VALIDATORS_GET_SLASHING_FOR_MISBEHAVING, validators))
 					.orElseThrow(() -> new UnexpectedVoidMethodException(MethodSignatures.TENDERMINT_VALIDATORS_GET_SLASHING_FOR_MISBEHAVING))
 					.asReturnedInt(MethodSignatures.TENDERMINT_VALIDATORS_GET_SLASHING_FOR_MISBEHAVING, UnexpectedValueException::new);
 
-			builder.append(String.format("   │  ├─ slashing for misbehaving validators: %d (ie. %.6f%%)\n", slashingForMisbehaving, slashingForMisbehaving / 1_000_000.0));
+			builder.append(String.format("   |  |-- slashing for misbehaving validators: %d (ie. %.6f%%)\n", slashingForMisbehaving, slashingForMisbehaving / 1_000_000.0));
 
 			int slashingForNotBehaving = node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
 					(manifest, _100_000, takamakaCode, MethodSignatures.TENDERMINT_VALIDATORS_GET_SLASHING_FOR_NOT_BEHAVING, validators))
 					.orElseThrow(() -> new UnexpectedVoidMethodException(MethodSignatures.TENDERMINT_VALIDATORS_GET_SLASHING_FOR_NOT_BEHAVING))
 					.asReturnedInt(MethodSignatures.TENDERMINT_VALIDATORS_GET_SLASHING_FOR_NOT_BEHAVING, UnexpectedValueException::new);
 
-			builder.append(String.format("   │  ├─ slashing for not behaving validators: %d (ie. %.6f%%)\n", slashingForNotBehaving, slashingForNotBehaving / 1_000_000.0));
+			builder.append(String.format("   |  |-- slashing for not behaving validators: %d (ie. %.6f%%)\n", slashingForNotBehaving, slashingForNotBehaving / 1_000_000.0));
 
 			int percentStaked = node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
 					(manifest, _100_000, takamakaCode, MethodSignatures.TENDERMINT_VALIDATORS_GET_PERCENT_STAKED, validators))
 					.orElseThrow(() -> new UnexpectedVoidMethodException(MethodSignatures.TENDERMINT_VALIDATORS_GET_PERCENT_STAKED))
 					.asReturnedInt(MethodSignatures.TENDERMINT_VALIDATORS_GET_PERCENT_STAKED, UnexpectedValueException::new);
 
-			builder.append(String.format("   │  ├─ percent of validators' reward that gets staked: %d (ie. %.6f%%)\n", percentStaked, percentStaked / 1_000_000.0));
+			builder.append(String.format("   |  |-- percent of validators' reward that gets staked: %d (ie. %.6f%%)\n", percentStaked, percentStaked / 1_000_000.0));
 		}
 		catch (TransactionException e) {
 			// this occurs if the node has no such fields, which is well possible: Mokamint or disk nodes do not have them in their validators object
@@ -335,7 +335,7 @@ public class ManifestHelperImpl implements ManifestHelper {
 			buyerSurcharge = 0;
 		}
 
-		builder.append("   │  ├─ number of validators: ").append(numOfValidators).append("\n");
+		builder.append("   |  |-- number of validators: ").append(numOfValidators).append("\n");
 
 		var validatorsArray = new StorageReference[numOfValidators];
 		for (int num = 0; num < numOfValidators; num++)
@@ -372,28 +372,28 @@ public class ManifestHelperImpl implements ManifestHelper {
 		for (int num = 0; num < numOfValidators; num++) {
 			StorageReference validator = validatorsArray[num];
 
-			builder.append("   │  ├─ validator #").append(num).append(": ").append(validator).append("\n");
+			builder.append("   |  |-- validator #").append(num).append(": ").append(validator).append("\n");
 
 			String id = node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
 					(manifest, _100_000, takamakaCode, MethodSignatures.ID, validator))
 					.orElseThrow(() -> new UnexpectedVoidMethodException(MethodSignatures.ID))
 					.asReturnedString(MethodSignatures.ID, UnexpectedValueException::new);
 
-			builder.append("   │  │  ├─ id: ").append(id).append("\n");
+			builder.append("   |  |  |-- id: ").append(id).append("\n");
 
 			BigInteger balanceOfValidator = node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
 					(manifest, _100_000, takamakaCode, MethodSignatures.BALANCE, validator))
 					.orElseThrow(() -> new UnexpectedVoidMethodException(MethodSignatures.BALANCE))
 					.asReturnedBigInteger(MethodSignatures.BALANCE, UnexpectedValueException::new);
 
-			builder.append("   │  │  ├─ balance: ").append(balanceOfValidator).append("\n");
+			builder.append("   |  |  |-- balance: ").append(balanceOfValidator).append("\n");
 
 			BigInteger stakedForValidator = node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
 					(manifest, _100_000, takamakaCode, MethodSignatures.GET_STAKE, validators, validator))
 					.orElseThrow(() -> new UnexpectedVoidMethodException(MethodSignatures.GET_STAKE))
 					.asReturnedBigInteger(MethodSignatures.GET_STAKE, UnexpectedValueException::new);
 
-			builder.append("   │  │  ├─ staked: ").append(stakedForValidator).append("\n");
+			builder.append("   |  |  |-- staked: ").append(stakedForValidator).append("\n");
 
 			BigInteger power = node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
 					(manifest, _100_000, takamakaCode, MethodSignatures.STORAGE_MAP_VIEW_GET, shares, validator))
@@ -402,17 +402,17 @@ public class ManifestHelperImpl implements ManifestHelper {
 
 			SortedSet<StorageReference> saleOffers = offersPerValidator.get(validator);
 			if (saleOffers == null)
-				builder.append("   │  │  └─ power: ").append(power).append("\n");
+				builder.append("   |  |  `-- power: ").append(power).append("\n");
 			else {
-				builder.append("   │  │  ├─ power: ").append(power).append("\n");
+				builder.append("   |  |  |-- power: ").append(power).append("\n");
 				int counter = 0, last = saleOffers.size() - 1;
 				for (StorageReference offer: saleOffers) {
 					boolean isLast = counter == last;
 
 					if (isLast)
-						builder.append("   │  │  └─ sale offer #" + counter + ": ").append(offer).append("\n");
+						builder.append("   |  |  `-- sale offer #" + counter + ": ").append(offer).append("\n");
 					else
-						builder.append("   │  │  ├─ sale offer #" + counter + ": ").append(offer).append("\n");
+						builder.append("   |  |  |-- sale offer #" + counter + ": ").append(offer).append("\n");
 
 					BigInteger powerOnSale;
 					{
@@ -451,20 +451,20 @@ public class ManifestHelperImpl implements ManifestHelper {
 					}
 
 					if (isLast) {
-						builder.append("   │  │     ├─ power on sale: ").append(powerOnSale).append("\n");
+						builder.append("   |  |     |-- power on sale: ").append(powerOnSale).append("\n");
 						if (buyer instanceof StorageReference) // it might be a NullValue instead
-							builder.append("   │  │     ├─ reserved buyer: ").append(buyer).append("\n");
-						builder.append("   │  │     ├─ cost: ").append(cost).append("\n");
-						builder.append("   │  │     ├─ cost with surcharge: ").append(costWithSurchage).append("\n");
-						builder.append("   │  │     └─ expiration: ").append(expiration).append("\n");
+							builder.append("   |  |     ├─ reserved buyer: ").append(buyer).append("\n");
+						builder.append("   |  |     |-- cost: ").append(cost).append("\n");
+						builder.append("   |  |     |-- cost with surcharge: ").append(costWithSurchage).append("\n");
+						builder.append("   |  |     `-- expiration: ").append(expiration).append("\n");
 					}
 					else {
-						builder.append("   │  │  │  ├─ power on sale: ").append(powerOnSale).append("\n");
+						builder.append("   |  |  |  |-- power on sale: ").append(powerOnSale).append("\n");
 						if (buyer instanceof StorageReference)
-							builder.append("   │  │  │  ├─ reserved buyer: ").append(buyer).append("\n");
-						builder.append("   │  │  │  ├─ cost: ").append(cost).append("\n");
-						builder.append("   │  │  │  ├─ cost with surcharge: ").append(costWithSurchage).append("\n");
-						builder.append("   │  │  │  └─ expiration: ").append(expiration).append("\n");
+							builder.append("   |  |  |  |-- reserved buyer: ").append(buyer).append("\n");
+						builder.append("   |  |  |  |-- cost: ").append(cost).append("\n");
+						builder.append("   |  |  |  |-- cost with surcharge: ").append(costWithSurchage).append("\n");
+						builder.append("   |  |  |  `-- expiration: ").append(expiration).append("\n");
 					}
 
 					counter++;
@@ -477,49 +477,49 @@ public class ManifestHelperImpl implements ManifestHelper {
 				.orElseThrow(() -> new UnexpectedVoidMethodException(MethodSignatures.GET_INITIAL_SUPPLY))
 				.asReturnedBigInteger(MethodSignatures.GET_INITIAL_SUPPLY, UnexpectedValueException::new);
 
-		builder.append("   │  ├─ initial supply: ").append(initialSupply).append("\n");
+		builder.append("   |  |-- initial supply: ").append(initialSupply).append("\n");
 
 		BigInteger currentSupply = node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
 				(manifest, _100_000, takamakaCode, MethodSignatures.GET_CURRENT_SUPPLY, validators))
 				.orElseThrow(() -> new UnexpectedVoidMethodException(MethodSignatures.GET_CURRENT_SUPPLY))
 				.asReturnedBigInteger(MethodSignatures.GET_CURRENT_SUPPLY, UnexpectedValueException::new);
 
-		builder.append("   │  ├─ current supply: ").append(currentSupply).append("\n");
+		builder.append("   |  |-- current supply: ").append(currentSupply).append("\n");
 
 		BigInteger finalSupply = node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
 				(manifest, _100_000, takamakaCode, MethodSignatures.GET_FINAL_SUPPLY, validators))
 				.orElseThrow(() -> new UnexpectedVoidMethodException(MethodSignatures.GET_FINAL_SUPPLY))
 				.asReturnedBigInteger(MethodSignatures.GET_FINAL_SUPPLY, UnexpectedValueException::new);
 
-		builder.append("   │  ├─ final supply: ").append(finalSupply).append("\n");
+		builder.append("   |  |-- final supply: ").append(finalSupply).append("\n");
 
 		BigInteger heightAtFinalSupply = node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
 				(manifest, _100_000, takamakaCode, MethodSignatures.GET_HEIGHT_AT_FINAL_SUPPLY, validators))
 				.orElseThrow(() -> new UnexpectedVoidMethodException(MethodSignatures.GET_HEIGHT_AT_FINAL_SUPPLY))
 				.asReturnedBigInteger(MethodSignatures.GET_HEIGHT_AT_FINAL_SUPPLY, UnexpectedValueException::new);
 
-		builder.append("   │  ├─ height at final supply: ").append(heightAtFinalSupply).append("\n");
+		builder.append("   |  |-- height at final supply: ").append(heightAtFinalSupply).append("\n");
 
 		BigInteger height = node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
 				(manifest, _100_000, takamakaCode, MethodSignatures.GET_HEIGHT, validators))
 				.orElseThrow(() -> new UnexpectedVoidMethodException(MethodSignatures.GET_HEIGHT))
 				.asReturnedBigInteger(MethodSignatures.GET_HEIGHT, UnexpectedValueException::new);
 
-		builder.append("   │  ├─ height: ").append(height).append("\n");
+		builder.append("   |  |-- height: ").append(height).append("\n");
 
 		BigInteger numberOfTransactions = node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
 				(manifest, _100_000, takamakaCode, MethodSignatures.GET_NUMBER_OF_TRANSACTIONS, validators))
 				.orElseThrow(() -> new UnexpectedVoidMethodException(MethodSignatures.GET_NUMBER_OF_TRANSACTIONS))
 				.asReturnedBigInteger(MethodSignatures.GET_NUMBER_OF_TRANSACTIONS, UnexpectedValueException::new);
 
-		builder.append("   │  ├─ number of transactions: ").append(numberOfTransactions).append("\n");
+		builder.append("   |  |-- number of transactions: ").append(numberOfTransactions).append("\n");
 
 		BigInteger ticketForNewPoll = node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
 				(manifest, _100_000, takamakaCode, MethodSignatures.GET_TICKET_FOR_NEW_POLL, validators))
 				.orElseThrow(() -> new UnexpectedVoidMethodException(MethodSignatures.GET_TICKET_FOR_NEW_POLL))
 				.asReturnedBigInteger(MethodSignatures.GET_TICKET_FOR_NEW_POLL, UnexpectedValueException::new);
 
-		builder.append("   │  ├─ ticket for new poll: ").append(ticketForNewPoll).append("\n");
+		builder.append("   |  |-- ticket for new poll: ").append(ticketForNewPoll).append("\n");
 
 		StorageReference polls = node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
 				(manifest, _100_000, takamakaCode, MethodSignatures.GET_POLLS, validators))
@@ -532,9 +532,9 @@ public class ManifestHelperImpl implements ManifestHelper {
 				.asReturnedInt(MethodSignatures.STORAGE_SET_VIEW_SIZE, UnexpectedValueException::new);
 
 		if (numOfPolls == 0)
-			builder.append("   │  └─ number of polls: ").append(numOfPolls).append("\n");
+			builder.append("   |  `-- number of polls: ").append(numOfPolls).append("\n");
 		else
-			builder.append("   │  ├─ number of polls: ").append(numOfPolls).append("\n");
+			builder.append("   |  |-- number of polls: ").append(numOfPolls).append("\n");
 
 		for (int num = 0; num < numOfPolls; num++) {
 			var poll = node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
@@ -545,9 +545,9 @@ public class ManifestHelperImpl implements ManifestHelper {
 			boolean isLast = num == numOfPolls - 1;
 
 			if (isLast)
-				builder.append("   │  └─ poll #").append(num).append(": ").append(poll).append("\n");
+				builder.append("   |  `-- poll #").append(num).append(": ").append(poll).append("\n");
 			else
-				builder.append("   │  ├─ poll #").append(num).append(": ").append(poll).append("\n");
+				builder.append("   |  |-- poll #").append(num).append(": ").append(poll).append("\n");
 
 			String description;
 			{
@@ -559,12 +559,12 @@ public class ManifestHelperImpl implements ManifestHelper {
 			}
 
 			if (isLast)
-				builder.append("   │     └─ description: ").append(description).append("\n");
+				builder.append("   |     `-- description: ").append(description).append("\n");
 			else
-				builder.append("   │  │  └─ description: ").append(description).append("\n");
+				builder.append("   |  |  `-- description: ").append(description).append("\n");
 		}
 
-		builder.append("   ├─ initial validators: ").append(initialValidators).append("\n");
+		builder.append("   |-- initial validators: ").append(initialValidators).append("\n");
 
 		{
 			var method = MethodSignatures.ofNonVoid(StorageTypes.SHARED_ENTITY_VIEW, "getShares", StorageTypes.STORAGE_MAP_VIEW);
@@ -580,9 +580,9 @@ public class ManifestHelperImpl implements ManifestHelper {
 				.asReturnedInt(MethodSignatures.STORAGE_MAP_VIEW_SIZE, UnexpectedValueException::new);
 
 		if (numOfInitialValidators == 0)
-			builder.append("   │  └─ number of initial validators: 0\n");
+			builder.append("   |  `-- number of initial validators: 0\n");
 		else
-			builder.append("   │  ├─ number of initial validators: ").append(numOfInitialValidators).append("\n");
+			builder.append("   |  |-- number of initial validators: ").append(numOfInitialValidators).append("\n");
 
 		for (int num = 0; num < numOfInitialValidators; num++) {
 			var validator = node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
@@ -593,9 +593,9 @@ public class ManifestHelperImpl implements ManifestHelper {
 			boolean isLast = num == numOfInitialValidators - 1;
 
 			if (isLast)
-				builder.append("   │  └─ initial validator #").append(num).append(": ").append(validator).append("\n");
+				builder.append("   |  `-- initial validator #").append(num).append(": ").append(validator).append("\n");
 			else
-				builder.append("   │  ├─ initial validator #").append(num).append(": ").append(validator).append("\n");
+				builder.append("   |  |-- initial validator #").append(num).append(": ").append(validator).append("\n");
 
 			String id = node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
 					(manifest, _100_000, takamakaCode, MethodSignatures.ID, validator))
@@ -603,9 +603,9 @@ public class ManifestHelperImpl implements ManifestHelper {
 					.asReturnedString(MethodSignatures.ID, UnexpectedValueException::new);
 
 			if (isLast)
-				builder.append("   │     ├─ id: ").append(id).append("\n");
+				builder.append("   |     |-- id: ").append(id).append("\n");
 			else
-				builder.append("   │  │  ├─ id: ").append(id).append("\n");
+				builder.append("   |  |  |-- id: ").append(id).append("\n");
 
 			BigInteger balanceOfValidator = node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
 					(manifest, _100_000, takamakaCode, MethodSignatures.BALANCE, validator))
@@ -613,9 +613,9 @@ public class ManifestHelperImpl implements ManifestHelper {
 					.asReturnedBigInteger(MethodSignatures.BALANCE, UnexpectedValueException::new);
 
 			if (isLast)
-				builder.append("   │     ├─ balance: ").append(balanceOfValidator).append("\n");
+				builder.append("   |     |-- balance: ").append(balanceOfValidator).append("\n");
 			else
-				builder.append("   │  │  ├─ balance: ").append(balanceOfValidator).append("\n");
+				builder.append("   |  |  |-- balance: ").append(balanceOfValidator).append("\n");
 
 			BigInteger power = node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
 					(manifest, _100_000, takamakaCode, MethodSignatures.STORAGE_MAP_VIEW_GET, shares, validator))
@@ -623,21 +623,21 @@ public class ManifestHelperImpl implements ManifestHelper {
 					.asReturnedBigInteger(MethodSignatures.STORAGE_MAP_VIEW_GET, UnexpectedValueException::new);
 
 			if (isLast)
-				builder.append("   │     └─ power: ").append(power).append("\n");
+				builder.append("   |     `-- power: ").append(power).append("\n");
 			else
-				builder.append("   │  │  └─ power: ").append(power).append("\n");
+				builder.append("   |  |  `-- power: ").append(power).append("\n");
 		}
 
-		builder.append("   ├─ accountsLedger: ").append(accountsLedger).append("\n");
+		builder.append("   |-- accountsLedger: ").append(accountsLedger).append("\n");
 
-		builder.append("   └─ versions: ").append(versions).append("\n");
+		builder.append("   `-- versions: ").append(versions).append("\n");
 
 		long verificationVersion = node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
 				(manifest, _100_000, takamakaCode, MethodSignatures.GET_VERIFICATION_VERSION, versions))
 				.orElseThrow(() -> new UnexpectedVoidMethodException(MethodSignatures.GET_VERIFICATION_VERSION))
 				.asReturnedLong(MethodSignatures.GET_VERIFICATION_VERSION, UnexpectedValueException::new);
 
-		builder.append("     └─ verificationVersion: ").append(verificationVersion);
+		builder.append("      `-- verificationVersion: ").append(verificationVersion);
 
 		return builder.toString();
 	}
