@@ -1,6 +1,4 @@
-
-% Save this as tutorial.tex for the lwarp package tutorial.
-
+% document class options for Amazon's paperback
 \documentclass[12pt,oneside,openright]{book}
 
 \usepackage{iftex}
@@ -29,6 +27,8 @@
 % --- LOAD PDFLATEX MATH FONTS HERE ---
 
 % --- OTHER PACKAGES ARE LOADED AFTER LWARP ---
+
+% geometry for Amazon paperback
 \usepackage[
     left=0.5in,
     right=0.5in,
@@ -85,20 +85,22 @@
 
 % --- DOCUMENT PARAMETERS ---
 
-\input{../../src/main/latex/generated/parameters.tex}
-\input{../../src/main/latex/generated/parameters_mokamint.tex}
-\input{../../src/main/latex/generated/parameters_tendermint.tex}
-\input{../../src/main/latex/generated/parameters_quantum_mokamint.tex}
+\input{../../src/main/latex/generated/parameters}
+\input{../../src/main/latex/generated/parameters_mokamint}
+\input{../../src/main/latex/generated/parameters_tendermint}
+\input{../../src/main/latex/generated/parameters_quantum_mokamint}
 
 % --- LATEX AND HTML CUSTOMIZATION ---
 \title{Programming Hotmoka\\{\small A tutorial on Hotmoka and smart contracts in Takamaka}}
 \author{Fausto Spoto (\faustoEmail{})}
 \date{\today\\{\small (updated to Hotmoka \hotmokaVersion{}, Mokamint \mokamintVersion{} and Takamaka \takamakaVersion{})} \\
-  \vspace*{40ex}
+  \vspace*{10ex}
+  \hotmokaWeb{} \\
+  \vspace*{30ex}
   {\small\begin{minipage}{\textwidth*4/5}
     \begin{center}\myincludegraphics{11ex}{CC_license}\end{center}
     This document is licensed under a Creative Commons Attribution 4.0 International License.
-    Its latest version is available for free in various formats at \texttt{\hotmokaRepo{}/releases}.
+    Its latest version is available for free in various formats at \hotmokaRepoReleases{}.
   \end{minipage}}
 }
 \setcounter{tocdepth}{2}        % Include subsections in the \TOC.
@@ -220,7 +222,6 @@ morekeywords={module,requires,exports,provides}
 \cleardoublepage    % ... a common method to place bibliography entry into TOC.
 \phantomsection
 \addcontentsline{toc}{chapter}{Bibliography}
-\bibliography{../../src/main/latex/biblio}
 \end{warpprint}
 
 \begin{warpHTML}
@@ -229,7 +230,8 @@ morekeywords={module,requires,exports,provides}
 \printindex
 \ForceHTMLPage      % HTML bibliography will be on its own page.
 \ForceHTMLTOC       % HTML bibliography will have its own toc entry.
-\bibliography{biblio}
 \end{warpHTML}
+
+\bibliography{../../src/main/latex/biblio}
 
 \end{document}

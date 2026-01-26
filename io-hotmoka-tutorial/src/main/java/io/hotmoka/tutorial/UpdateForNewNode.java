@@ -102,7 +102,12 @@ public class UpdateForNewNode {
 	/**
 	 * The repository where the source code of Hotmoka is available.
 	 */
-	private final static String HOTMOKA_REPOSITORY = "git@github.com:Hotmoka/hotmoka.git";
+	private final static String HOTMOKA_REPOSITORY = "https://github.com/Hotmoka/hotmoka";
+
+	/**
+	 * The web page of the Hotmoka project.
+	 */
+	private final static String HOTMOKA_WEB = "https://www.hotmoka.io";
 
 	/**
 	 * The directory where the tutorial suggests to install the projects.
@@ -147,9 +152,9 @@ public class UpdateForNewNode {
 
 		// you can comment out some of the following lines if you only want to regenerate a subset of the experiments
 		new ExperimentsWithoutServer(outputDir, tempDir);
-		new ExperimentsQuantumWithMokamintServer(outputDir, tempDir);
-		new ExperimentsWithMokamintServer(outputDir, tempDir);
-		new ExperimentsWithTendermintServer(outputDir, tempDir);
+		//new ExperimentsQuantumWithMokamintServer(outputDir, tempDir);
+		//new ExperimentsWithMokamintServer(outputDir, tempDir);
+		//new ExperimentsWithTendermintServer(outputDir, tempDir);
 	}
 
 	/**
@@ -167,11 +172,14 @@ public class UpdateForNewNode {
 			report("takamakaVersion", TAKAMAKA_VERSION);
 			report("tendermintVersion", TENDERMINT_VERSION);
 			report("faustoEmail", "\\email{fausto.spoto@hotmoka.io}");
+			report("infoEmail", "\\email{info@hotmoka.io}");
 			report("serverMokamint", mokamintServer.toString());
 			report("serverMokamintMining", mokamintServerMining.toString());
 			report("serverMokamintPublic", mokamintServerPublic.toString());
 			report("serverTendermint", tendermintServer.toString());
-			report("hotmokaRepo", HOTMOKA_REPOSITORY);
+			report("hotmokaRepo", "\\website{" + HOTMOKA_REPOSITORY + "}");
+			report("hotmokaRepoReleases", "\\website{" + HOTMOKA_REPOSITORY + "/releases}");
+			report("hotmokaWeb", "\\website{" + HOTMOKA_WEB + "}");
 			report("hotmokaTutorialDir", HOTMOKA_TUTORIAL_DIR.replace("_", "\\_"));
 
 			createCommandFile("git_clone_hotmoka", "git clone --branch v" + HOTMOKA_VERSION + " " + HOTMOKA_REPOSITORY);
