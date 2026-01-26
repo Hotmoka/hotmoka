@@ -361,7 +361,7 @@ payable methods, since money can always flow in through the fallback
 function (and also in other, more surprising ways).
 This led to software bugs, when a contract found itself
 richer then expected, which violated some (wrong) invariants about
-its state. For more information, see \emph{unexpected Ether} in~\cite{AntonopoulosW19}.
+its state. For more information, see \emph{unexpected Ether} in~\cite{AntonopoulosWPMP25}.
 \end{commentbox}
 
 So how do we send money back to \texttt{currentInvestor}? The solution is to
@@ -380,7 +380,7 @@ Let us hence apply the following small changes to our \texttt{SimplePonzi.java} 
 \item The type of \texttt{currentInvestment} must be restricted to \texttt{PayableContract}.
 \item The \texttt{invest()} method must be callable by \texttt{PayableContract}s only.\label{enum:invest_only_payable}
 \item The return value of \texttt{caller()} must be cast to \texttt{PayableContract}, which is
-  safe because of point~\ref{enum:invest_onlly_payable} above.
+  safe because of point~\ref{enum:invest_only_payable} above.
 \end{enumerate}
 %
 The result is the following:
@@ -546,7 +546,7 @@ is explicitly annotated as \texttt{@Exported}, as we did for \texttt{Person}.
 %
 \begin{figure}[th]
   \begin{center}
-    \includegraphics[width=0.61\textwidth]{pics/contracts}
+    \myincludegraphics{0.61\textwidth}{contracts}
   \end{center}
   \caption{The hierarchy of contract classes.}
   \label{fig:contract_hierarchy}

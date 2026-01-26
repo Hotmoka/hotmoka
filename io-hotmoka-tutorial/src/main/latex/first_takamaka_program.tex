@@ -106,7 +106,7 @@ shown in Fig.~\ref{fig:family}.
 %
 \begin{figure}[t]
   \begin{center}
-    \includegraphics[width=5cm]{pics/family}
+    \myincludegraphics{5cm}{family}
   \end{center}
   \caption{The family Eclipse project.}
   \label{fig:family}
@@ -186,7 +186,7 @@ The result should look as in Fig.~\ref{fig:family_jar}.
 %
 \begin{figure}[t]
   \begin{center}
-    \includegraphics[width=5cm]{pics/family_jar}
+    \myincludegraphics{5cm}{family_jar}
   \end{center}
   \caption{The family Eclipse project, exported in jar.}
   \label{fig:family_jar}
@@ -211,8 +211,8 @@ Move inside the \texttt{\hotmokaTutorialDir{}} directory, if you are not
 there already, so that
 moka will find your saved key pair there, and run the \texttt{moka jars install} command:
 %
-\input{moka_jars_install_command}\index{moka!jars install@{\texttt{jars install}}}\index{jar!install}
-\input{moka_jars_install_output}
+\inputCommand{moka_jars_install}\index{moka!jars install@{\texttt{jars install}}}\index{jar!install}
+\inputOutput{moka_jars_install}
 %
 As you can see above, the jar has been installed at a reference
 \texttt{\familyAddressShort{}}, that can be used
@@ -586,8 +586,8 @@ simplify the code, we have used the \texttt{GasHelper} class, that does exactly 
 You can run the program with Maven, specifying the server to contact,
 the directory where the key pairs can be found, the payer account and its password:
 %
-\input{mvn_exec_family_1_command}
-\input{mvn_exec_family_1_output}
+\inputCommand{mvn_exec_family_1}
+\inputOutput{mvn_exec_family_1}
 %
 The exact address where the jar gets installed
 will change in your machine. In any case, note that this reference
@@ -608,8 +608,8 @@ We can use either of them, interchangeably, as class path for the execution of a
 tries to run the constructor of our class \texttt{Person} and add a brand
 new \texttt{Person} object into the store of the node. We can perform this through the moka tool:\index{moka!objects create@{\texttt{objects create}}}
 %
-\input{moka_objects_create_person_failed_command}
-\input{moka_objects_create_person_failed_output}
+\inputCommand{moka_objects_create_person_failed}
+\inputOutput{moka_objects_create_person_failed}
 %
 The \texttt{moka objects create}\index{object!creation}
 command requires to specify who pays for the object creation
@@ -686,22 +686,22 @@ by running \texttt{mvn install} again
 inside the \texttt{io-hotmoka-tutorial-examples-family} project.
 Install this new version in blockchain:\index{moka!jars install@{\texttt{jars install}}}
 %
-\input{moka_jars_install_2_command}
-\input{moka_jars_install_2_output}
+\inputCommand{moka_jars_install_2}
+\inputOutput{moka_jars_install_2}
 %
 then run the \texttt{moka objects create} command again. This time, the execution should
 complete without exception:\index{moka!objects create@{\texttt{objects create}}}
 %
-\input{moka_objects_create_person_command}
-\input{moka_objects_create_person_output}
+\inputCommand{moka_objects_create_person}
+\inputOutput{moka_objects_create_person}
 %
 The new object has been allocated at a storage reference \texttt{\personObjectShort{}}
 that can be used to refer to it, also in the future.
 You can verify that it is actually there and that its fields are correctly initialized,
 by using the \texttt{moka objects show} command:\index{moka!objects show@{\texttt{objects show}}}
 %
-\input{moka_objects_show_person_command}
-\input{moka_objects_show_person_output}
+\inputCommand{moka_objects_show_person}
+\inputOutput{moka_objects_show_person}
 %
 \begin{commentbox}
   Compared with Solidity, where contracts and accounts are just untyped \emph{addresses},
@@ -895,8 +895,8 @@ with corresponding static methods in \texttt{io.hotmoka.helpers.Coin}.
 You can run \texttt{FamilyStorage} now, and see that, this time,
 the object of class \texttt{Person} gets created in blockchain:
 %
-\input{mvn_exec_family_storage_command}
-\input{mvn_exec_family_storage_output}
+\inputCommand{mvn_exec_family_storage}
+\inputOutput{mvn_exec_family_storage}
 %
 The exact address where the \texttt{Person} object gets allocated will change at each run.
 
@@ -922,8 +922,8 @@ The receiver can be seen as an implicit actual argument passed to a (non-\texttt
 \end{commentbox}
 %
 \index{moka!objects call@{\texttt{objects call}}}
-\input{moka_objects_call_toString_command}
-\input{moka_objects_call_toString_output}
+\inputCommand{moka_objects_call_toString}
+\inputOutput{moka_objects_call_toString}
 %
 Command \texttt{moka objects call} requires to specify, as its first arguments,
 the payer of the call, that is, our account, followed by the name of the class whose
@@ -971,20 +971,20 @@ public class Person extends Storage {
 Package the project \texttt{io-hotmoka-tutorial-examples-family}:
 %
 \index{moka!jars install@{\texttt{jars install}}}
-\input{moka_jars_install_3_command}
-\input{moka_jars_install_3_output}
+\inputCommand{moka_jars_install_3}
+\inputOutput{moka_jars_install_3}
 %
 then create a new \texttt{Person} object:
 %
 \index{moka!objects create@{\texttt{objects create}}}
-\input{moka_objects_create_person_exported_command}
-\input{moka_objects_create_person_exported_output}
+\inputCommand{moka_objects_create_person_exported}
+\inputOutput{moka_objects_create_person_exported}
 %
 and finally call \texttt{toString()} on that new object:
 %
 \index{moka!objects call@{\texttt{objects call}}}
-\input{moka_objects_call_toString_exported_command}
-\input{moka_objects_call_toString_exported_output}
+\inputCommand{moka_objects_call_toString_exported}
+\inputOutput{moka_objects_call_toString_exported}
 %
 This time, the correct answer \texttt{Einstein (14/4/1879)} appears on the screen.
 %
@@ -1169,8 +1169,8 @@ to run the resolved method. It stores the result in
 You can run class \texttt{FamilyExported}. You will obtain the same result as
 with \texttt{moka objects call}:
 %
-\input{mvn_exec_family_exported_command}
-\input{mvn_exec_family_exported_output}
+\inputCommand{mvn_exec_family_exported}
+\inputOutput{mvn_exec_family_exported}
 
 As we have shown, method \texttt{addInstanceMethodCallTransaction()} can be used to
 invoke an instance method on an object in the store of the node. This requires some
@@ -1219,7 +1219,7 @@ Method \texttt{addInstanceMethodCallTransaction()} cannot be used to call a \tex
 method. For that, use \texttt{addStaticMethodCallTransaction()} instead, that accepts
 a request similar to that for \texttt{addInstanceMethodCallTransaction()}, but without a receiver.
 
-\section{Storage types and constraints on storage classes}\label{sec:storage}
+\section{Storage types and constraints on storage classes}\label{sec:storage_types_and_classes}
 
 We have seen how to invoke a constructor of a class to build an object in
 the store of a node or to invoke a method on an object in the store of a node.

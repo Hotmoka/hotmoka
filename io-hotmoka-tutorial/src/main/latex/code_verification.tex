@@ -86,13 +86,13 @@ Hotmoka nodes verify the following static constraints:
     \texttt{double} or \texttt{boolean}), or is a class that extends \texttt{io.takamaka.code.lang.Storage},
     or is any of
     \texttt{java.math.BigInteger}, \texttt{java.lang.String}, \texttt{java.lang.Object} or is an interface
-    (see Sec.~\ref{sec:storage}).
+    (see Sec.~\ref{sec:storage_types_and_classes}).
 %
 \begin{commentbox}
 The choice of allowing, inside a storage type, fields of type
 \texttt{java.lang.Object} can be surprising. After all, any reference value can be
 stored in such a field, which requires to verify, at run time, if the field
-actually contains a storage value or not (see the dynamic check number~\ref{check:object_or_interface_fields}, below).
+actually contains a storage value or not (see the dynamic check number~\ref{check:object_or_interface_fields} at the end of this section).
 The reason for this choice is to allow generic storage types, such as
 \texttt{StorageTreeMap<K,V>}, whose values are storage values as long as \texttt{K} and \texttt{V}
 are replaced with storage types. Since Java implements generics by erasure,
@@ -308,7 +308,8 @@ Takamaka verifies the following dynamic constraints:
    its execution, otherwise an \texttt{OutOfGasException}\index{OutOfGasException@{\texttt{OutOfGasException}}} is thrown.
 \item Non-transient fields of type \texttt{java.lang.Object} or of type interface,
    belonging to some storage object reachable from the actual parameters of a transaction
-   at the end of the transaction, contain \texttt{null} or a storage object.
+   at the end of the transaction, contain \texttt{null} or a storage
+   object~\label{check:object_or_interface_fields}.
 \end{enumerate}
 
 \section{Command-line verification and instrumentation}
@@ -391,8 +392,8 @@ mvn install
 Let us start with the verification of \texttt{io-takamaka-code-\takamakaVersion{}.jar},
 that we should find in the cache of Maven:\index{moka!jars verify@{\texttt{jars verify}}}
 %
-\input{moka_jars_verify_takamaka_command}
-\input{moka_jars_verify_takamaka_output}
+\inputCommand{moka_jars_verify_takamaka}
+\inputOutput{moka_jars_verify_takamaka}
 %
 No error has been issued, since the code does not violate any static constraint.
 Note that we used the \texttt{-{}-init} switch, since otherwise we would get many errors
@@ -403,8 +404,8 @@ that is, by considering such package as legal.
 We can generate the instrumented jar, exactly as it would be generated during
 installation in a Hotmoka node. For that, we run:\index{moka!jars instrument@{\texttt{jars instrument}}}
 %
-\input{moka_jars_instrument_takamaka_command}
-\input{moka_jars_instrument_takamaka_output}
+\inputCommand{moka_jars_instrument_takamaka}
+\inputOutput{moka_jars_instrument_takamaka}
 %
 The \texttt{moka jars instrument} command verifies and instruments the jar, and then stores
 its instrumented version inside the \texttt{instrumented} directory.
@@ -415,8 +416,8 @@ As all Takamaka programs, it uses classes from the \texttt{io-takamaka-code} jar
 hence it depends on it. We specify this with the \texttt{-{}-libs} option, that must
 refer to an already instrumented jar:\index{moka!jars instrument@{\texttt{jars instrument}}}
 %
-\input{moka_jars_instrument_family_command}
-\input{moka_jars_instrument_family_output}
+\inputCommand{moka_jars_instrument_family}
+\inputOutput{moka_jars_instrument_family}
 %
 As you can see, verification succeeds this time as well and an instrumented jar file named
 \texttt{io-hotmoka-tutorial-examples-family-\hotmokaVersion{}.jar} appears in the
@@ -429,12 +430,12 @@ Let us verify the \texttt{io-hotmoka-tutorial-examples-family\_errors-\hotmokaVe
 (we know) contains a few errors. This time, verification will fail and the errors will
 be printed on the screen:\index{moka!jars verify@{\texttt{jars verify}}}
 %
-\input{moka_jars_verify_family_errors_command}
-\input{moka_jars_verify_family_errors_output}
+\inputCommand{moka_jars_verify_family_errors}
+\inputOutput{moka_jars_verify_family_errors}
 %
 The same failure occurs with the \texttt{moka jars instrument} command,
 that will not generate the instrumented jar. It only
 reports the first encountered error before failure:\index{moka!jars instrument@{\texttt{jars instrument}}}
 %
-\input{moka_jars_instrument_family_errors_command}
-\input{moka_jars_instrument_family_errors_output}
+\inputCommand{moka_jars_instrument_family_errors}
+\inputOutput{moka_jars_instrument_family_errors}

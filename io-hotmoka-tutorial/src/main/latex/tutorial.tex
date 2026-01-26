@@ -56,12 +56,17 @@
 \usetikzlibrary{arrows.meta}
 
 \usepackage{fancyhdr}
+\setlength{\headheight}{19pt} % because the logo uses more space than usual
+
+\newcommand{\myincludegraphics}[2]{\includegraphics[width={#1}]{"tutorial-images/#2"}}
+\newcommand{\inputCommand}[1]{\input{../../src/main/latex/generated/#1_command}}
+\newcommand{\inputOutput}[1]{\input{../../src/main/latex/generated/#1_output}}
 
 \pagestyle{fancy}
 
 \fancyhf{}%
 %\renewcommand{\headrulewidth}{1pt}
-\fancyhead[L]{\includegraphics[width=1.5cm]{pics/hotmoka_logo}}
+\fancyhead[L]{\myincludegraphics{1.5cm}{hotmoka_logo}}
 \fancyhead[R]{Chapter~\thechapter}
 \fancyfoot[L]{}
 \fancyfoot[C]{\thepage}
@@ -80,10 +85,10 @@
 
 % --- DOCUMENT PARAMETERS ---
 
-\input{parameters.tex}
-\input{parameters_mokamint.tex}
-\input{parameters_tendermint.tex}
-\input{parameters_quantum_mokamint.tex}
+\input{../../src/main/latex/generated/parameters.tex}
+\input{../../src/main/latex/generated/parameters_mokamint.tex}
+\input{../../src/main/latex/generated/parameters_tendermint.tex}
+\input{../../src/main/latex/generated/parameters_quantum_mokamint.tex}
 
 % --- LATEX AND HTML CUSTOMIZATION ---
 \title{Programming Hotmoka\\{\small A tutorial on Hotmoka and smart contracts in Takamaka}}
@@ -91,7 +96,7 @@
 \date{\today\\{\small (updated to Hotmoka \hotmokaVersion{}, Mokamint \mokamintVersion{} and Takamaka \takamakaVersion{})} \\
   \vspace*{40ex}
   {\small\begin{minipage}{\textwidth*4/5}
-    \begin{center}\includegraphics[width=11ex]{pics/CC_license}\end{center}
+    \begin{center}\myincludegraphics{11ex}{CC_license}\end{center}
     This document is licensed under a Creative Commons Attribution 4.0 International License.
     Its latest version is available for free in various formats at \texttt{\hotmokaRepo{}/releases}.
   \end{minipage}}
@@ -105,8 +110,8 @@
 \HTMLAuthor{Fausto Spoto}       % Sets the HTML meta author tag.
 \HTMLLanguage{en-US}            % Sets the HTML meta language.
 \HTMLDescription{A tutorial on Hotmoka and smart contracts in Takamaka} % Sets the HTML meta description.
-\HTMLFirstPageTop{\begin{center}\includegraphics[width=10cm]{pics/hotmoka_logo}\end{center}}
-\HTMLPageTop{\begin{center}\includegraphics[width=7cm]{pics/hotmoka_logo}\end{center}}
+\HTMLFirstPageTop{\begin{center}\myincludegraphics{10cm}{hotmoka_logo}\end{center}}
+\HTMLPageTop{\begin{center}\myincludegraphics{7cm}{hotmoka_logo}\end{center}}
 \HTMLPageBottom{Copyright 2022 by Fausto Spoto (\faustoEmail{})}
 \CSSFilename{lwarp_sagebrush.css}
 
@@ -178,9 +183,9 @@ morekeywords={module,requires,exports,provides}
 
 \newcommand{\ie}{\emph{i.e.}\@}
 \newcommand{\wrt}{\emph{wrt.}\@}
-\newcommand{\leftplug}{\includegraphics[width=0.7cm]{pics/plug_left}}
-\newcommand{\rightplug}{\includegraphics[width=0.7cm]{pics/plug_right}}
-\newcommand{\ssd}{\includegraphics[width=0.8cm]{pics/ssd}}
+\newcommand{\leftplug}{\myincludegraphics{0.7cm}{plug_left}}
+\newcommand{\rightplug}{\myincludegraphics{0.7cm}{plug_right}}
+\newcommand{\ssd}{\myincludegraphics{0.8cm}{ssd}}
 
 \colorlet{lightred}{red!50!white}
 \colorlet{lightviolet}{violet!50!white}
@@ -215,7 +220,7 @@ morekeywords={module,requires,exports,provides}
 \cleardoublepage    % ... a common method to place bibliography entry into TOC.
 \phantomsection
 \addcontentsline{toc}{chapter}{Bibliography}
-\bibliography{biblio}
+\bibliography{../../src/main/latex/biblio}
 \end{warpprint}
 
 \begin{warpHTML}

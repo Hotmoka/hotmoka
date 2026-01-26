@@ -1,14 +1,16 @@
 #!/bin/bash
 
-# This script...
+# This script compiles the tutorial, generating:
+# A book at target/pdf/tutorial.pdf
+# This book misses links and references, but is quick to generate.
+# The idea is that this script is used during the editing
+# of the tutorial, so that one does not waste a lot of time
+# for recompilation before seeing potential errors.
 
 mkdir -p target/pdf
 rm -r target/pdf/*
 cp src/main/latex/*.tex target/pdf
-%LC_ALL=C sed -i 's/[^[:print:][:cntrl:]]//g' target/pdf/moka_nodes_manifest_show_output.tex
-cp src/main/latex/biblio.bib target/pdf
-cp -r src/main/resources/pics target/pdf
+cp -r src/main/resources/pics target/pdf/tutorial-images
 cd target/pdf
 pdflatex tutorial.tex
-
 cd ../..

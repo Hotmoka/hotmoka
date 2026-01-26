@@ -222,7 +222,7 @@ There are a few docker containers\index{docker!Hotmoka containers} providing mok
 for running Hotmoka nodes. They are maintained in DockerHub~\cite{hotmoka_dockerhub}.
 For instance, you can query the provided version of moka as follows:
 %
-\input{docker_run_moka_command}
+\inputCommand{docker_run_moka}
 %
 You should see \texttt{\hotmokaVersion{}} answered on the screen.
 You do need Java nor Maven for this, nor to compile anything: docker will take care
@@ -232,11 +232,11 @@ You can also contact an existing Hotmoka node and query the current state of an 
 allocated at a given storage reference, such as the payer account
 of Fig.~\ref{fig:receiver_payer}:
 %
-\input{docker_run_moka_objects_show_account1_command}
+\inputCommand{docker_run_moka_objects_show_account1}
 %
 The output will be something like:
 %
-\input{docker_run_moka_objects_show_account1_output}
+\inputOutput{docker_run_moka_objects_show_account1}
 %
 Note that the classpath (the \emph{jar installed at\ldots}) corresponds to
 what reported in Fig.~\ref{fig:receiver_payer}, since it is an immutable
@@ -253,24 +253,24 @@ Let us install the code in the \verb|~/Gits| directory of our machine, with the
 following sequence of commands. We assume that you have both Git and Maven
 installed already:
 %
-\input{install_moka_command}
+\inputCommand{install_moka}
 %
 Then edit your \texttt{.bashrc} configuration file and add at its end
 the following command, that expands the command path of the shell:
 %
-\input{export_path_moka_command}
+\inputCommand{export_path_moka}
 %
 Exit the terminal and spawn a new one. You should be able to run moka directly now.
 For instance, you can run the same commands of Sec.~\ref{subsubsec:moka_inside_docker}, but
 without the help of docker:
 %
 \index{moka!version@{\texttt{version}}}
-\input{moka_version_command}
+\inputCommand{moka_version}
 %
 and
 %
 \index{moka!objects show@{\texttt{objects show}}}
-\input{moka_objects_show_account1_command}
+\inputCommand{moka_objects_show_account1}
 
 In the rest of this book, we will normally show direct invocations
 of moka, outside of a docker container.
@@ -283,19 +283,19 @@ If you want help about the commands of moka, just use the \texttt{help} command.
 Namely, \texttt{moka help} will print on the screen the following help lines:
 %
 \index{moka!help@{\texttt{help}}}
-\input{moka_help_output}
+\inputOutput{moka_help}
 %
 You can see that commands are organized in groups. You can get help about a specific
 group by prefixing \texttt{help} to the name of the group. For instance, the
 \texttt{moka help objects} command will print:
 %
-\input{moka_help_objects_output}
+\inputOutput{moka_help_objects}
 %
 You can print the help of a specific leaf command by prefixing \texttt{help} before it.
 For instance, the command \texttt{moka objects help show} will show information about the
 \texttt{show} subcommand of the \texttt{objects} group of commands of moka. It will print:
 %
-\input{moka_objects_help_show_output}
+\inputOutput{moka_objects_help_show}
 
 \subsection{Mokito}\label{subsec:mokito}
 
@@ -316,7 +316,7 @@ top left area of the app.
 %
 \begin{figure}[t]
   \begin{center}
-    \includegraphics[width=5cm]{pics/mokito_start}
+    \myincludegraphics{5cm}{mokito_start}
   \end{center}
   \caption{The starting screen of the Mokito app.}
   \label{fig:mokito_start}
@@ -351,7 +351,7 @@ the command \texttt{moka nodes manifest show -{}-uri \serverMokamint}
 to print the \emph{manifest}\index{manifest} of the Hotmoka node
 at \texttt{\serverMokamint}. The result should be something like:
 %
-\input{moka_nodes_manifest_show_output}
+\inputOutput{moka_nodes_manifest_show}
 %
 The details of this information are irrelevant for now, but something must be
 clarified, to better understand the following sections.
@@ -455,13 +455,13 @@ and select \emph{Manifest} from the menu that will appear (see Fig.~\ref{fig:mok
 \centering
 \begin{subfigure}{.5\textwidth}
   \centering
-  \includegraphics[width=.45\linewidth]{pics/mokito_menu}
+  \myincludegraphics{.45\linewidth}{mokito_menu}
   \caption{The menu of the Mokito app.}
   \label{fig:mokito_menu}
 \end{subfigure}%
 \begin{subfigure}{.5\textwidth}
   \centering
-  \includegraphics[width=.45\linewidth]{pics/mokito_manifest}
+  \myincludegraphics{.45\linewidth}{mokito_manifest}
   \caption{The manifest of the Hotmoka node.}
   \label{fig:mokito_manifest}
 \end{subfigure}
@@ -500,8 +500,8 @@ will save the key pair of your account
 there, which will simplify your subsequent work:
 %
 \index{moka!keys create@{\texttt{keys create}}}
-\input{moka_keys_create_account1_command}\index{key!creation}
-\input{moka_keys_create_account1_output}
+\inputCommand{moka_keys_create_account1}\index{key!creation}
+\inputOutput{moka_keys_create_account1}
 %
 \begin{commentbox}
   We used \texttt{chocolate} as password of the new key pair.
@@ -513,8 +513,8 @@ there, which will simplify your subsequent work:
 We can now create an account that uses the key pair, letting the faucet pay for it:\index{faucet}
 %
 \index{moka!accounts create@{\texttt{accounts create}}}
-\input{moka_accounts_create_account1_command}\index{account!creation}
-\input{moka_accounts_create_account1_output}
+\inputCommand{moka_accounts_create_account1}\index{account!creation}
+\inputOutput{moka_accounts_create_account1}
 %
 Storage reference \texttt{\accountOne} refers to the newly created account object.
 %
@@ -536,8 +536,8 @@ Let us check that our account really exists,
 by querying the node about the state of the object allocated at \texttt{\accountOne}:
 %
 \index{moka!objects show@{\texttt{objects show}}}
-\input{moka_objects_show_account1_command}
-\input{moka_objects_show_account1_output}
+\inputCommand{moka_objects_show_account1}
+\inputOutput{moka_objects_show_account1}
 %
 Note that the balance and the public key of the account are
 fields of the account object. Moreover, note that Hotmoka knows
@@ -635,8 +635,8 @@ Whenever your account will run out of coins, you can recharge it with the
 if you want to recharge your account with \accountOneRecharge{} extra coins, you can type:
 %
 \index{moka!accounts send@{\texttt{accounts send}}}
-\input{moka_accounts_send_account1_command}
-\input{moka_accounts_send_account1_output}
+\inputCommand{moka_accounts_send_account1}
+\inputOutput{moka_accounts_send_account1}
 %
 You can then use the \texttt{moka objects show} command to verify that the balance of
 your account has been actually increased with \accountOneRecharge{} extra coins.
@@ -651,13 +651,13 @@ menu icon on the right of the \emph{Faucet} account and select \emph{Create a ne
 \centering
 \begin{subfigure}{.5\textwidth}
   \centering
-  \includegraphics[width=.45\linewidth]{pics/mokito_new_account}
+  \myincludegraphics{.45\linewidth}{mokito_new_account}
   \caption{The menu for creating a new account.}
   \label{fig:mokito_new_account}
 \end{subfigure}%
 \begin{subfigure}{.5\textwidth}
   \centering
-  \includegraphics[width=.45\linewidth]{pics/mokito_elvis_new_account}
+  \myincludegraphics{.45\linewidth}{mokito_elvis_new_account}
   \caption{The form specifying a new account Elvis.}
   \label{fig:mokito_elvis_new_account}
 \end{subfigure}
@@ -684,13 +684,13 @@ and the presence of a 36 words passphrase.
 \centering
 \begin{subfigure}{.5\textwidth}
   \centering
-  \includegraphics[width=.45\linewidth]{pics/mokito_show_elvis}
+  \myincludegraphics{.45\linewidth}{mokito_show_elvis}
   \caption{The new account Elvis.}
-  \label{fig:mokito_show_account}
+  \label{fig:mokito_show_elvis}
 \end{subfigure}%
 \begin{subfigure}{.5\textwidth}
   \centering
-  \includegraphics[width=.45\linewidth]{pics/mokito_added_elvis}
+  \myincludegraphics{.45\linewidth}{mokito_added_elvis}
   \caption{Elvis added to the list of accounts.}
   \label{fig:mokito_added_elvis}
 \end{subfigure}
@@ -710,8 +710,8 @@ and the latter in moka, so that we can operate on both accounts with both tools.
 and insert its 36 words passphrase from Fig.~\ref{fig:mokito_show_elvis}:
 %
 \index{moka!accounts import@{\texttt{accounts import}}}
-\input{moka_accounts_import_account_mokito_command}
-\input{moka_accounts_import_account_mokito_output}
+\inputCommand{moka_accounts_import_account_mokito}
+\inputOutput{moka_accounts_import_account_mokito}
 %
 After that, it is possible to control that account with moka (if we remember
 its password, that is, \texttt{chocolate}).
@@ -720,13 +720,13 @@ its password, that is, \texttt{chocolate}).
 \centering
 \begin{subfigure}{.5\textwidth}
   \centering
-  \includegraphics[width=.45\linewidth]{pics/mokito_accounts_menu}
+  \myincludegraphics{.45\linewidth}{mokito_accounts_menu}
   \caption{The menu of the accounts screen.}
   \label{fig:mokito_accounts_menu}
 \end{subfigure}%
 \begin{subfigure}{.5\textwidth}
   \centering
-  \includegraphics[width=.45\linewidth]{pics/mokito_insert_passphrase}
+  \myincludegraphics{.45\linewidth}{mokito_insert_passphrase}
   \caption{Inserting the 36 words passphrase in Mokito.}
   \label{fig:mokito_insert_passphrase}
 \end{subfigure}
@@ -735,7 +735,7 @@ its password, that is, \texttt{chocolate}).
 %
 \begin{figure}[t]
   \begin{center}
-    \includegraphics[width=5cm]{pics/mokito_added_the_boss}
+    \myincludegraphics{5cm}{mokito_added_the_boss}
   \end{center}
   \caption{The new account The Boss has been imported.}
   \label{fig:mokito_added_the_boss}
@@ -745,8 +745,8 @@ Vice versa, in order to import into Mokito the account that was created with mok
 first export\index{account!export} the 36 words of that account:
 %
 \index{moka!accounts export@{\texttt{accounts export}}}
-\input{moka_accounts_export_account1_command}
-\input{moka_accounts_export_account1_output}
+\inputCommand{moka_accounts_export_account1}
+\inputOutput{moka_accounts_export_account1}
 %
 Then go to the accounts page of Mokito and show the
 top-right menu of the accounts page; select \emph{Import account}
@@ -811,8 +811,8 @@ Let us show how the third possibility works. Anonymous starts by creating a new 
 exactly as we did before:
 %
 \index{moka!keys create@{\texttt{keys create}}}
-\input{moka_keys_create_anonymous_command}
-\input{moka_keys_create_anonymous_output}
+\inputCommand{moka_keys_create_anonymous}
+\inputOutput{moka_keys_create_anonymous}
 %
 \begin{commentbox}
   Note that there is no \texttt{-{}-uri} part in the \texttt{moka keys create} command,
@@ -832,26 +832,26 @@ Once we receive that email, we use (for instance) our previous account
 to send $\sentToAnonymous{}$ coins to that key:
 %
 \index{moka!accounts send@{\texttt{accounts send}}}
-\input{moka_accounts_send_account1_anonymous_command}\index{account!payment}\index{payment!to account}
-\input{moka_accounts_send_account1_anonymous_output}
+\inputCommand{moka_accounts_send_account1_anonymous}\index{account!payment}\index{payment!to account}
+\inputOutput{moka_accounts_send_account1_anonymous}
 %
 And that's all! No interaction is needed with Anonymous. He will check
 from time to time to see if we have paid, by running the command \texttt{moka keys bind}\index{key!binding}
 until it succeeds. First attempt:
 %
 \index{moka!keys bind@{\texttt{keys bind}}}
-\input{moka_keys_bind_anonymous_command}
-\input{moka_keys_bind_anonymous_not_yet_output}
+\inputCommand{moka_keys_bind_anonymous}
+\inputOutput{moka_keys_bind_anonymous_not_yet}
 %
 Second attempt:
 %
-\input{moka_keys_bind_anonymous_command}
-\input{moka_keys_bind_anonymous_not_yet_output}
+\inputCommand{moka_keys_bind_anonymous}
+\inputOutput{moka_keys_bind_anonymous_not_yet}
 %
 The command finally succeds at the third attempt (for instance):
 %
-\input{moka_keys_bind_anonymous_command}
-\input{moka_keys_bind_anonymous_output}
+\inputCommand{moka_keys_bind_anonymous}
+\inputOutput{moka_keys_bind_anonymous}
 %
 Once \texttt{moka keys bind} succeeds, Anonymous can enjoy his brand new account, that he
 can control with the \texttt{kiwis} password.

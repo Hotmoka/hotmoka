@@ -3,7 +3,7 @@
 This chapter presents the support library of the Takamaka language,
 that contains classes for simplifying the definition of smart contracts.
 
-In Sec.~\ref{sec:storage-types-and-constraints-on-storage-classes},
+In Sec.~\ref{sec:storage_types_and_classes},
 we said that storage objects must obey to some constraints.
 The strongest of them is that their fields of reference type, in turn, can only hold
 storage objects. In particular, arrays are not allowed there. This can
@@ -35,7 +35,7 @@ The size of a list is not fixed: lists grow in size as more elements are added.
 
 \begin{figure}[th]
   \begin{center}
-    \includegraphics[width=0.45\textwidth]{pics/lists}
+    \myincludegraphics{0.45\textwidth}{lists}
   \end{center}
   \caption{The hierarchy of storage lists.}
   \label{fig:lists_hierarchy}
@@ -267,56 +267,56 @@ Let us play with the \texttt{GradualPonzi} contract now.
 We can now start by installing its jar in the node:
 %
 \index{moka!jars install@{\texttt{jars install}}}
-\input{moka_jars_install_gradual_ponzi_command}
-\input{moka_jars_install_gradual_ponzi_output}
+\inputCommand{moka_jars_install_gradual_ponzi}
+\inputOutput{moka_jars_install_gradual_ponzi}
 %
 Create two more keys now, for two more accounts that we are going to create soon:
 %
 \index{moka!keys create@{\texttt{keys create}}}
-\input{moka_keys_create_account2_command}
-\input{moka_keys_create_account2_output}
+\inputCommand{moka_keys_create_account2}
+\inputOutput{moka_keys_create_account2}
 %
 and then
 %
-\input{moka_keys_create_account3_command}
-\input{moka_keys_create_account3_output}
+\inputCommand{moka_keys_create_account3}
+\inputOutput{moka_keys_create_account3}
 %
 We can create the two new accounts now:
 %
 \index{moka!accounts create@{\texttt{accounts create}}}
-\input{moka_accounts_create_account2_command}
-\input{moka_accounts_create_account2_output}
+\inputCommand{moka_accounts_create_account2}
+\inputOutput{moka_accounts_create_account2}
 %
 and
 %
-\input{moka_accounts_create_account3_command}
-\input{moka_accounts_create_account3_output}
+\inputCommand{moka_accounts_create_account3}
+\inputOutput{moka_accounts_create_account3}
 
 We let our first account create an instance of \texttt{GradualPonzi} in the node now
 and become the first investor of the contract:
 %
 \index{moka!objects create@{\texttt{objects create}}}
-\input{moka_objects_create_gradual_ponzi_command}
-\input{moka_objects_create_gradual_ponzi_output}
+\inputCommand{moka_objects_create_gradual_ponzi}
+\inputOutput{moka_objects_create_gradual_ponzi}
 %
 We let the other two players invest, in sequence, in this new \texttt{GradualPonzi} contract.
 First investment:
 %
 \index{moka!objects call@{\texttt{objects call}}}
-\input{moka_objects_call_invest_1_command}
-\input{moka_objects_call_invest_1_output}
+\inputCommand{moka_objects_call_invest_1}
+\inputOutput{moka_objects_call_invest_1}
 %
 Second investment:
 %
-\input{moka_objects_call_invest_2_command}
-\input{moka_objects_call_invest_2_output}
+\inputCommand{moka_objects_call_invest_2}
+\inputOutput{moka_objects_call_invest_2}
 
 We let the first player try to invest again in the contract now, this time
 with a too small investment, which leads to an exception,
 since the code of the contract requires a minimum investment:
 %
-\input{moka_objects_call_invest_3_command}
-\input{moka_objects_call_invest_3_output}
+\inputCommand{moka_objects_call_invest_3}
+\inputOutput{moka_objects_call_invest_3}
 %
 This exception states that a transaction failed because the last
 investor invested less than 1000 units of coin. Note that the
@@ -334,14 +334,14 @@ require(BigIntegerSupport.compareTo(amount, MINIMUM_INVESTMENT) >= 0,
 Finally, we can check the state of the contract:
 %
 \index{moka!objects show@{\texttt{objects show}}}
-\input{moka_objects_show_gradual_ponzi_command}
-\input{moka_objects_show_gradual_ponzi_output}
+\inputCommand{moka_objects_show_gradual_ponzi}
+\inputOutput{moka_objects_show_gradual_ponzi}
 %
 As you can see, the contract keeps no balance. Moreover, its \texttt{investors} field is bound to an
 object, whose state can be further investigated:
 %
-\input{moka_objects_show_investors_command}
-\input{moka_objects_show_investors_output}
+\inputCommand{moka_objects_show_investors}
+\inputOutput{moka_objects_show_investors}
 %
 As you can see, it is a \texttt{StorageLinkedList} of size three, since it contains
 our three accounts that interacted with the \texttt{GradualPonzi} contract instance.
@@ -369,7 +369,7 @@ of being dynamic in size.
 
 \begin{figure}[th]
   \begin{center}
-    \includegraphics[width=0.5\textwidth]{pics/arrays}
+    \myincludegraphics{0.5\textwidth}{arrays}
   \end{center}
   \caption{The hierarchy of storage arrays.}
   \label{fig:arrays_hierarchy}
@@ -414,13 +414,13 @@ the cross wins.
 \centering
 \begin{subfigure}{.5\textwidth}
   \centering
-  \includegraphics[width=.4\linewidth]{pics/tictactoe_wins}
+  \myincludegraphics{.4\linewidth}{tictactoe_wins}
   \caption{Cross wins.}
   \label{fig:cross_wins}
 \end{subfigure}%
 \begin{subfigure}{.5\textwidth}
   \centering
-  \includegraphics[width=.5\linewidth]{pics/tictactoe_draw}
+  \myincludegraphics{.5\linewidth}{tictactoe_draw}
   \caption{A draw.}
   \label{fig:tictactoe_draw}
 \end{subfigure}
@@ -437,13 +437,13 @@ where indexes are distributed as shown in Fig.~\ref{fig:tictactoe_grid},
 \centering
 \begin{subfigure}{.5\textwidth}
   \centering
-  \includegraphics[width=.5\linewidth]{pics/tictactoe_grid}
+  \myincludegraphics{.5\linewidth}{tictactoe_grid}
   \caption{A two-dimensional representation of the board.}
   \label{fig:tictactoe_grid}
 \end{subfigure}%
 \begin{subfigure}{.5\textwidth}
   \centering
-  \includegraphics[width=.42\linewidth]{pics/tictactoe_grid_linear}
+  \myincludegraphics{.42\linewidth}{tictactoe_grid_linear}
   \caption{A linear representation of the board.}
   \label{fig:tictactoe_linear}
 \end{subfigure}
@@ -887,14 +887,14 @@ the \texttt{io-hotmoka-tutorial-examples-tictactoe} project,
 compile it with Maven and store it in the Hotmoka node:
 %
 \index{moka!jars install@{\texttt{jars install}}}
-\input{moka_jars_install_tictactoe_revised_command}
-\input{moka_jars_install_tictactoe_revised_output}
+\inputCommand{moka_jars_install_tictactoe_revised}
+\inputOutput{moka_jars_install_tictactoe_revised}
 %
 Then we create an instance of the contract in the node:
 %
 \index{moka!objects create@{\texttt{objects create}}}
-\input{moka_objects_create_tictactoe_revised_command}
-\input{moka_objects_create_tictactoe_revised_output}
+\inputCommand{moka_objects_create_tictactoe_revised}
+\inputOutput{moka_objects_create_tictactoe_revised}
 
 We use two of our accounts now, that we have already created in the previous section,
 to interact with the contract: they will play, alternately, until the first player wins.
@@ -903,62 +903,62 @@ We will report the resulting of calling \texttt{toString()} on the contract, aft
 The first player starts, by playing at (1,1), and bets 100:
 %
 \index{moka!objects call@{\texttt{objects call}}}
-\input{moka_objects_call_tictactoe_play_1_command}
-\input{moka_objects_call_tictactoe_play_1_output}
+\inputCommand{moka_objects_call_tictactoe_play_1}
+\inputOutput{moka_objects_call_tictactoe_play_1}
 %
-\input{moka_objects_call_tictactoe_toString_1_command}
-\input{moka_objects_call_tictactoe_toString_1_output}
+\inputCommand{moka_objects_call_tictactoe_toString_1}
+\inputOutput{moka_objects_call_tictactoe_toString_1}
 %
 Note that the call to \texttt{toString()} does not require to provide the password of the key pair of the caller account,
 since that method is a \texttt{@View} method: this means that moka runs a transaction to call it, it does not add a transaction.
 
 The second player plays now, at (2,1), betting 100:
 %
-\input{moka_objects_call_tictactoe_play_2_command}
-\input{moka_objects_call_tictactoe_play_2_output}
+\inputCommand{moka_objects_call_tictactoe_play_2}
+\inputOutput{moka_objects_call_tictactoe_play_2}
 %
-\input{moka_objects_call_tictactoe_toString_2_command}
-\input{moka_objects_call_tictactoe_toString_2_output}
+\inputCommand{moka_objects_call_tictactoe_toString_2}
+\inputOutput{moka_objects_call_tictactoe_toString_2}
 %
 The first player replies, by playing at (1,2):
 %
-\input{moka_objects_call_tictactoe_play_3_command}
-\input{moka_objects_call_tictactoe_play_3_output}
+\inputCommand{moka_objects_call_tictactoe_play_3}
+\inputOutput{moka_objects_call_tictactoe_play_3}
 %
-\input{moka_objects_call_tictactoe_toString_3_command}
-\input{moka_objects_call_tictactoe_toString_3_output}
+\inputCommand{moka_objects_call_tictactoe_toString_3}
+\inputOutput{moka_objects_call_tictactoe_toString_3}
 %
 Then the second player plays at (2,2):
 %
-\input{moka_objects_call_tictactoe_play_4_command}
-\input{moka_objects_call_tictactoe_play_4_output}
+\inputCommand{moka_objects_call_tictactoe_play_4}
+\inputOutput{moka_objects_call_tictactoe_play_4}
 %
-\input{moka_objects_call_tictactoe_toString_4_command}
-\input{moka_objects_call_tictactoe_toString_4_output}
+\inputCommand{moka_objects_call_tictactoe_toString_4}
+\inputOutput{moka_objects_call_tictactoe_toString_4}
 %
 The first player wins by playing at (1,3):
 %
-\input{moka_objects_call_tictactoe_play_5_command}
-\input{moka_objects_call_tictactoe_play_5_output}
+\inputCommand{moka_objects_call_tictactoe_play_5}
+\inputOutput{moka_objects_call_tictactoe_play_5}
 %
-\input{moka_objects_call_tictactoe_toString_5_command}
-\input{moka_objects_call_tictactoe_toString_5_output}
+\inputCommand{moka_objects_call_tictactoe_toString_5}
+\inputOutput{moka_objects_call_tictactoe_toString_5}
 %
 We can verify that the game is over now:
 %
 \index{moka!objects show@{\texttt{objects show}}}
-\input{moka_objects_show_tictactoe_command}
-\input{moka_objects_show_tictactoe_output}
+\inputCommand{moka_objects_show_tictactoe}
+\inputOutput{moka_objects_show_tictactoe}
 %
 As you can see, the \texttt{gameOver} field holds true. Moreover, the balance of the contract is zero since it has been distributed to
 the winner and to the creator of the game (that actually coincide to our first account, in this specific run).
 
 If the second player attempts to play now, the transaction will be rejected, since the game is over:
 %
-\input{moka_objects_call_tictactoe_play_6_command}
-\input{moka_objects_call_tictactoe_play_6_output}
+\inputCommand{moka_objects_call_tictactoe_play_6}
+\inputOutput{moka_objects_call_tictactoe_play_6}
 
-\subsection{Specialized storage array classes}\label{subsec:tspecialized_storage_array_classes}
+\subsection{Specialized storage array classes}\label{subsec:specialized_storage_array_classes}
 
 The \texttt{StorageTreeArray<E>} class is very general, since it can be used to hold
 any type \texttt{E} of storage values. Since it uses generics,
@@ -982,7 +982,7 @@ a constant (for best optimization and minimal gas consumption).
 
 \begin{figure}[th]
   \begin{center}
-    \includegraphics[width=0.8\textwidth]{pics/bytes}
+    \myincludegraphics{0.8\textwidth}{bytes}
   \end{center}
   \caption{The hierarchy of specialized byte array classes.}
   \label{fig:byte_array_hierarchy}
@@ -1027,7 +1027,7 @@ keys \texttt{K} and values \texttt{V} can be stored in a node as well.
 
 \begin{figure}[th]
   \begin{center}
-    \includegraphics[width=0.45\textwidth]{pics/maps}
+    \myincludegraphics{0.45\textwidth}{maps}
   \end{center}
   \caption{The hierarchy of storage maps.}
   \label{fig:maps_hierarchy}
@@ -1444,7 +1444,7 @@ of \texttt{Bid} contain a \texttt{hash} consisting of $32$ bytes. As already sai
 be recomputed at reveal time and matched against the result.
 Since arrays cannot be stored in blockchain, we use the storage class
 \texttt{io.takamaka.code.util.Bytes32Snapshot} here, a library class that holds $32$ bytes, as a
-traditional array (see Sec.~\ref{subsec:specialized-storage-array-classes}).
+traditional array (see Sec.~\ref{subsec:specialized_storage_array_classes}).
 It is well possible to use a \texttt{StorageArray} of a wrapper
 of \texttt{byte} here, but \texttt{Bytes32Snapshot} is much more compact and its methods consume less gas.
 
@@ -1618,24 +1618,24 @@ some new accounts for our tests, since those that we generated before for
 but swapping the server we are talking to:
 %
 \index{moka!keys create@{\texttt{keys create}}}
-\input{moka_keys_create_account4_command}
-\input{moka_keys_create_account4_output}
+\inputCommand{moka_keys_create_account4}
+\inputOutput{moka_keys_create_account4}
 %
-\input{moka_keys_create_account5_command}
-\input{moka_keys_create_account5_output}
+\inputCommand{moka_keys_create_account5}
+\inputOutput{moka_keys_create_account5}
 %
-\input{moka_keys_create_account6_command}
-\input{moka_keys_create_account6_output}
+\inputCommand{moka_keys_create_account6}
+\inputOutput{moka_keys_create_account6}
 %
 \index{moka!accounts create@{\texttt{accounts create}}}
-\input{moka_accounts_create_account4_command}
-\input{moka_accounts_create_account4_output}
+\inputCommand{moka_accounts_create_account4}
+\inputOutput{moka_accounts_create_account4}
 %
-\input{moka_accounts_create_account5_command}
-\input{moka_accounts_create_account5_output}
+\inputCommand{moka_accounts_create_account5}
+\inputOutput{moka_accounts_create_account5}
 %
-\input{moka_accounts_create_account6_command}
-\input{moka_accounts_create_account6_output}
+\inputCommand{moka_accounts_create_account6}
+\inputOutput{moka_accounts_create_account6}
 
 Go to the \texttt{io-hotmoka-tutorial-examples-runs} Eclipse project and add the following
 class inside its package:
@@ -2140,11 +2140,11 @@ actual winner: \accountFiveShort{}
 
 We can run class \texttt{Auction} now (please note that the execution of this test will take a few minutes):
 %
-\input{mvn_exec_blind_auction_command}
+\inputCommand{mvn_exec_blind_auction}
 %
 Its execution should print something like this on the console:
 %
-\input{mvn_exec_blind_auction_output}
+\inputOutput{mvn_exec_blind_auction}
 
 \subsection{Listening to events}\label{subsec:listening_to_events}
 %
@@ -2203,11 +2203,11 @@ private void eventHandler(StorageReference creator, StorageReference event) {
 The event handler, in this case, simply prints on the console the class of the event and its creator
 (that will coincide with \texttt{auction}). You can run the \texttt{Events} class now:
 %
-\input{mvn_exec_blind_auction_events_command}
+\inputCommand{mvn_exec_blind_auction_events}
 %
 You should see something like this on the console:
 %
-\input{mvn_exec_blind_auction_events_output}
+\inputOutput{mvn_exec_blind_auction_events}
 %
 \begin{commentbox}
 The \texttt{subscribeToEvents()}\index{subscribeToEvents()@{\texttt{subscribeToEvents()}}}

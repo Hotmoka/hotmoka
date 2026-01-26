@@ -26,7 +26,7 @@ That interface can be split in five parts:
 
 \begin{figure}[th]
   \begin{center}
-    \includegraphics[width=0.55\textwidth]{pics/nodes}
+    \myincludegraphics{0.55\textwidth}{nodes}
   \end{center}
   \caption{The hierarchy of Hotmoka nodes.}
   \label{fig:node_hierarchy}
@@ -51,16 +51,15 @@ These are actual nodes that run on the machine
 where they have been started. For instance, they can be a node
 of a larger blockchain network. Among them,
 \texttt{MokamintNode}\index{MokamintNode@{\texttt{MokamintNode}}}
-implements a node of a Mokamint\index{Mokamint} blockchain
-and will be presented in Sec.~\ref{subsec:mokamint_nodes};
+implements a node of a Mokamint\index{Mokamint} blockchain;
 \texttt{TendermintNode}\index{TendermintNode@{\texttt{TendermintNode}}}
 implements a node of a Tendermint\index{Tendermint} blockchain
-and will be presented in Sec.~\ref{subsec:tendermint_nodes};
+and will be presented in Sec.~\ref{sec:tendermint_nodes};
 \texttt{DiskNode}\index{DiskNode@{\texttt{DiskNode}}}
 implements a single-node blockchain in disk memory: this
 is useful for debugging, testing and learning, since it allows
 one to inspect the content of blocks, transactions and store;
-it will be presented in Sec.~\ref{subsec:disk_nodes}.
+it will be presented in Sec.~\ref{sec:disk_nodes}.
 Local nodes can be instantiated through the static
 factory methods of their supplier classes
 \texttt{MokamintNodes}\index{MokamintNodes@{\texttt{MokamintNodes}}},
@@ -97,7 +96,7 @@ such as \texttt{DiskNode}\index{DiskNode@{\texttt{DiskNode}}},
 and all present and future implementations.
 In other words, one would like to publish \emph{any}
 Hotmoka node as a service, accessible through the internet. This will be the subject
-of Sec.~\ref{sec:hotmoka_services}.
+of Sec.~\ref{sec:node_services}.
 Conversely, once a Hotmoka node has been published at some URI, say
 \url{ws://my.company.com}, it will be accessible through websockets. This complexity
 might make it complex, for a programmer, to use the published node.
@@ -140,16 +139,16 @@ and install it at a place that is
 part of the command-line path of your computer. You can then verify that Tendermint is
 correctly installed:
 %
-\input{tendermint_version_command}
-\input{tendermint_version_output}
+\inputCommand{tendermint_version}
+\inputOutput{tendermint_version}
 
 Before starting a local node of a Hotmoka blockchain based on Tendermint, you
 need to create the Tendermint configuration file. For instance, in order
 to run a single validator node with no non-validator nodes, you can create
 its configuration files as follows:
 %
-\input{tendermint_testnet_command}
-\input{tendermint_testnet_output}
+\inputCommand{tendermint_testnet}
+\inputOutput{tendermint_testnet}
 %
 This has created a directory \texttt{mytestnet/node0}
 for a single Tendermint node, that includes the configuration
@@ -160,8 +159,8 @@ of the node that you are going to start. This is an account that holds all initi
 crypto coins, if any. You perform this with moka:
 %
 \index{moka!keys create@{\texttt{keys create}}}
-\input{moka_keys_create_gamete_command}
-\input{moka_keys_create_gamete_output}
+\inputCommand{moka_keys_create_gamete}
+\inputOutput{moka_keys_create_gamete}
 
 You can start now a Hotmoka node based on Tendermint,
 that uses the Tendermint configuration
@@ -175,8 +174,8 @@ local Maven's cache for that but you can alternatively download the
 it in the following command line:
 %
 \index{moka!nodes tendermint init@{\texttt{nodes tendermint init}}}
-\input{moka_nodes_tendermint_init_command}
-\input{moka_nodes_tendermint_init_output}
+\inputCommand{moka_nodes_tendermint_init}
+\inputOutput{moka_nodes_tendermint_init}
 
 This command has done a lot! It has created an instance
 of \texttt{TendermintNode}; it has stored the
@@ -206,8 +205,8 @@ reference in the node, on your local machine. Open another shell,
 move inside the directory holding the keys of the gamete and run:
 %
 \index{moka!keys bind@{\texttt{keys bind}}}\index{key!binding}
-\input{moka_keys_bind_gamete_command}
-\input{moka_keys_bind_gamete_output}
+\inputCommand{moka_keys_bind_gamete}
+\inputOutput{moka_keys_bind_gamete}
 %
 This operation has created a pem file whose name is that of the storage reference of the gamete.
 With this file, it is possible to run transactions on behalf of the gamete.
@@ -235,8 +234,8 @@ command above. If you do that, you can then go into another shell (since the pre
 execution of the node), in a directory holding the key pair file of the gamete, and type:
 %
 \index{moka!nodes faucet@{\texttt{nodes faucet}}}
-\input{moka_nodes_faucet_command}
-\input{moka_nodes_faucet_output}
+\inputCommand{moka_nodes_faucet}
+\inputOutput{moka_nodes_faucet}
 %
 This set the maximal amount of coins that
 the faucet is willing to give away at each request (its \emph{flow}). You can re-run the
@@ -259,8 +258,8 @@ Try for instance to stop the Tendermint node that we initialized before
 You can subsequently resume that node from its latest state, by typing:
 %
 \index{moka!nodes tendermint resume@{\texttt{nodes tendermint resume}}}
-\input{moka_nodes_tendermint_resume_command}
-\input{moka_nodes_tendermint_resume_output}
+\inputCommand{moka_nodes_tendermint_resume}
+\inputOutput{moka_nodes_tendermint_resume}
 
 There is a log file that can be useful to check the state of our Hotmoka-Tendermint node.
 Namely, \texttt{tendermint.log} contains the log of Tendermint itself. It can be interesting
@@ -311,7 +310,7 @@ resembles the market of shares of a corporation.
 
 \begin{figure}[th]
   \begin{center}
-    \includegraphics[width=0.8\textwidth]{pics/entities}
+    \myincludegraphics{0.8\textwidth}{entities}
   \end{center}
   \caption{The hierarchy of entities and validators classes.}
   \label{fig:entities_hierarchy}
@@ -321,7 +320,7 @@ Hotmoka has an interface that represents entities whose shares can be dynamicall
 among \emph{shareholders}. Fig.~\ref{fig:entities_hierarchy} shows this
 \texttt{SharedEntity}\index{SharedEntity@{\texttt{SharedEntity}}}\index{shared entity}
 interface. As you can see in the figure, the notion of validators\index{validator}
-is just a special case of shared entity (see also~\ref{SpotoMGB23}).
+is just a special case of shared entity (see also~\cite{SpotoMGB23}).
 It is possible to use shared entities to represent other concepts, such as
 a distributed autonomous organization, or a voting community.
 Here, however, we focus on their use to represent the set
@@ -407,7 +406,7 @@ the underlying Tendermint engine about the identifiers of the validator nodes
 for the next blocks. Tendermint expects such validators to mine and vote the
 subsequent blocks, until a change in the set of validators occurs.
 
-\section{Disk nodes}\label{subsec:disk_nodes}
+\section{Disk nodes}\label{sec:disk_nodes}
 
 The Hotmoka nodes of the previous sections form a real blockchain.
 They are perfect for deploying a blockchain where we can program smart contracts in
@@ -431,8 +430,8 @@ exactly as for the previous Hotmoka nodes.
 You then specify the Base58-encoded public key when starting the node:
 %
 \index{moka!nodes disk init@{\texttt{nodes disk init}}}
-\input{moka_nodes_disk_init_command}
-\input{moka_nodes_disk_init_output}
+\inputCommand{moka_nodes_disk_init}
+\inputOutput{moka_nodes_disk_init}
 %
 Then, in another shell, you can bind the gamete and open the flow of the faucet, as we did
 for the other kinds of Hotmoka nodes.
@@ -443,8 +442,8 @@ its default chain identifier is the empty string and it has no validators. Block
 inside the \texttt{chain} directory, that this time contains a nice textual representation of requests and
 responses:
 %
-\input{tree_chain_command}
-\input{tree_chain_output}
+\inputCommand{tree_chain}
+\inputOutput{tree_chain}
 
 \begin{commentbox}
 The exact ids and the number of these transactions will be different in your computer.
@@ -464,16 +463,16 @@ For instance, the transaction inside \texttt{b2} should be the one that created 
 account. Print its \texttt{request.txt} file:
 %
 \index{transaction!request}
-\input{cat_gamete_creation_request_command}
-\input{cat_gamete_creation_request_output}
+\inputCommand{cat_gamete_creation_request}
+\inputOutput{cat_gamete_creation_request}
 %
 You can see that this is a request to create a gamete: it specifies the initial amount of crypto coins
 held in the gamete and the public key of the gamete, which is what we passed when we initialized the node
 (in base64 format, since it is more compact, in general). Print its response now:
 %
 \index{transaction!response}
-\input{cat_gamete_creation_response_command}
-\input{cat_gamete_creation_response_output}
+\inputCommand{cat_gamete_creation_response}
+\inputOutput{cat_gamete_creation_response}
 %
 You can see that this response reports the storage reference of the gamete that has been created.
 Moreover, responses typically report a set of \emph{updates}, as in this case.
@@ -501,8 +500,8 @@ specific execution of moka that you are interested in.
 
 The content of the logs, in the case of the execution of a Hotmoka node, might look like:
 %
-\input{cat_hotmoka_log_command}
-\input{cat_hotmoka_log_output}
+\inputCommand{cat_hotmoka_log}
+\inputOutput{cat_hotmoka_log}
 
 If you want to follow in real time what is happening inside your node,
 you can run for instance \texttt{tail -f hotmoka.log.0}: this
@@ -637,8 +636,8 @@ public class Decorators {
 %
 Run class \texttt{Decorators}:
 %
-\input{mvn_exec_decorators_command}
-\input{mvn_exec_decorators_output}
+\inputCommand{mvn_exec_decorators}
+\inputOutput{mvn_exec_decorators}
 %
 As you can see, the use of decorators has avoided us the burden of
 programming transaction requests, explicitly, and makes our code more robust,
@@ -742,7 +741,7 @@ presses the ENTER key and terminates the service (and the program).
 
 Run class \texttt{Publisher}:
 %
-\input{mvn_exec_publisher_command}
+\inputCommand{mvn_exec_publisher}
 %
 It should work for a few seconds and then start waiting for the ENTER key. Do not press such key yet!
 Since \texttt{original} is not initialized yet, it has no manifest and no gamete. Its store is just empty
@@ -1034,19 +1033,19 @@ Let us for instance create an account that uses the default signature algorithm 
 We charge its creation to the faucet of the node:
 %
 \index{moka!keys create@{\texttt{keys create}}}
-\input{moka_keys_create_account7_command}
-\input{moka_keys_create_account7_output}
+\inputCommand{moka_keys_create_account7}
+\inputOutput{moka_keys_create_account7}
 %
 \index{moka!accounts create@{\texttt{accounts create}}}
-\input{moka_accounts_create_account7_command}
-\input{moka_accounts_create_account7_output}
+\inputCommand{moka_accounts_create_account7}
+\inputOutput{moka_accounts_create_account7}
 %
 You can check the class of the new account with the \texttt{moka objects show} command:
 %
 \index{ExternallyOwnedAccountED25519@{\texttt{ExternallyOwnedAccountED25519}}}
 \index{moka!objects show@{\texttt{objects show}}}
-\input{moka_objects_show_account7_command}
-\input{moka_objects_show_account7_output}
+\inputCommand{moka_objects_show_account7}
+\inputOutput{moka_objects_show_account7}
 %
 As you can see, an account has been created, that uses the default ed25519
 signature algorithm of the node.
@@ -1055,32 +1054,32 @@ regardless of the default signature algorithm of the node. We can specify that w
 \texttt{moka accounts create} command:
 %
 \index{moka!keys create@{\texttt{keys create}}}
-\input{moka_keys_create_account8_command}
-\input{moka_keys_create_account8_output}
+\inputCommand{moka_keys_create_account8}
+\inputOutput{moka_keys_create_account8}
 %
 \index{moka!accounts create@{\texttt{accounts create}}}
-\input{moka_accounts_create_account8_command}
-\input{moka_accounts_create_account8_output}
+\inputCommand{moka_accounts_create_account8}
+\inputOutput{moka_accounts_create_account8}
 %
 This creation has been more expensive than for the previous account, because the public key of the
 sha256dsa algorithm is much longer than that for the ed25519 algorithm.
 You can verify this with the \texttt{moka objects show} command:
 %
 \index{moka!objects show@{\texttt{objects show}}}
-\input{moka_objects_show_account8_command}
-\input{moka_objects_show_account8_output}
+\inputCommand{moka_objects_show_account8}
+\inputOutput{moka_objects_show_account8}
 %
 Note that the class of the account is \texttt{ExternallyOwnedAccountSHA256DSA} this time.
 
 Let us create an account that uses the qtesla-p-I signature algorithm now:
 %
 \index{moka!keys create@{\texttt{keys create}}}
-\input{moka_keys_create_account9_command}
-\input{moka_keys_create_account9_output}
+\inputCommand{moka_keys_create_account9}
+\inputOutput{moka_keys_create_account9}
 %
 \index{moka!accounts create@{\texttt{accounts create}}}
-\input{moka_accounts_create_account9_command}
-\input{moka_accounts_create_account9_output}
+\inputCommand{moka_accounts_create_account9}
+\inputOutput{moka_accounts_create_account9}
 %
 The creation of this account has been still more expensive, since this kind of quantum-resistant
 keys are very large. Again, you can use the \texttt{moka object show}
@@ -1089,12 +1088,12 @@ command to verify that it has class \texttt{ExternallyOwnedAccountQTESLA1}.
 Finally, let us use the previous qtesla-p-I account to create a qtesla-p-III account:
 %
 \index{moka!keys create@{\texttt{keys create}}}
-\input{moka_keys_create_account10_command}
-\input{moka_keys_create_account10_output}
+\inputCommand{moka_keys_create_account10}
+\inputOutput{moka_keys_create_account10}
 %
 \index{moka!accounts create@{\texttt{accounts create}}}
-\input{moka_accounts_create_account10_command}
-\input{moka_accounts_create_account10_output}
+\inputCommand{moka_accounts_create_account10}
+\inputOutput{moka_accounts_create_account10}
 %
 Note, again, the extremely high gas cost of this creation.
 
@@ -1106,8 +1105,8 @@ the \texttt{io-hotmoka-tutorial-examples-family-\hotmokaVersion{}.jar} file from
 Sec.~\ref{sec:calling_method} in the node:
 %
 \index{moka!jars install@{\texttt{jars install}}}
-\input{moka_jars_install_family_quantum_command}
-\input{moka_jars_install_family_quantum_output}
+\inputCommand{moka_jars_install_family_quantum}
+\inputOutput{moka_jars_install_family_quantum}
 %
 The moka tool has understood that the payer is an account that signs with the
 qtesla-p-I algorithm and has signed the request accordingly.

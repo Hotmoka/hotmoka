@@ -35,7 +35,7 @@ or Hotmoka nodes can be installed with Java code, as it will be shown later in C
 
 \section{Hotmoka blockchains based on Mokamint (proof of space)}\label{sec:hotmoka_mokamint}
 
-Hotmoka can run on top of a generic engine for proof of space consensus, called Mokamint~\ref{mokamint_github}.
+Hotmoka can run on top of a generic engine for proof of space consensus, called Mokamint~\cite{mokamint_github}.
 The latter implements the networking and consensus layers of a blockchain, leaving the application
 layer generic, so that it can be plugged on top of it. Hotmoka is one such application layer,
 but others may exist as well. Mokamint implements a consensus algorithm based on proof of space,
@@ -163,8 +163,8 @@ For instance, in order to mine for the Mokamint node running the Hotmoka testnet
 and published at \url{\serverMokamintMining}, you start with the creation of the key pair
 that will identify you as a miner:
 %
-\input{docker_create_keys_for_mining_command}
-\input{docker_create_keys_for_mining_output}
+\inputCommand{docker_create_keys_for_mining}
+\inputOutput{docker_create_keys_for_mining}
 %
 \begin{commentbox}
 We create the key pair inside a docker container above and then export it outside.
@@ -182,14 +182,14 @@ Save \texttt{miner.pem} in a safe place as well.
 You can create the mining configuration now:
 %
 \index{docker!docker config\_miner@{\texttt{config\_miner}}}
-\input{docker_config_miner_command}
+\inputCommand{docker_config_miner}
 %
 You can replace 5000 with any other positive number of nonces in order to increase or decrease the size of the plot file.
 
 After a mining configuration has been created, you can start mining:
 %
 \index{docker!docker mine@{\texttt{mine}}}
-\input{docker_mine_command}
+\inputCommand{docker_mine}
 %
 You should see on the screen the flow of the logs of the miner.
 You can terminate the miner by pressing the ENTER key.
@@ -207,12 +207,12 @@ Your miner will earn coins for the mining activity. You can check the current ba
 that identifies your miner, as follows:
 %
 \index{docker!docker balance@{\texttt{balance}}}
-\input{docker_check_balance_command}
+\inputCommand{docker_check_balance}
 %
 When the balance will finally be non-zero, you can bind the public key to the actual account that holds its crypto coins, with
 %
 \index{moka!keys bind@{\texttt{keys bind}}}
-\input{moka_keys_bind_miner_command}
+\inputCommand{moka_keys_bind_miner}
 %
 that requires you to have \texttt{moka} installed in your machine (Sec.~\ref{subsubsec:moka_local})
 and to be run in the directory where you have saved the key pair file \texttt{miner.pem}.
@@ -272,7 +272,7 @@ the actual blockchain data and \texttt{hotmoka\_mokamint} will contain the confi
 information created for the node. By using volumes, we can share that information
 across successive invocations of docker:
 %
-\input{docker_mokamint_config_clone_command}
+\inputCommand{docker_mokamint_config_clone}
 %
 Note that the script above will create another key pair (and ask you about the relative password),
 that will be kept \emph{inside} the container. This key pair identifies the node
@@ -283,7 +283,7 @@ although you may want to extract a copy from the container to your local host.
 
 After configuring the node, you can run it with the go script:
 %
-\input{docker_mokamint_go_command}
+\inputCommand{docker_mokamint_go}
 %
 The command above will start a node of the same blockchain of \url{\serverMokamint},
 that allows connections to the ports:
@@ -371,12 +371,12 @@ In any case, you need a key pair for the gamete account as well.
 Therefore, follow the instructions in Sec.~\ref{subsec:mining_hotmoka_mokamint} and create
 \texttt{gamete.pem} as well:
 %
-\input{docker_create_keys_for_mokamint_gamete_command}
-\input{docker_create_keys_for_mokamint_gamete_output}
+\inputCommand{docker_create_keys_for_mokamint_gamete}
+\inputOutput{docker_create_keys_for_mokamint_gamete}
 %
 You can now configure the node, by specifying the public key of the miner and that of the gamete:
 %
-\input{docker_mokamint_config_new_command}
+\inputCommand{docker_mokamint_config_new}
 %
 Note that the public key of the miner is reported in base58,
 while that of the gamete is reported in base64, currently.
@@ -391,7 +391,7 @@ Enter your chosen password or leave it blank. The script will configure the node
 The initialization of the node consists in the execution of a few initial transactions
 that create the genesis block, the manifest and the gas station of the node. You can do this with:
 %
-\input{docker_mokamint_init_command}
+\inputCommand{docker_mokamint_init}
 %
 This will take a few seconds. You should see the logs of the executed transactions,
 until the script terminates.
@@ -414,7 +414,7 @@ developer only the task to develop the Tendermint app.
 
 \begin{figure}[th]
   \begin{center}
-    \includegraphics[width=0.8\textwidth]{pics/hotmoka_tendermint}
+    \myincludegraphics{0.8\textwidth}{hotmoka_tendermint}
   \end{center}
   \caption{The architecture of the Hotmoka node based on Tendermint.}
   \label{fig:hotmoka_tendermint}
@@ -424,7 +424,7 @@ There is a docker image that implements a Hotmoka node as a Tendermint app
 for programming in Takamaka over Tendermint. We have already used that node
 previously, since that installed at
 \texttt{\serverTendermint{}} is a node of that type.
-Fig.~\cite{fig:hotmoka_tendermint}
+Fig.~\ref{fig:hotmoka_tendermint}
 shows the architecture of a Tendermint Hotmoka node.
 It consists of a few components.
 The Hotmoka component is the Tendermint app that
@@ -459,7 +459,7 @@ at \texttt{\serverTendermint{}}.
 
 \subsection{Start a node of an existing blockchain}\label{subsec:join_hotmoka_tendermint}
 
-As for Hotmoka nodes based on Mokamint~\cite{subsec:join_hotmoka_mokamint}, this task is split in two scripts,
+As for Hotmoka nodes based on Mokamint~\ref{subsec:join_hotmoka_mokamint}, this task is split in two scripts,
 \texttt{config-clone} and \text{go}.
 
 \subsubsection{Configure the node (\texttt{config-clone})}\label{subsubsec:tendermint_config_clone}
@@ -479,7 +479,7 @@ across successive invocations of docker.
 
 You can then run the script that configures the node.
 %
-\input{docker_tendermint_config_clone_command}
+\inputCommand{docker_tendermint_config_clone}
 %
 The script above will create a key pair with empty password, that will be kept inside the container.
 This key pair identifies the node and will be used to sign the blocks that the node will create,
@@ -490,7 +490,7 @@ although you may want to extract a copy from the container to your local host.
 
 After configuring the node, you can run it with the go script:
 %
-\input{docker_tendermint_go_command}
+\inputCommand{docker_tendermint_go}
 %
 The command above will start a node of the same blockchain of \url{\serverTendermint},
 that allows connections to the ports:
@@ -529,9 +529,9 @@ The resulting node will not be a validator. For that, you need to buy some valid
 from a validator who is willing to sell it to you.
 Check the \texttt{moka nodes tendermint validators}\index{moka!nodes tendermint validators@{\texttt{nodes tendermint validators}}} commands.
 
-\subsection{Start a node of a new blockchain}\label{subsec:start_hotmoka_mokamint}
+\subsection{Start a node of a new blockchain}\label{subsec:start_hotmoka_tendermint}
 
-As in Sec.~\ref{subsec:start_hotmoka_tendermint}, this task is split in three scripts,
+As in Sec.~\ref{subsec:start_hotmoka_mokamint}, this task is split in three scripts,
 \texttt{config-new}, \texttt{init} and \texttt{go}.
 
 \subsubsection{Configure the node (\texttt{config-new})}\label{subsubsec:tendermint_config_new}
@@ -542,12 +542,12 @@ It can also be used as faucet of the node, if your node allows a free faucet.
 You can follow the instructions in Sec.~\ref{subsec:mining_hotmoka_mokamint} and create
 \texttt{gamete.pem} as well:
 %
-\input{docker_create_keys_for_tendermint_gamete_command}
-\input{docker_create_keys_for_tendermint_gamete_output}
+\inputCommand{docker_create_keys_for_tendermint_gamete}
+\inputOutput{docker_create_keys_for_tendermint_gamete}
 %
 You can now configure the node, by specifying the public key of the gamete:
 %
-\input{docker_tendermint_config_new_command}
+\inputCommand{docker_tendermint_config_new}
 %
 Note that the public key of the gamete is reported in base64, currently.
 The target block creation time, in milliseconds, is the average time between
@@ -560,7 +560,7 @@ requests sent to the Hotmoka nodes of the network.
 The initialization of the node consists in the execution of a few initial transactions
 that create the genesis block, the manifest and the gas station of the node. You can do this with:
 %
-\input{docker_tendermint_init_command}
+\inputCommand{docker_tendermint_init}
 %
 This will take a few seconds. You should see the logs of the executed transactions,
 until the script terminates.

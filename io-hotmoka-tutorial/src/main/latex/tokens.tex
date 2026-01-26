@@ -62,7 +62,7 @@ and guarantees that its value is never negative. For instance, the subtraction o
 
 \begin{figure}[th]
   \begin{center}
-    \includegraphics[width=0.8\textwidth]{pics/erc20}
+    \myincludegraphics{0.8\textwidth}{erc20}
   \end{center}
   \caption{The hierarchy of the ERC20 token implementations.}
   \label{fig:erc20_hierarchy}
@@ -217,14 +217,14 @@ the mint or burn and call the inherited protected methods in that case.
 You can generate the jar archive and install that jar in the node, by letting our first account pay:
 %
 \index{moka!jars install@{\texttt{jars install}}}
-\input{moka_jars_install_erc20_command}
-\input{moka_jars_install_erc20_output}
+\inputCommand{moka_jars_install_erc20}
+\inputOutput{moka_jars_install_erc20}
 %
 Finally, you can create an instance of the token class, by always letting our first account pay for that:
 %
 \index{moka!objects create@{\texttt{objects create}}}
-\input{moka_objects_create_erc20_command}
-\input{moka_objects_create_erc20_output}
+\inputCommand{moka_objects_create_erc20}
+\inputOutput{moka_objects_create_erc20}
 %
 The new ledger instance has been installed in the storage of the node now, at the address
 \texttt{\ercTwentyObjectShort{}}. It is possible to start interacting with that ledger instance, by transferring
@@ -287,7 +287,7 @@ in Fig.~\ref{fig:erc721_hierarchy}.
 %
 \begin{figure}[th]
   \begin{center}
-    \includegraphics[width=0.65\textwidth]{pics/erc721}
+    \myincludegraphics{0.65\textwidth}{erc721}
   \end{center}
   \caption{The hierarchy of the ERC721 token implementations.}
   \label{fig:erc721_hierarchy}

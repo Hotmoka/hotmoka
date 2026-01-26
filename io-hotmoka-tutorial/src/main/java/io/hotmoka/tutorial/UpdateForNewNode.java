@@ -63,8 +63,9 @@ import io.takamaka.code.constants.Constants;
 
 /**
  * This executable runs experiments against a couple of remote Hotmoka nodes (one for
- * Mokamint and one for Tendermint) and reports the results inside the "parameters.tex" latex file,
- * so that the recompilation of the tutorial will embed the exact results of the experiments.
+ * Mokamint and one for Tendermint) and reports the results inside latex files,
+ * so that the recompilation of the tutorial will embed the exact results
+ * of the experiments.
  * 
  * Run it with:
  * 
@@ -136,7 +137,7 @@ public class UpdateForNewNode {
 	 * @throws Exception if the editing of the file fails for some reason
 	 */
 	public static void main(String[] args) throws Exception {
-		Path outputDir = args.length > 0 ? Paths.get(args[0]) : Paths.get("src/main/latex");
+		Path outputDir = args.length > 0 ? Paths.get(args[0]) : Paths.get("src/main/latex/generated");
 		mokamintServer = new URI(args.length > 1 ? args[1] : "ws://panarea.hotmoka.io:8001");
 		mokamintServerMining = new URI(args.length > 2 ? args[2] : "ws://panarea.hotmoka.io:8025");
 		mokamintServerPublic = new URI(args.length > 3 ? args[3] : "ws://panarea.hotmoka.io:8030");
