@@ -152,9 +152,9 @@ public class UpdateForNewNode {
 
 		// you can comment out some of the following lines if you only want to regenerate a subset of the experiments
 		new ExperimentsWithoutServer(outputDir, tempDir);
-		//new ExperimentsQuantumWithMokamintServer(outputDir, tempDir);
-		//new ExperimentsWithMokamintServer(outputDir, tempDir);
-		//new ExperimentsWithTendermintServer(outputDir, tempDir);
+		new ExperimentsQuantumWithMokamintServer(outputDir, tempDir);
+		new ExperimentsWithMokamintServer(outputDir, tempDir);
+		new ExperimentsWithTendermintServer(outputDir, tempDir);
 	}
 
 	/**
