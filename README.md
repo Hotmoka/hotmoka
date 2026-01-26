@@ -13,7 +13,7 @@ at <a href="https://github.com/Hotmoka/hotmoka/releases">https://github.com/Hotm
 
 &nbsp;
 
-<p align="center"><img width="200" src="io-hotmoka-tutorial/src/main/resources/pics/docker-hub.png" alt="DockerHub logo"></p><p>Hotmoka enjoys being a <a href="https://docs.docker.com/trusted-content/dsos-program/">Docker-sponsored open source program</a>. <a href="https://hub.docker.com/">DockerHub</a> provides for free a repository for the distribution of the Docker images of Hotmoka.</p>
+<p align="center"><img width="200" src="io-hotmoka-tutorial/src/main/resources/pics/dockerhub.png" alt="DockerHub logo"></p><p>Hotmoka enjoys being a <a href="https://docs.docker.com/trusted-content/dsos-program/">Docker-sponsored open source program</a>. <a href="https://hub.docker.com/">DockerHub</a> provides for free a repository for the distribution of the Docker images of Hotmoka.</p>
 
 
 &nbsp;
