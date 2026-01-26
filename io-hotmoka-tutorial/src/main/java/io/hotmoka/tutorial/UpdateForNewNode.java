@@ -65,7 +65,8 @@ import io.takamaka.code.constants.Constants;
  * This executable runs experiments against a couple of remote Hotmoka nodes (one for
  * Mokamint and one for Tendermint) and reports the results inside latex files,
  * so that the recompilation of the tutorial will embed the exact results
- * of the experiments.
+ * of the experiments. This executable is meant to be run whenever a new node
+ * has been installed.
  * 
  * Run it with:
  * 

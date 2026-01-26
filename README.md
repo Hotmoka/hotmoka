@@ -6,8 +6,10 @@
 
 Hotmoka is a framework for programming a network of communicating nodes, in a subset of Java called Takamaka. Nodes can belong to a blockchain or can be Internet of Things devices.
 
-You can read online the tutorial documentation about Hotmoka <a href="io-hotmoka-tutorial/tutorial-md/ProgrammingHotmoka.md">here<a>.
-That documentation is also available for free in PDF, ePub and MOBI format at <a href="https://github.com/Hotmoka/hotmoka/releases">https://github.com/Hotmoka/hotmoka/releases<a>.
+You can read online the tutorial documentation about Hotmoka
+at <a href="https://www.hotmoka.io">https://www.hotmoka.io<a>.
+That documentation is also available for free in PDF format
+at <a href="https://github.com/Hotmoka/hotmoka/releases">https://github.com/Hotmoka/hotmoka/releases<a>.
 
 &nbsp;
 
