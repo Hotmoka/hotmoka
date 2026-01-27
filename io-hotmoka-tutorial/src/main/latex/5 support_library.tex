@@ -355,45 +355,107 @@ fixed, although there are programming languages with limited forms of dynamic ar
 Java has native arrays, of type \texttt{E[]}, where \texttt{E} is the
 type of the elements of the array. They can be used in Takamaka, but not
 as fields of storage classes. For that, Takamaka provides class
-\texttt{io.takamaka.code.util.StorageTreeArray<E>}\index{StorageTreeArray@{\texttt{StorageTreeArray}}}. Its instances are storage objects and
+\texttt{io.takamaka.code.util.StorageTreeArray<E>}\index{StorageTreeArray@{\texttt{StorageTreeArray}}}
+and class
+\texttt{SnapshottableStorageTreeArray<E>}\index{SnapshottableStorageTreeArray@{\texttt{StorageTreeArray}}}, whose
+instances are storage objects and
 can consequently be held in fields of storage classes and
 can be stored in the store of a Hotmoka node, \emph{as long as only
-storage objects are added to the array}. Their size is fixed and decided
-at the time of construction. Although we consider \texttt{StorageTreeArray<E>} as the storage
-replacement for Java arrays, it must be stated that the complexity of
+storage objects are added inside them}. Their size is fixed and decided
+at the time of construction. Although we consider such classes
+as the storage replacement for Java arrays, it must be stated that the complexity of
 accessing their elements is logarithmic in the size of the array, which is
 a significant deviation from the standard definition of arrays. Nevertheless,
 logarithmic complexity is much better than the linear complexity for
 accessing elements of a \texttt{StorageLinkedList<E>} that, instead, has the advantage
-of being dynamic in size.
+of being dynamic in size. The difference between the two classes
+is that instances of \texttt{SnapshottableStorageTreeArray<E>} allow the construction
+of snapshots, which increases their cost in space, time and consequently gas.
+Therefore, it is better to use a \texttt{StorageTreeArray<E>} if the
+snapshotting feature is not used.
 
 \begin{figure}[th]
   \begin{center}
-    \myincludegraphics{0.5\textwidth}{arrays}
+	\begin{tikzpicture}[scale=1]
+	\scriptsize
+	\externalclasscolor
+	\begin{interface}[text width=2cm]{Iterable\string<E\string>}{0,0}
+	\end{interface}
+	\interfacecolor
+	\begin{interface}[text width=8.5cm]{StorageArrayView\string<E\string>}{0,-1.5}
+		\inherit{Iterable\string<E\string>}
+		\operation{@View length():int}
+		\operation{@View get(index:int):E}
+		\operation{@View getOrDefault(index:int, \string_default:E):E}
+		\operation{getOrDefault(index:int, \string_default:Supplier\string<? extends E\string>):E}
+		\operation{toArray(generator:IntFunction\string<E[]\string>):E[]}
+		\operation{forEach(action:Consumer\string<? super E\string>)}
+	\end{interface}
+	\begin{interface}[text width=6cm]{SnapshottableStorageArrayView\string<E\string>}{4.5,-6.5}
+		\inherit{StorageArrayView\string<E\string>}
+		\operation{snapshot():StorageArrayView\string<E\string>}
+	\end{interface}
+	\begin{interface}[text width=9cm]{StorageArray\string<E\string>}{-4,-5.5}
+		\inherit{StorageArrayView\string<E\string>}
+		\operation{set(index:int, value:E)}
+		\operation{update(index:int, how:UnaryOperator\string<E\string>)}
+		\operation{setIfAbsent(index:int, value:E):E}
+		\operation{computeIfAbsent(index:int, supplier:IntFunction\string<? extends E\string>):E}
+		\operation{view():StorageArrayView\string<E\string>}
+	\end{interface}
+	\begin{interface}[text width=5.2cm]{SnapshottableStorageArray\string<E\string>}{4.5,-9}
+		\inherit{StorageArray\string<E\string>}
+		\inherit{SnapshottableStorageArrayView\string<E\string>}
+		\operation{view():SnapshottableStorageArray\string<E\string>}
+	\end{interface}
+	\externalclasscolor
+	\begin{class}[text width=2cm]{Storage}{0,-9}
+	\end{class}
+	\classcolor
+	\begin{class}[text width=6cm]{StorageTreeArray\string<E\string>}{-5,-10}
+		\inherit{Storage}
+		\implement{StorageArray\string<E\string>}
+		\operation{StorageTreeArray(length:int)}
+		\operation{StorageTreeArray(length:int, initialValue:E)}
+	\end{class}
+	\begin{class}[text width=7.5cm]{SnapshottableStorageTreeArray\string<E\string>}{3,-11}
+		\inherit{Storage}
+		\implement{SnapshottableStorageArray\string<E\string>}
+		\operation{SnapshottableStorageArray(length:int)}
+		\operation{SnapshottableStorageArray(length:int, initialValue:E)}
+	\end{class}
+	\end{tikzpicture}
   \end{center}
   \caption{The hierarchy of storage arrays.}
   \label{fig:arrays_hierarchy}
 \end{figure}
 
-We refer to the JavaDoc of \texttt{StorageTreeArray<E>} for a full list of its methods.
-They include methods for adding elements, for accessing and
+We refer to the JavaDoc of \texttt{StorageTreeArray<E>}
+and \texttt{SnapshottableStorageTreeArray<E>} for a full list of their methods.
+There are methods for adding elements, for accessing and
 removing elements, for iterating on an array and for building a Java array
-\texttt{E[]} with the elements of a \texttt{StorageTreeArray<E>}.
-Fig.~\ref{fig:arrays_hierarchy} shows the hierarchy of the \texttt{StorageTreeArray<E>} class.
-It implements the interface
+\texttt{E[]} with the elements of a \texttt{StorageTreeArray<E>}
+or \texttt{SnapshottableStorageTreeArray<E>}.
+Fig.~\ref{fig:arrays_hierarchy} shows the hierarchy of such array classes.
+They implement the interface
 \texttt{StorageArray<E>}\index{StorageArray@{\texttt{StorageArray}}},
 that defines the methods that modify an array.
 That interface extends the interface
 \texttt{StorageArrayView<E>}\index{StorageArrayView@{\texttt{StorageArrayView}}}
 that, instead, defines the methods
-that read data from an array, but do not modify it. This distinction between the \emph{read-only}
-interface and the \emph{modification} interface is identical to what we have seen for lists in the previous
-sections. Arrays have methods \texttt{snapshot()}\index{snapshot()@{\texttt{snapshot()}}}
-and \texttt{view()}\index{view()@{\texttt{view()}}} as well, like lists.
-They yield \texttt{@Exported}
-storage arrays, both in constant time. All constructors of the
-\texttt{StorageTreeArray<E>} class require to specify the unmodifiable
-size of the array. Moreover, it is possible to specify a default value for the elements of the
+that read data from an array, but do not modify it.
+This distinction between the \emph{read-only}
+interface and the \emph{modification} interface is identical
+to what we have seen for lists in the previous
+sections. All array classes have a method
+\texttt{view()}\index{view()@{\texttt{view()}}} while only
+snapshottable arrays have a method
+\texttt{snapshot()}\index{snapshot()@{\texttt{snapshot()}}}, as for lists.
+Both methods yield \texttt{@Exported}
+storage arrays in constant time. All constructors of the
+arrays classes require to specify the unmodifiable
+size of the array. Moreover, it is possible to specify
+a default value for the elements of the
 array, that can be explicit or given as a supplier, possibly indexed.
 
 Next section shows an example of use for \texttt{StorageTreeArray<E>}.

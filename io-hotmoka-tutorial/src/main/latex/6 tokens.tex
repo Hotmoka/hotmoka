@@ -333,7 +333,52 @@ in Fig.~\ref{fig:erc721_hierarchy}.
 %
 \begin{figure}[th]
   \begin{center}
-    \myincludegraphics{0.65\textwidth}{erc721}
+	\begin{tikzpicture}[scale=1]
+	\scriptsize
+	\interfacecolor
+	\begin{interface}[text width=7cm]{IERC721View}{0,0}
+	\operation{@View ownerOf(tokenId:BigInteger):Contract}
+	\operation{@View balanceOf(account:Contract):BigInteger}
+	\operation{@View snapshot():IERC721View}
+	\end{interface}
+	\begin{interface}[text width=11cm]{IERC721}{0, -3}
+	\inherit{IERC20View}
+	\operation{@FromContract approve(spender:Contract, tokenId:BigInteger)}
+	\operation{@View setApprovalForAll(operator:Contract, approved:boolean)}
+	\operation{@FromContract transferFrom(from:Contract, to:Contract, tokenId:BigInteger)}
+	\operation{@View getApproved(tokenId:BigInteger):Contract}
+	\operation{@View isApprovedForAll(owner:Contract, operator:Contract):boolean}
+	\operation{view():IERC20View}
+	\end{interface}	
+	\externalclasscolor
+	\begin{class}[text width=2cm]{Contract}{-5,-6.5}
+	\end{class}
+	\classcolor
+	\begin{class}[text width=6cm]{ERC721}{0,-7.5}
+		\inherit{Contract}
+		\implement{IERC721}
+		\operation{ERC721(name:String, symbol:String)}
+		\operation{@View name(), symbol():String}
+		\operation{\# \_mint(to:Contract, tokenId:BigInteger)}
+		\operation{\# \_burn(tokenId:BigInteger)}
+	\end{class}
+	\begin{class}[text width=7cm]{ERC721Burnable}{-4,-10.5}
+		\inherit{ERC721}
+		\operation{ERC721Burnable(name:String, symbol:String)}
+		\operation{@FromContract burn(tokenId:BigInteger)}
+	\end{class}
+	\ourclasscolor
+	\begin{class}[text width=8cm]{CryptoShark}{5,-10.5}
+		\inherit{ERC721}
+		\operation{@FromContract CryptoShark()}
+		\operation{@FromContract mint(account:Contract, tokenId:BigInteger)}
+		\operation{@FromContract burn(tokenId:BigInteger)}
+	\end{class}
+	\interfacecolor
+	\begin{interface}[text width=11cm]{IERC721Receiver}{0,-13}
+		\operation{onReceive(ledger:IERC721, operator:Contract, from:Contract, tokenId:BigInteger)}
+		\end{interface}
+	\end{tikzpicture}
   \end{center}
   \caption{The hierarchy of the ERC721 token implementations.}
   \label{fig:erc721_hierarchy}
