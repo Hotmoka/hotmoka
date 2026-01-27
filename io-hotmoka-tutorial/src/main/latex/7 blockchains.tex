@@ -56,13 +56,13 @@ This becomes possible for Hotmoka as well, if run on top of Mokamint, as shown i
   \begin{center}
     \begin{tikzpicture}[scale=1.1]
       \draw [fill=lightviolet,thick] (0,1) rectangle +(3,1.5);
-      \draw[-, thick,dashed] (1.5,0.25) -- (1.5,1);
+      \draw[<->, thick,dashed] (1.5,0.25) -- (1.5,1);
       \draw [fill=yellow,thick] (0,-0.75) rectangle +(3,1);
       \draw (1.5,-0.25) node {{\scriptsize peer1 (Hotmoka)}};
       \draw (1.5,2) node {{\scriptsize peer1 (Mokamint)}};
       \draw (1.5,1.5) node {{\scriptsize 8dE4pHgtvFAXgB\ldots}};
       \draw [fill=lightviolet,thick] (0,4) rectangle +(3,1.5);
-      \draw[-, thick,dashed] (1.5,5.5) -- (1.5,6.25);
+      \draw[<->, thick,dashed] (1.5,5.5) -- (1.5,6.25);
       \draw [fill=yellow,thick] (0,6.25) rectangle +(3,1);
       \draw (1.5,6.75) node {{\scriptsize peer2 (Hotmoka)}};
       \draw (1.5,5) node {{\scriptsize peer2 (Mokamint)}};
@@ -91,14 +91,13 @@ This becomes possible for Hotmoka as well, if run on top of Mokamint, as shown i
       \draw (7.4,2.4) node {\ssd};
       \draw[-, thick] (3,2.4) -- (4,2.4);
 
-      \draw[-, thick, dashed] (1.5,2.5) -- (1.5,4);
+      \draw[<->, thick, dashed] (1.5,2.5) -- (1.5,4);
       \draw (0.8,2.7) node {{\scriptsize port 8030}};
       \draw (0.8,3.7) node {{\scriptsize port 8032}};
 
       \draw (4.3,1.1) node {\leftplug};
       \draw (4.3,0.6) node {{\scriptsize remote miner}};
       \draw[-, thick] (3,1.1) -- (4,1.1);
-      %\visible<1>{\draw (5.6,1.1) node {{\scriptsize port 8025}};}
       
       \draw (4.3,-0.2) node {\leftplug};
       \draw (4.3,-0.7) node {{\scriptsize remote client}};
@@ -106,7 +105,7 @@ This becomes possible for Hotmoka as well, if run on top of Mokamint, as shown i
       \draw (5.6,-0.2) node {{\scriptsize port 8001}};
 
       \draw [fill=verylightgray,dashed] (6.3,0.2) rectangle +(6,1.6);
-      \draw[-, thick, dashed] (4.8,1.1) -- (6.4,1.1);
+      \draw[<->, thick, dashed] (4.8,1.1) -- (6.4,1.1);
       \draw (5.6,1.4) node {{\scriptsize port 8025}};
       \draw[-, thick] (7.15,1.1) -- (8.1,1.1);
       \draw [fill=lightred,thick] (8.2,0.7) rectangle +(4,0.8);
@@ -414,17 +413,54 @@ developer only the task to develop the Tendermint app.
 
 \begin{figure}[th]
   \begin{center}
-    \myincludegraphics{0.8\textwidth}{hotmoka_tendermint}
+    \begin{tikzpicture}[scale=0.7]
+      \draw [fill=lightviolet,thick] (0,0) rectangle +(10,11);
+	  \draw (5,10.2) node {Hotmoka node};
+	  
+	  \draw [fill=lightviolet,thick] (15,0.5) rectangle +(8,5);
+	  \draw (19,4.9) node {other Hotmoka node};
+	  \draw[<->,thick,dashed] (9,2) -- (17,2);
+	  \draw (12.1,2.6) node {port 26656};
+	  \draw[<-,thick,dashed] (17,3.8) .. controls (11,5.5) .. node[near start,sloped,below] {\small port 8002} (17,9);
+	  \draw[<->,thick,dashed] (3.5,3) -- (3.5,5.5);
+	  \draw (6.5,4.2) node {ports 26657, 26658};
+
+	  \draw [fill=yellow,thick] (17,1.5) rectangle +(4,1);
+	  \draw (19,2) node {Tendermint};
+
+	  \draw[<->,thick,dashed] (19,2.5) -- (19,3.2);
+
+	  \draw [fill=yellow,thick] (17,3.2) rectangle +(4,1);
+  	  \draw (19,3.7) node {Hotmoka};
+
+  	  \draw [fill=lightblue,thick] (15,7) rectangle +(8,2);
+	  \draw (19,8) node {clients (moka, Mokito,\ldots)};
+
+	  \draw [fill=yellow,thick] (1,5.5) rectangle +(8,3.5);
+	  \draw (5,8.5) node {Hotmoka};
+	  \draw (5,6.8) node {
+		$\left(\begin{array}{c}
+		\text{handles transactions}\\
+		\text{keeps state on Xodus}\\
+		\text{interprets Takamaka}
+		\end{array}\right)$
+	  };
+	  \draw[<-,thick,dashed] (9,8.4) -- (15,8.4);
+	  \draw (12,9) node {port 8002};
+
+	  \draw [fill=yellow,thick] (1,1) rectangle +(8,2);
+	  \draw (5,2.5) node {Tendermint};
+	  \draw (5,1.6) node {(consensus, networking)};
+    \end{tikzpicture}
   \end{center}
-  \caption{The architecture of the Hotmoka node based on Tendermint.}
-  \label{fig:hotmoka_tendermint}
+  \caption{The network architecture of the Hotmoka node based on Tendermint.}\label{fig:hotmoka_tendermint_network}
 \end{figure}
 
 There is a docker image that implements a Hotmoka node as a Tendermint app
 for programming in Takamaka over Tendermint. We have already used that node
 previously, since that installed at
 \texttt{\serverTendermint{}} is a node of that type.
-Fig.~\ref{fig:hotmoka_tendermint}
+Fig.~\ref{fig:hotmoka_tendermint_network}
 shows the architecture of a Tendermint Hotmoka node.
 It consists of a few components.
 The Hotmoka component is the Tendermint app that
@@ -448,9 +484,13 @@ are already used by some other service.
 Port 26656 must be the same for all nodes in the network, since they must communicate on
 a standard port.
 
-We can use \texttt{\serverTendermint{}} to play with
+As shown in Fig.~\ref{fig:hotmoka_tendermint_network}, clients connect to the Hotmoka
+part of any node of the blockchain. The exact node is irrelevant, since all nodes
+of the same blockchain are kept synchronized by the underlying Tendermint engine.
+For instance, we can use \texttt{\serverTendermint{}} to play with
 accounts and Takamaka contracts. However, we might want to
-install our own node, part of the same blockchain network of \texttt{\serverTendermint{}}
+install our own node instead, part of the same
+blockchain network of \texttt{\serverTendermint{}}
 or part of a brand new blockchain. In the former case, our own node will execute
 the same transactions of \texttt{\serverTendermint{}}, so that we can be sure that they are
 executed according to the rules. In the latter case, we can have our own blockchain that
