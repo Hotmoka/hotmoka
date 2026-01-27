@@ -54,6 +54,7 @@
 %\usegdlibrary{trees}
 \usetikzlibrary{decorations.pathreplacing}
 \usetikzlibrary{arrows.meta}
+\usepackage[simplified]{pgf-umlcd}
 
 \usepackage{fancyhdr}
 \setlength{\headheight}{19pt} % because the logo uses more space than usual
@@ -189,10 +190,20 @@ morekeywords={module,requires,exports,provides}
 \newcommand{\rightplug}{\myincludegraphics{0.7cm}{plug_right}}
 \newcommand{\ssd}{\myincludegraphics{0.8cm}{ssd}}
 
-\colorlet{lightred}{red!50!white}
-\colorlet{lightblue}{blue!50!white}
-\colorlet{lightviolet}{violet!50!white}
-\colorlet{verylightgray}{gray!25!white}
+\colorlet{lightred}{red!30!white}
+\colorlet{lightblue}{blue!30!white}
+\colorlet{lightviolet}{violet!30!white}
+\colorlet{verylightgray}{gray!20!white}
+\colorlet{lightgreen}{green!30!white}
+
+\newcommand{\interfacecolor}{\renewcommand{\umlfillcolor}{lightviolet}}
+\newcommand{\classcolor}{\renewcommand{\umlfillcolor}{lightblue}}
+
+% the color of a UML class defined in our examples
+\newcommand{\ourclasscolor}{\renewcommand{\umlfillcolor}{lightgreen}}
+
+% the color of a UML class external to the hierarchy being described
+\newcommand{\externalclasscolor}{\renewcommand{\umlfillcolor}{white}}
 
 \begin{document}
 

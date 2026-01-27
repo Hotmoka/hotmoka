@@ -62,9 +62,56 @@ and guarantees that its value is never negative. For instance, the subtraction o
 
 \begin{figure}[th]
   \begin{center}
-    \myincludegraphics{0.8\textwidth}{erc20}
+	\begin{tikzpicture}[scale=1]
+	\scriptsize
+	\interfacecolor
+	\begin{interface}[text width=6cm]{IERC20View}{0,0}
+	\operation{@View totalSupply():UBI}
+	\operation{@View balanceOf(account:Contract):UBI}
+	\operation{@View snapshot():IERC20View}
+	\end{interface}
+	\begin{interface}[text width=11cm]{IERC20}{0, -3}
+	\inherit{IERC20View}
+	\operation{@FromContract trasfer(to:Contract, amount: UBI|int|long):boolean}
+	\operation{@View allowance(owner:Contract, spender:Contract):UBI}
+	\operation{@FromContract approve(spender:Contract, amount:UBI):boolean}
+	\operation{@FromContract transferFrom(from:Contract, to:Contract, amount:UBI):boolean}
+	\operation{view():IERC20View}
+	\end{interface}	
+	\externalclasscolor
+	\begin{class}[text width=2cm]{Contract}{-5,-6}
+	\end{class}
+	\classcolor
+	\begin{class}[text width=6cm]{ERC20}{0,-7}
+		\inherit{Contract}
+		\implement{IERC20}
+		\operation{ERC20(name:String, symbol:String)}
+		\operation{@View name(), symbol():String}
+		\operation{@View decimals():short)}
+		\operation{\# \_mint(account:Contract, amount:UBI)}
+		\operation{\# \_burn(account:Contract, amount:UBI)}
+	\end{class}
+	\begin{class}[text width=5cm]{ERC20Burnable}{-5,-10}
+		\inherit{ERC20}
+		\operation{ERC20Burnable(name:String, symbol:String)}
+		\operation{@FromContract burn(amount:UBI)}
+		\operation{@FromContract burnFrom(account:Contract, amount:UBI)}
+	\end{class}
+	\begin{class}[text width=5cm]{ERC20Capped}{1,-10}
+		\inherit{ERC20}
+		\operation{ERC20Capped(name:String, symbol:String, cap:UBI)}
+	\end{class}
+	\ourclasscolor
+	\begin{class}[text width=5cm]{CryptoBuddy}{7,-10}
+		\inherit{ERC20}
+		\operation{@FromContract CryptoBuddy()}
+		\operation{@FromContract mint(account:Contract, amount:UBI)}
+		\operation{@FromContract burn(account:Contract, amount:UBI)}
+	\end{class}
+	\end{tikzpicture}
   \end{center}
-  \caption{The hierarchy of the ERC20 token implementations.}
+  \caption{The hierarchy of the ERC20 token implementations. \texttt{UBI} is shorthand
+  		   for the library class \texttt{UnsignedBigInteger}.}
   \label{fig:erc20_hierarchy}
 \end{figure}
 
@@ -105,7 +152,6 @@ For instance, the \texttt{ERC20Burnable}\index{ERC20Burnable@{\texttt{ERC20Burna
 class is an \texttt{ERC20} implementation that
 allows a token owner to burn its tokens only, or those it has been
 delegated to transfer, but never those of another owner.
-
 The \texttt{ERC20Capped}\index{ERC20Capped@{\texttt{ERC20Capped}}} implementation
 allows the specification of a maximal cap to the
 number of tokens in circulation. When new tokens get minted, it checks that the cap
