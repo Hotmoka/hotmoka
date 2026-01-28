@@ -140,7 +140,7 @@ and implements a façade of the original list.
 To appreciate the difference to a cast, assume to have a \texttt{StorageList<E> list} and to write
 %
 \begin{codebox}\begin{javalst}
-	StorageListView<E> view = (StorageListView<E>) list;
+StorageListView<E> view = (StorageListView<E>) list;
 \end{javalst}\end{codebox}
 %
 This upwards cast will always succeed.
@@ -411,8 +411,8 @@ type of the elements of the array. They can be used in Takamaka, but not
 as fields of storage classes. For that, Takamaka provides class
 \texttt{io.takamaka.code.util.StorageTreeArray<E>}\index{StorageTreeArray@{\texttt{StorageTreeArray}}}
 and class
-\texttt{SnapshottableStorageTreeArray<E>}\index{SnapshottableStorageTreeArray@{\texttt{StorageTreeArray}}}, whose
-instances are storage objects and
+\texttt{SnapshottableStorageTreeArray<E>}\index{SnapshottableStorageTreeArray@{\texttt{SnapshottableStorageTreeArray}}},
+whose instances are storage objects and
 can consequently be held in fields of storage classes and
 can be stored in the store of a Hotmoka node, \emph{as long as only
 storage objects are added inside them}. Their size is fixed and decided
@@ -1134,60 +1134,123 @@ maps are useful in Takamaka code, as we show below.
 
 Java has many implementations of maps.
 However, they are not storage objects and consequently cannot be
-stored in a Hotmoka node. This section describes the
-Takamaka library class
-\texttt{io.takamaka.code.util.StorageTreeMap<K,V>}\index{StorageTreeMap@{\texttt{StorageTreeMap}}},
-that extends \texttt{Storage} and
+stored in a Hotmoka node. This section describes the Takamaka library classes
+\texttt{io.takamaka.code.util.StorageTreeMap<K,V>}\index{StorageTreeMap@{\texttt{StorageTreeMap}}} and
+\texttt{SnapshottableStorageTreeMap<K,V>}\index{SnapshottableStorageTreeMap@{\texttt{SnapshottableStorageTreeMap}}},
+that extend \texttt{Storage} and
 whose instances can then be held in the store of a node, if
 keys \texttt{K} and values \texttt{V} can be stored in a node as well.
 
 \begin{figure}[th]
   \begin{center}
-    \myincludegraphics{0.45\textwidth}{maps}
+	\begin{tikzpicture}[scale=1]
+	\scriptsize
+	\externalclasscolor
+	\begin{interface}[text width=4cm]{Iterable\string<Entry\string<K V\string>{}\string>}{0,0}
+	\end{interface}
+	\interfacecolor
+	\begin{interface}[text width=9cm]{StorageMapView\string<K V\string>}{0,-1.5}
+		\inherit{Iterable\string<Entry\string<K V\string>{}\string>}
+		\operation{@View size():int}
+		\operation{@View isEmpty():boolean}
+		\operation{@View get(key:Object):V}
+		\operation{@View getOrDefault(key:Object, \string_default:V):V}
+		\operation{getOrDefault(key:Object, \string_default:Supplier\string<? extends V\string>):V}
+		\operation{@View containsKey(key:Object):boolean}
+		\operation{@View min(), max():K}
+		\operation{@View floorKey(key:K), ceilingKey(key:K):K}
+		\operation{@View select(k:int):K}
+		\operation{forEach(action:Consumer\string<? super Entry\string<K,V\string>{}\string>)}
+		\operation{forEachKey(action:Consumer\string<? super K\string>)}
+		\operation{forEachValue(action:Consumer\string<? super V\string>)}
+	\end{interface}
+	\begin{interface}[text width=6cm]{SnapshottableStorageMapView\string<K V\string>}{4.5,-7}
+		\inherit{StorageMapView\string<K V\string>}
+		\operation{snapshot():StorageMapView\string<K,V\string>}
+	\end{interface}
+	\begin{interface}[text width=9.7cm]{StorageMap\string<K V\string>}{-4,-7}
+		\inherit{StorageMapView\string<K V\string>}
+		\operation{put(key:K, value:V)}
+		\operation{putIfAbsent(key:K, value:V):V}
+		\operation{computeIfAbsent(key:K, supplier:Function\string<? super K, ? extends V\string>):V}
+		\operation{removeMin(), removeMax()}
+		\operation{remove(key:Object)}
+		\operation{update(key:K, how:UnaryOperator\string<V\string>)}
+		\operation{clear()}
+		\operation{view():StorageMapView\string<K,V\string>}
+	\end{interface}
+	\begin{interface}[text width=6cm]{SnapshottableStorageMap\string<K V\string>}{4.5,-10}
+		\inherit{StorageMap\string<K V\string>}
+		\inherit{SnapshottableStorageMapView\string<K V\string>}
+		\operation{view():SnapshottableStorageMapView\string<K,V\string>}
+	\end{interface}
+	\externalclasscolor
+	\begin{class}[text width=2cm]{Storage}{-1,-11}
+	\end{class}
+	\classcolor
+	\begin{class}[text width=6cm]{StorageTreeMap\string<K V\string>}{-5,-12}
+		\inherit{Storage}
+		\implement{StorageMap\string<K V\string>}
+		\operation{StorageTreeMap()}
+	\end{class}
+	\begin{class}[text width=7.5cm]{SnapshottableStorageTreeMap\string<K V\string>}{3,-12}
+		\inherit{Storage}
+		\implement{SnapshottableStorageMap\string<K V\string>}
+		\operation{SnapshottableStorageTreeMap()}
+	\end{class}
+	\end{tikzpicture}
   \end{center}
   \caption{The hierarchy of storage maps.}
   \label{fig:maps_hierarchy}
 \end{figure}
 
-We refer to the JavaDoc of \texttt{StorageTreeMap} for a full description of its methods,
+We refer to the JavaDoc of \texttt{StorageTreeMap} and \texttt{SnapshottableStorageTreeMap}
+for a full description of their methods,
 that are similar to those of traditional Java maps. Here, we just observe
 that a key is mapped into a value by calling method
 \texttt{void put(K key, V value)}, while the value bound to a key is retrieved by calling
 \texttt{V get(Object key)}. It is possible to yield a default value when a key is not
 in the map, by calling \texttt{V getOrDefault(Object key, V \_default)} or
 its sibling \texttt{V getOrDefault(Object key, Supplier<? extends V> \_default)}, that
-evaluates the default value only if needed. Method \texttt{V putIfAbsent(K key, V value)},
+evaluates the default value only if needed. Method \texttt{V putIfAbsent(K key, V value)}
 binds the key to the value only if the key is unbound. Similarly for
-its sibling \texttt{V computeIfAbsent(K key, Supplier<? extends V> value)} that, however,
-evaluates the new value only if needed (these two methods differ for their
+its sibling \texttt{V computeIfAbsent(K key, Function<? super K, ? extends V> value)} that computes
+the new value only if needed (these two methods differ for their
 returned value, as in Java maps. Please refer to their JavaDoc).
 
-Instances of \texttt{StorageTreeMap<K,V>} keep keys in increasing order. Namely, if
+Instances of \texttt{StorageTreeMap<K,V>} and \texttt{SnapshottableStorageTreeMap<K,V>}
+keep keys in increasing order. Namely, if
 type \texttt{K} has a natural order, that order is used. Otherwise, keys
 (that must be storage objects) are kept ordered by increasing storage
-reference. Consequently, methods \texttt{forEach(Consumer<? super Entry<K,V>> action)},
+reference. Consequently, methods \texttt{forEach(Consumer<? super Entry<K,V>{}> action)},
 \texttt{forEachKey(Consumer<? super K> action)} and
 \texttt{forEachValue(Consumer<? super V> action)}
 perform an internal iteration of the elements of the map, in order.
 %
 \begin{commentbox}
 Compare this with Solidity, where maps do not know the set of their keys nor the
-set of their values.
+set of their values, so that, in Solidity, it is impossible to iterate on maps.
 \end{commentbox}
 
-Fig.~\ref{fig:maps_hierarchy} shows the hierarchy of the \texttt{StorageTreeMap<K,V>} class.
-It implements the interface \texttt{StorageMap<K,V>}\index{StorageMap@{\texttt{StorageMap}}},
+Fig.~\ref{fig:maps_hierarchy} shows the hierarchy of the storage map classes.
+They implement the library interface \texttt{StorageMap<K,V>}\index{StorageMap@{\texttt{StorageMap}}},
 that defines the methods that modify a map.
 That interface extends the interface \texttt{StorageMapView<K,V>}\index{StorageMapView@{\texttt{StorageMapView}}}
 that, instead, defines the methods that read data from a map, but do not modify it.
 Methods \texttt{snapshot()}\index{snapshot()@{\texttt{snapshot()}}}
 and \texttt{view()}\index{view()@{\texttt{view()}}} return an \texttt{@Exported}
 \texttt{StorageMapView<K,V>}, in constant time.
+Only instances of class \texttt{SnapshottableStorageTreeMap<K,V>} allow the creation of snapshots.
+Because of that, they are slightly more expensive, in time, space and gas, than instances of
+class \texttt{StorageTreeMap<K,V>}. Therefore, use always a \texttt{StorageMapView<K,V>} whenever
+snapshots are not needed.
 
 There are also specialized map classes, optimized
 for specific primitive types of keys, such as
 \texttt{StorageTreeIntMap<V>}\index{StorageTreeIntMap@{\texttt{StorageTreeIntMap}}},
 whose keys are \texttt{int} values. We refer to their JavaDoc for further information.
+
+Next section shows an example of use for \texttt{StorageTreeMap<K,V>}.
 
 \subsection{A blind auction contract}\label{subsec:blind_auction}
 
