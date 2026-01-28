@@ -25,17 +25,59 @@ types. This is not problematic, since Java (and hence Takamaka) allows generic t
 \section{Storage lists}\label{sec:storage_lists}
 
 Lists are an ordered sequence of elements. In a list, it is typically
-possible to access the first element in constant time, while accesses
+possible to access (read or write) the first element in constant time, while accesses
 to the \emph{n}th element require to scan the list from its head and
 consequently have a cost proportional to \emph{n}. Because of this,
 lists are \emph{not}, in general, random-access data structures, whose \emph{n}th
-element should be accessible in constant time. It is also possible
-to add an element at the beginning of a list, in constant time.
+element should be accessible in constant time.
 The size of a list is not fixed: lists grow in size as more elements are added.
 
 \begin{figure}[th]
   \begin{center}
-    \myincludegraphics{0.45\textwidth}{lists}
+	\begin{tikzpicture}[scale=1]
+	\scriptsize
+	\externalclasscolor
+	\begin{interface}[text width=2cm]{Iterable\string<E\string>}{0,0}
+	\end{interface}
+	\interfacecolor
+	\begin{interface}[text width=5.6cm]{StorageListView\string<E\string>}{0,-1.5}
+		\inherit{Iterable\string<E\string>}
+		\operation{@View contains(e:Object):boolean}
+		\operation{@View first():E}
+		\operation{@View last():E}
+		\operation{@View get(index:int):E}
+		\operation{@View size():int}
+		\operation{toArray(generator:IntFunction\string<E[]\string>):E[]}
+		\operation{forEach(action:Consumer\string<? super E\string>)}
+	\end{interface}
+	\begin{interface}[text width=5.3cm]{SnapshottableStorageListView\string<E\string>}{4.5,-5.5}
+		\inherit{StorageListView\string<E\string>}
+		\operation{snapshot():StorageListView\string<E\string>}
+	\end{interface}
+	\begin{interface}[text width=4cm]{StorageList\string<E\string>}{-4,-5.5}
+		\inherit{StorageListView\string<E\string>}
+		\operation{addFirst(element:E)}
+		\operation{addLast(element:E)}
+		\operation{add(element:E)}
+		\operation{clear()}
+		\operation{remove(e:Object):boolean}
+		\operation{view():StorageListView\string<E\string>}
+	\end{interface}
+	\begin{interface}[text width=5.6cm]{SnapshottableStorageList\string<E\string>}{4.5,-8}
+		\inherit{StorageList\string<E\string>}
+		\inherit{SnapshottableStorageListView\string<E\string>}
+		\operation{view():SnapshottableStorageListView\string<E\string>}
+	\end{interface}
+	\externalclasscolor
+	\begin{class}[text width=2cm]{Storage}{-0.5,-9}
+	\end{class}
+	\classcolor
+	\begin{class}[text width=3.5cm]{StorageLinkedList\string<E\string>}{0,-10.5}
+		\inherit{Storage}
+		\implement{SnapshottableStorageList\string<E\string>}
+		\operation{StorageLinkedList()}
+	\end{class}
+	\end{tikzpicture}
   \end{center}
   \caption{The hierarchy of storage lists.}
   \label{fig:lists_hierarchy}
@@ -51,12 +93,12 @@ can be stored in a Hotmoka node,
 \emph{as long as only storage objects are added to the list}. Takamaka lists provide
 constant-time access and addition to both ends of a list.
 We refer to the JavaDoc of \texttt{StorageLinkedList<E>} for a full description of its methods.
-They include methods for adding elements to either ends of the list, for accessing and
+They include methods for adding elements to either end of the list, for accessing and
 removing elements, for iterating on a list and for building a Java array
 \texttt{E[]} holding the elements of a list.
 
-Fig.~\ref{fig:lists_hierarchy} shows the hierarchy of the \texttt{StorageLinkedList<E>} class.
-It implements the interface \texttt{StorageList<E>}\index{StorageList@{\texttt{StorageList}}},
+Fig.~\ref{fig:lists_hierarchy} shows the hierarchy of the storage lists.
+A storage list implements the interface \texttt{StorageList<E>}\index{StorageList@{\texttt{StorageList}}},
 that defines the methods that modify a list.
 That interface extends the interface
 \texttt{StorageListView<E>}\index{StorageListView@{\texttt{StorageListView}}}
@@ -68,9 +110,8 @@ for defining methods \texttt{snapshot()}\index{snapshot()@{\texttt{snapshot()}}}
 and \texttt{view()}\index{view()@{\texttt{view()}}}. Both return
 a \texttt{StorageListView<E>} but there
 is an important difference between them. Namely, \texttt{snapshot()} yields a
-\emph{frozen} view of the list,
-that cannot and will never be modified, also if the original list gets subsequently updated.
-Instead,
+\emph{frozen} view of the list, that cannot and will never be modified,
+also if the original list gets subsequently updated. Instead,
 \texttt{view()} yields a \emph{view} of a list, that is, a read-only list that changes whenever
 the original list changes and exactly in the same way: if an element is added to the original
 list, the same automatically occurs to the view.
@@ -83,13 +124,26 @@ Method \texttt{snapshot()} runs in linear time (in the length of the list)
 while method \texttt{view()} runs in constant time.
 %
 \begin{commentbox}
+Differently from the other collection classes that we will describe in this chapter,
+the \texttt{snapshot()} method of lists runs in linear time on the length of the list.
+This is inherently related to the structure of a linked list, that requires a full
+copy in order to create an unmodifiable clone. Other collections, later, will instead
+allow the creation of snapshots in constant time.
+\end{commentbox}
+%
+\begin{commentbox}
 It might seem that \texttt{view()} is just an upwards cast to the
 interface \texttt{StorageListView<E>}. This is wrong, since that method
 does much more. Namely, it applies the façade design pattern
 to provide a \emph{distinct} list that lacks any modification method
 and implements a façade of the original list.
 To appreciate the difference to a cast, assume to have a \texttt{StorageList<E> list} and to write
-\texttt{StorageListView<E> view = (StorageListView<E>) list}. This upwards cast will always succeed.
+%
+\begin{codebox}\begin{javalst}
+	StorageListView<E> view = (StorageListView<E>) list;
+\end{javalst}\end{codebox}
+%
+This upwards cast will always succeed.
 Variable \texttt{view} does not allow to call any modification method, since they
 are not in its static type \texttt{StorageListView<E>}. But a downwards cast back
 to \texttt{StorageList<E>} is enough to circumvent
@@ -406,7 +460,7 @@ snapshotting feature is not used.
 	\begin{interface}[text width=5.2cm]{SnapshottableStorageArray\string<E\string>}{4.5,-9}
 		\inherit{StorageArray\string<E\string>}
 		\inherit{SnapshottableStorageArrayView\string<E\string>}
-		\operation{view():SnapshottableStorageArray\string<E\string>}
+		\operation{view():SnapshottableStorageArrayView\string<E\string>}
 	\end{interface}
 	\externalclasscolor
 	\begin{class}[text width=2cm]{Storage}{0,-9}
