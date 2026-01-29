@@ -69,8 +69,8 @@ The size of a list is not fixed: lists grow in size as more elements are added.
 		\operation{view():SnapshottableStorageListView\string<E\string>}
 	\end{interface}
 	\externalclasscolor
-	\begin{class}[text width=2cm]{Storage}{-0.5,-9}
-	\end{class}
+	\begin{abstractclass}[text width=2cm]{Storage}{-0.5,-9}
+	\end{abstractclass}
 	\classcolor
 	\begin{class}[text width=3.5cm]{StorageLinkedList\string<E\string>}{0,-10.5}
 		\inherit{Storage}
@@ -463,8 +463,8 @@ snapshotting feature is not used.
 		\operation{view():SnapshottableStorageArrayView\string<E\string>}
 	\end{interface}
 	\externalclasscolor
-	\begin{class}[text width=2cm]{Storage}{0,-9}
-	\end{class}
+	\begin{abstractclass}[text width=2cm]{Storage}{0,-9}
+	\end{abstractclass}
 	\classcolor
 	\begin{class}[text width=6cm]{StorageTreeArray\string<E\string>}{-5,-10}
 		\inherit{Storage}
@@ -1083,28 +1083,84 @@ For instance, \texttt{StorageTreeArray<byte>} is not legal syntax in Java.
 Instead, one could think to use \texttt{StorageTreeArray<Byte>}, where \texttt{Byte}
 is the Java wrapper class \texttt{java.lang.Byte}. However, that class is not
 currently allowed in storage, hence \texttt{StorageTreeArray<Byte>} will not work either.
-One should hence define a new wrapper class for \texttt{byte}, that extends \texttt{Storage}.
+One could hence define a new wrapper class for \texttt{byte}, that extends \texttt{Storage}.
 That is possible, but highly discouraged:
 the use of wrapper classes introduces a level of indirection
 and requires the instantiation of many small objects, which costs gas. Instead,
 Takamaka provides specialized storage classes implementing arrays of bytes,
 without wrappers. The rationale is that such arrays arise
 naturally when dealing, for instance, with hashes or encrypted data
-(see next section for an example) and consequently deserve
+(see next Sec.~\ref{subsec:blind_auction} for an example) and consequently deserve
 a specialized and optimized implementation.
 Such specialized array classes
 can have their length specified at construction time, or fixed to
 a constant (for best optimization and minimal gas consumption).
 
-\begin{figure}[th]
+\begin{figure}[th!]
   \begin{center}
-    \myincludegraphics{0.8\textwidth}{bytes}
+	\begin{tikzpicture}[scale=1]
+	\scriptsize
+	\externalclasscolor
+	\begin{interface}[text width=2.5cm]{Iterable\string<Byte\string>}{0,0}
+	\end{interface}
+	\interfacecolor
+	\begin{interface}[text width=6cm]{StorageByteArrayView}{0,-1.5}
+		\inherit{Iterable\string<Byte\string>}
+		\operation{@View length():int}
+		\operation{@View get(index:int):byte}
+		\operation{toArray():byte[]}
+		\operation{forEach(action:Consumer\string<? super Byte\string>)}
+	\end{interface}
+	\begin{interface}[text width=5.8cm]{SnapshottableStorageByteArrayView}{4.5,-6.5}
+		\inherit{StorageByteArrayView}
+		\operation{snapshot():StorageByteArrayView}
+	\end{interface}
+	\begin{interface}[text width=5.7cm]{StorageByteArray}{-4,-5.5}
+		\inherit{StorageByteArrayView}
+		\operation{set(index:int, value:byte)}
+		\operation{update(index:int, how:IntUnaryOperator)}
+		\operation{view():StorageByteArrayView}
+	\end{interface}
+	\begin{interface}[text width=5.7cm]{SnapshottableStorageByteArray}{4.5,-8.7}
+		\inherit{StorageByteArray}
+		\inherit{SnapshottableStorageByteArrayView}
+		\operation{view():SnapshottableStorageByteArrayView}
+	\end{interface}
+	\externalclasscolor
+	\begin{abstractclass}[text width=2cm]{Storage}{0,-8.7}
+	\end{abstractclass}
+	\classcolor
+	\begin{class}[text width=4.4cm]{StorageTreeByteArray}{-6,-9.5}
+		\inherit{Storage}
+		\implement{StorageByteArray}
+		\operation{StorageTreeByteArray(length:int)}
+		\operation{StorageTreeByteArray(length:int, initialValue:byte)}
+	\end{class}
+	\begin{class}[text width=8.7cm]{SnapshottableStorageTreeByteArray}{-4.5,-12.5}
+		\inherit{Storage}
+		\implement{SnapshottableStorageByteArray}
+		\operation{SnapshottableStorageTreeByteArray(length:int)}
+		\operation{SnapshottableStorageTreeByteArray(length:int, initialValue:byte)}
+	\end{class}
+	\begin{class}[text width=4.5cm]{Bytes32}{5.7,-12.5}
+		\inherit{Storage}
+		\implement{SnapshottableStorageByteArray}
+		\operation{Bytes32()}
+		\operation{Bytes32(byte0:byte,...,byte31:byte)}
+		\operation{snapshot():Bytes32Snapshot}
+	\end{class}
+	\begin{class}[text width=5.7cm]{@Exported Bytes32Snapshot}{2.5,-14.5}
+		\inherit{Storage}
+		\implement{StorageByteArrayView}
+		\operation{Bytes32Snapshot(byte0:byte,...,byte31:byte)}
+	\end{class}
+	\end{tikzpicture}
   \end{center}
-  \caption{The hierarchy of specialized byte array classes.}
-  \label{fig:byte_array_hierarchy}
+  \caption{The hierarchy of storage byte arrays.}
+  \label{fig:byte_arrays_hierarchy}
 \end{figure}
 
-Fig.~\ref{fig:byte_array_hierarchy} shows the hierarchy of the specialized classes for arrays of bytes,
+Fig.~\ref{fig:byte_arrays_hierarchy} shows the hierarchy of the specialized classes for arrays of bytes,
 available in Takamaka.
 The interface \texttt{StorageByteArrayView}\index{StorageByteArrayView@{\texttt{StorageByteArrayView}}}
 defines the methods that read data from an array
@@ -1185,8 +1241,8 @@ keys \texttt{K} and values \texttt{V} can be stored in a node as well.
 		\operation{view():SnapshottableStorageMapView\string<K,V\string>}
 	\end{interface}
 	\externalclasscolor
-	\begin{class}[text width=2cm]{Storage}{-1,-11}
-	\end{class}
+	\begin{abstractclass}[text width=2cm]{Storage}{-1,-11}
+	\end{abstractclass}
 	\classcolor
 	\begin{class}[text width=6cm]{StorageTreeMap\string<K V\string>}{-5,-12}
 		\inherit{Storage}
