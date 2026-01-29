@@ -20,13 +20,96 @@ That interface can be split in five parts:
 \item A \emph{post} part, that expands the store of the node with the result of a transaction,
 	without waiting for its result; instead, a future is returned.
 \item A \emph{contextual} part, that allows users to subscribe listeners of events generated during
-	the execution of the transactions, or listeners called when the node gets closed, or
+	the execution of the transactions, or to subscribe listeners called when the node gets closed, or
 	to close the node itself.
 \end{enumerate}
 
-\begin{figure}[th]
+\begin{figure}[th!]
   \begin{center}
-    \myincludegraphics{0.55\textwidth}{nodes}
+	\begin{tikzpicture}[scale=1]
+	\scriptsize
+	\externalclasscolor
+	\begin{interface}[text width=2.2cm]{Autocloseable}{-4,0}
+		\operation{close()}
+	\end{interface}
+	\begin{interface}[text width=6.6cm]{OnCloseHandlersContainer}{3,0}
+		\operation{addOnCloseHandler(OnCloseHandler handler)}
+		\operation{removeOnCloseHandler(OnCloseHandler handler)}
+	\end{interface}
+	\interfacecolor
+	\begin{interface}[text width=16cm]{Node}{0,-2.2}
+		\inherit{Autocloseable}
+		\inherit{OnCloseHandlersContainer}
+		\operation{getInfo():NodeInfo}
+		\operation{getConfig():ConsensusConfig<?,?>}
+		\operation{getTakamakaCode():TransactionReference}
+		\operation{getManifest():StorageReference}
+		\operation{getClassTag(object:StorageReference):ClassTag}
+		\operation{getState(StorageReference object):Stream<Update>}
+		\operation{getIndex(StorageReference object):Stream<TransactionReference>}
+		\operation{getRequest(reference:TransactionReference):TransactionRequest<?>}
+		\operation{getResponse(reference:TransactionReference):TransactionResponse}
+		\operation{getPolledResponse(reference:TransactionReference):TransactionResponse}
+		\operation{addJarStoreInitialTransaction(request:JarStoreInitialTransactionRequest):TransactionReference}
+		\operation{addGameteCreationTransaction(request:GameteCreationTransactionRequest):StorageReference}
+		\operation{addInitializationTransaction(request:InitializationTransactionRequest)}
+		\operation{addJarStoreTransaction(request:JarStoreTransactionRequest):TransactionReference}
+		\operation{addConstructorCallTransaction(request:ConstructorCallTransactionRequest):StorageReference}
+		\operation{addInstanceMethodCallTransaction(request:InstanceMethodCallTransactionRequest):Optional<StorageValue>}
+		\operation{addStaticMethodCallTransaction(request:StaticMethodCallTransactionRequest):Optional<StorageValue>}
+		\operation{runInstanceMethodCallTransaction(request:InstanceMethodCallTransactionRequest):Optional<StorageValue>}
+		\operation{runStaticMethodCallTransaction(request:StaticMethodCallTransactionRequest):Optional<StorageValue>}
+		\operation{postJarStoreTransaction(request:JarStoreTransactionRequest):JarFuture}
+		\operation{postConstructorCallTransaction(request:ConstructorCallTransactionRequest):ConstructorFuture}
+		\operation{postInstanceMethodCallTransaction(request:InstanceMethodCallTransactionRequest):MethodFuture}
+		\operation{postStaticMethodCallTransaction(request:StaticMethodCallTransactionRequest):MethodFuture}
+		\operation{subscribeToEvents(creator:StorageReference, handler:BiConsumer<StorageReference, StorageReference>):Subscription}
+	\end{interface}
+	\packagecolor
+	\begin{package}{Local implementations}
+		\begin{interface}[text width=2.7cm]{MokamintNode}{-6.5,-12.5}
+			\interfacecolor
+			\inherit{Node}
+		\end{interface}
+		\begin{interface}[text width=2.7cm]{TendermintNode}{-3.4,-12.5}
+			\interfacecolor
+			\inherit{Node}
+		\end{interface}
+		\begin{interface}[text width=2.3cm]{DiskNode}{-0.5,-12.5}
+			\interfacecolor
+			\inherit{Node}
+		\end{interface}
+	\end{package}
+	\packagecolor
+	\begin{package}{Adaptors}
+		\begin{interface}[text width=2.5cm]{RemoteNode}{7,-12.5}
+			\interfacecolor
+			\inherit{Node}
+		\end{interface}
+	\end{package}
+	\packagecolor
+	\begin{package}{Decorators}
+		\begin{interface}[text width=3.5cm]{InitializedNode}{-6,-15}
+			\interfacecolor
+			\inherit{Node}
+			\operation{gamete():StorageReference}
+		\end{interface}
+		\begin{interface}[text width=5cm]{AccountsNode}{-0.6,-15}
+			\interfacecolor
+			\inherit{Node}
+			\operation{accounts():Stream<StorageReference>}
+			\operation{privateKeys():Stream<PrivateKey>}
+			\operation{account(i:int):StorageReference}
+			\operation{privateKey(i:int):PrivateKey}
+		\end{interface}
+		\begin{interface}[text width=5cm]{JarsNode}{5.5,-15}
+			\interfacecolor
+			\inherit{Node}
+			\operation{jars():Stream<TransactionReference>}
+			\operation{jar(i:int):TransactionReference}
+		\end{interface}
+	\end{package}
+	\end{tikzpicture}
   \end{center}
   \caption{The hierarchy of Hotmoka nodes.}
   \label{fig:node_hierarchy}
@@ -35,8 +118,8 @@ That interface can be split in five parts:
 If a node belongs to a blockchain, then all nodes of the blockchain have the same vision
 of the state, so that it is equivalent to call a method on a node or on any other node of the
 network. The only methods that are out of consensus, since they deal with information specific
-to each node, are \texttt{getInfo()}\index{getInfo()@{\texttt{getInfo()}}}
-and the four contextual methods
+to each node, are \texttt{getInfo()}\index{getInfo()@{\texttt{getInfo()}}}, that returns
+specific information about the node, and the four contextual methods
 \texttt{subscribeToEvents()}\index{subscribeToEvents()@{\texttt{subscribeToEvents()}}},
 \texttt{addOnCloseHandler()}\index{addOnCloseHandler()@{\texttt{addOnCloseHandler()}}},
 \texttt{removeOnCloseHandler()}\index{removeOnCloseHandler()@{\texttt{removeOnCloseHandler()}}}
@@ -51,9 +134,9 @@ These are actual nodes that run on the machine
 where they have been started. For instance, they can be a node
 of a larger blockchain network. Among them,
 \texttt{MokamintNode}\index{MokamintNode@{\texttt{MokamintNode}}}
-implements a node of a Mokamint\index{Mokamint} blockchain;
+implements a node of a Mokamint\index{Mokamint} blockchain (Sec.~\ref{sec:hotmoka_mokamint});
 \texttt{TendermintNode}\index{TendermintNode@{\texttt{TendermintNode}}}
-implements a node of a Tendermint\index{Tendermint} blockchain
+implements a node of a Tendermint\index{Tendermint} blockchain (Sec.~\ref{sec:hotmoka_tendermint})
 and will be presented in Sec.~\ref{sec:tendermint_nodes};
 \texttt{DiskNode}\index{DiskNode@{\texttt{DiskNode}}}
 implements a single-node blockchain in disk memory: this
@@ -98,7 +181,7 @@ In other words, one would like to publish \emph{any}
 Hotmoka node as a service, accessible through the internet. This will be the subject
 of Sec.~\ref{sec:node_services}.
 Conversely, once a Hotmoka node has been published at some URI, say
-\url{ws://my.company.com}, it will be accessible through websockets. This complexity
+\url{ws://my.company.com}, it will be accessible through a network connection. This complexity
 might make it complex, for a programmer, to use the published node.
 In that case, we can create an instance of the node that operates as
 a proxy to the network service, helping programmers integrate
@@ -126,8 +209,8 @@ We strongly suggest you to use docker to install Hotmoka nodes, instead of the i
 in this section, hence please
 follow the instructions in Sec.~\ref{sec:hotmoka_tendermint}.
 The current section only exists in order to understand what happens inside the docker container.
-If you are not a developer, or if you are not interested in the topic, please skip this section and
-jump directly to the next chapter.
+If you are not a developer, or if you are not interested in the topic, you can safely
+skip this section.
 \end{commentbox}
 
 In order to use a Tendermint Hotmoka node, the Tendermint executable must be

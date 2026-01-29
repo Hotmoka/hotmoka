@@ -18,6 +18,7 @@ package io.hotmoka.helpers.api;
 
 import java.util.NoSuchElementException;
 import java.util.concurrent.TimeoutException;
+import java.util.stream.Stream;
 
 import io.hotmoka.annotations.ThreadSafe;
 import io.hotmoka.node.api.ClosedNodeException;
@@ -29,6 +30,16 @@ import io.hotmoka.node.api.transactions.TransactionReference;
  */
 @ThreadSafe
 public interface JarsNode extends Node {
+
+	/**
+	 * Yields the references, in the store of the node, where the jars have been installed.
+	 * 
+	 * @return the references
+	 * @throws ClosedNodeException if the node is already closed
+	 * @throws TimeoutException if no answer arrives before a time window
+	 * @throws InterruptedException if the current thread is interrupted while waiting for an answer to arrive
+	 */
+	 Stream<TransactionReference> jars() throws ClosedNodeException, TimeoutException, InterruptedException;
 
 	/**
 	 * Yields the references, in the store of the node, where the {@code it}th jar has been installed.

@@ -28,6 +28,7 @@ import java.security.PrivateKey;
 import java.security.SignatureException;
 import java.util.NoSuchElementException;
 import java.util.concurrent.TimeoutException;
+import java.util.stream.Stream;
 
 import io.hotmoka.crypto.api.Signer;
 import io.hotmoka.helpers.AbstractNodeDecorator;
@@ -115,6 +116,12 @@ public class JarsNodeImpl extends AbstractNodeDecorator<Node> implements JarsNod
 		this.jars = new TransactionReference[jarSuppliers.length];
 		for (var jarSupplier: jarSuppliers)
 			this.jars[pos++] = jarSupplier.get();
+	}
+
+	@Override
+	public Stream<TransactionReference> jars() throws ClosedNodeException {
+		ensureNotClosed();
+		return Stream.of(jars);
 	}
 
 	@Override

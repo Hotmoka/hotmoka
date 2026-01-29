@@ -544,9 +544,86 @@ from outside the node and can be passed as arguments to calls from outside the n
 Instances of \texttt{Storage} are not normally \texttt{@Exported}, unless their class
 is explicitly annotated as \texttt{@Exported}, as we did for \texttt{Person}.
 %
-\begin{figure}[th]
+\begin{figure}[th!]
   \begin{center}
-    \myincludegraphics{0.61\textwidth}{contracts}
+	\begin{tikzpicture}[scale=1]
+	\scriptsize
+	\classcolor
+	\begin{abstractclass}[text width=2.8cm]{Storage}{-1,0}
+		\operation{\# caller():Contract}
+	\end{abstractclass}
+	\ourclasscolor
+	\begin{class}[text width=2.8cm]{@Exported Person}{3,-2}
+		\inherit{Storage}
+	\end{class}
+	\classcolor
+	\begin{abstractclass}[text width=3.8cm]{@Exported Contract}{-6,-2.1}
+		\inherit{Storage}
+		\attribute{- balance:BigInteger}
+		\operation{@View balance():BigInteger}
+	\end{abstractclass}
+	\ourclasscolor
+	\begin{class}[text width=2.8cm]{SimplePonzi}{-1.8,-3.5}
+		\inherit{@Exported Contract}
+	\end{class}
+	\classcolor
+	\begin{abstractclass}[text width=8.3cm]{PayableContract}{-5,-4.7}
+		\inherit{@Exported Contract}
+		\operation{@Payable @FromContract receive(amount:int|long|BigInteger)}
+	\end{abstractclass}
+	\interfacecolor
+	\begin{interface}[text width=8cm]{Account}{4,-3}
+		\operation{@View nonce():BigInteger}
+		\operation{@View balance():BigInteger}
+		\operation{@View publicKey():String}
+		\operation{@FromContract(ExternallyOwnedAccount.class) rotatePublicKey(publicKey:String)}
+	\end{interface}
+	\begin{interface}[text width=2.8cm]{AccountED25519}{1,-6.5}
+		\inherit{Account}
+	\end{interface}
+	\begin{interface}[text width=3.2cm]{AccountSHA256DSA}{6.5,-6.5}
+		\inherit{Account}
+	\end{interface}
+	\begin{interface}[text width=2.8cm]{AccountQTESLA1}{2.2,-8}
+		\inherit{Account}
+	\end{interface}
+	\begin{interface}[text width=2.8cm]{AccountQTESLA3}{5.7,-8}
+		\inherit{Account}
+	\end{interface}
+	\classcolor
+	\begin{class}[text width=8cm]{ExternallyOwnedAccount}{-5,-7}
+		\inherit{PayableContract}
+		\implement{Account}
+		\attribute{- nonce:BigInteger}
+		\attribute{- publicKey:String}
+		\operation{ExternallyOwnedAccount()}
+		\operation{@Payable @FromContract ExternallyOwnedAccount(initialAmount:int|long|BigInteger, publicKey:String)}
+	\end{class}
+	\begin{class}[text width=7cm]{ExternallyOwnedAccountED25519}{-5,-10.5}
+		\inherit{ExternallyOwnedAccount}
+		\implement{AccountED25519}
+		\operation{ExternallyOwnedAccountED25519()}
+		\operation{@Payable @FromContract ExternallyOwnedAccountED25519(initialAmount:int|long|BigInteger, publicKey:String)}
+	\end{class}
+	\begin{class}[text width=7.5cm]{ExternallyOwnedAccountSHA256DSA}{4,-10.5}
+		\inherit{ExternallyOwnedAccount}
+		\implement{AccountSHA256DSA}
+		\operation{ExternallyOwnedAccountSHA256DSA()}
+		\operation{@Payable @FromContract ExternallyOwnedAccountSHA256DSA(initialAmount:int|long|BigInteger, publicKey:String)}
+	\end{class}
+	\begin{class}[text width=6cm]{ExternallyOwnedAccountQTESLA1}{-5,-14.5}
+		\inherit{ExternallyOwnedAccount}
+		\implement{AccountQTESLA1}
+		\operation{ExternallyOwnedAccountQTESLA1()}
+		\operation{@Payable @FromContract ExternallyOwnedAccountQTESLA1(initialAmount:int|long|BigInteger, publicKey:String)}
+	\end{class}
+	\begin{class}[text width=6cm]{ExternallyOwnedAccountQTESLA3}{4,-14.5}
+		\inherit{ExternallyOwnedAccount}
+		\implement{AccountQTESLA3}
+		\operation{ExternallyOwnedAccountQTESLA3()}
+		\operation{@Payable @FromContract ExternallyOwnedAccountQTESLA3(initialAmount:int|long|BigInteger, publicKey:String)}
+	\end{class}
+	\end{tikzpicture}
   \end{center}
   \caption{The hierarchy of contract classes.}
   \label{fig:contract_hierarchy}
@@ -559,7 +636,8 @@ can receive coins from other contracts, by calling their final method
 \texttt{receive()}\index{receive()@{\texttt{receive()}}}. Its concrete subclass
 named \texttt{ExternallyOwnedAccount} is
 a payable contract that can be used to pay for a transaction.
-Such \emph{accounts} are typically controlled by humans, through a wallet, but can be
+Such \emph{accounts} are typically controlled by humans, through a wallet
+keeping its private key, but can be
 subclassed and instantiated freely in Takamaka code. Their constructors
 allow one to build an externally owned account and fund it with an initial
 amount of coins. As we have seen in
@@ -569,7 +647,8 @@ payer\index{payer}
 for that transaction. Such a payer is required to be an instance of
 \texttt{ExternallyOwnedAccount}\index{ExternallyOwnedAccount@{\texttt{ExternallyOwnedAccount}}},
 or an exception will be thrown. In our previous examples,
-we have used, as payer, an account created by the \texttt{moka accounts create} command,
+we have used, as payer, an account created by the
+\texttt{moka accounts create}\index{moka!accounts create@{\texttt{accounts create}}} command,
 that is an instance of \texttt{ExternallyOwnedAccount}.
 \texttt{ExternallyOwnedAccount}s have a private field \texttt{nonce} that can be accessed through
 the public \texttt{@View} method \texttt{nonce()}\index{nonce()@{\texttt{nonce()}}}:
@@ -584,12 +663,11 @@ That key is used to verify the signature of the transactions
 having that account as caller. As we will see later, there is a default signature
 algorithm for transactions and that is what \texttt{ExternallyOwnedAccount}s use.
 However, it is possible to require a specific signature algorithm, that overrides the default
-for the node. For that, it is enough to instantiate classes
+used for the node. For that, it is enough to instantiate classes
 \texttt{ExternallyOwnedAccountSHA256DSA},
 or \texttt{ExternallyOwnedAccountED25519}, or \texttt{ExternallyOwnedAccountQTESLA1}
 or, finally, the class \texttt{ExternallyOwnedAccountQTESLA3}. The latter two use a
 quantum-resistant signature algorithm
-(see~\ref{sec:signatures-and-quantum-resistance} later,
-for more details). This means that it is possible
+(see~\ref{sec:signatures-and-quantum-resistance} later). This means that it is possible
 to mix many signature algorithms for signing transactions inside the same Hotmoka node,
 as we will show later.
