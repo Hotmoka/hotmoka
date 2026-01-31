@@ -391,19 +391,108 @@ power among the single validators. Validation power can be sold and bought. The 
 validators and their power is consequently dynamic. In some sense, this mechanism
 resembles the market of shares of a corporation.
 
-\begin{figure}[th]
+\begin{figure}[th!]
   \begin{center}
-    \myincludegraphics{0.8\textwidth}{entities}
+	\begin{tikzpicture}[scale=1]
+	\scriptsize
+	\classcolor
+	\begin{abstractclass}[text width=2.2cm]{Storage}{4,0}
+	\end{abstractclass}
+	\begin{abstractclass}[text width=2.2cm]{Contract}{7,-1}
+		\inherit{Storage}
+		\operation{@View balance():BigInteger}
+	\end{abstractclass}
+	\begin{abstractclass}[text width=4.2cm]{PayableContract}{6.7,-3}
+		\inherit{Contract}
+		\operation{@Payable @FromContract receive(amount:BigInteger)}		
+	\end{abstractclass}
+	\begin{class}[text width=4.2cm]{ExternallyOwnedAccount}{6.5,-5.5}
+		\inherit{PayableContract}
+		\operation{@View nonce():BigInteger}		
+		\operation{@View publicKey():String}		
+	\end{class}
+	\begin{class}[text width=3.7cm]{Validator}{7,-7.5}
+		\inherit{ExternallyOwnedAccount}
+		\operation{Validator(publicKey:String)}
+		\operation{@View id():String}
+	\end{class}
+	\begin{class}[text width=6.5cm]{TendermintED25519Validator}{5.5,-9.8}
+		\inherit{Validator}
+		\operation{TendermintED25519Validator(publicKey:String)}
+	\end{class}
+	\begin{class}[text width=3.7cm]{Offer\string<S extends PayableContract\string>}{2.2,-1.5}
+		\inherit{Storage}
+		\attribute{seller:S}
+		\attribute{sharesOnSale:BigInteger}
+		\attribute{cost:BigInteger}
+		\operation{@View isOngoing():boolean}
+	\end{class}	
+	\interfacecolor
+	\begin{interface}[text width=6.9cm]{SEV}{-3.8,0} % a trick to allow extension of classes with complex generics
+		\operation{@View getShares():StorageMapView\string<S,BigInteger\string>}
+		\operation{@View isShareholder(who:Object):boolean}
+		\operation{@View sharesOf(shareholder:S):BigInteger}
+		\operation{snapshot():SharedEntityView\string<S\string>}
+	\end{interface}
+	\begin{interface}[text width=6.9cm]{SharedEntityView\string<S extends Contract\string>}{-3.8,0}
+		\operation{@View getShares():StorageMapView\string<S,BigInteger\string>}
+		\operation{@View isShareholder(who:Object):boolean}
+		\operation{@View sharesOf(shareholder:S):BigInteger}
+		\operation{snapshot():SharedEntityView\string<S\string>}
+	\end{interface}
+	\begin{interface}[text width=9.4cm]{SE}{-3,-5.3}
+		\operation{@View getOffers():StorageSetView\string<O\string>}
+		\operation{@View sharesOnSaleOf(shareholder:S):BigInteger}
+		\operation{@FromContract @Payable place(amount:BigInteger, offer:O)}
+		\operation{@FromContract @Payable accept(amount:BigInteger, buyer:S, offer:O)}
+		\operation{view():SharedEntityView\string<S\string>}
+	\end{interface}
+	\begin{interface}[text width=9.4cm]{SharedEntity\string<S extends PayableContract O extends Offer\string<S\string>{}\string>}{-3,-5}
+		\inherit{SEV}
+		\operation{@View getOffers():StorageSetView\string<O\string>}
+		\operation{@View sharesOnSaleOf(shareholder:S):BigInteger}
+		\operation{@FromContract @Payable place(amount:BigInteger, offer:O)}
+		\operation{@FromContract @Payable accept(amount:BigInteger, buyer:S, offer:O)}
+		\operation{view():SharedEntityView\string<S\string>}
+	\end{interface}
+	\begin{interface}[text width=6.5cm]{Validators\string<V extends Validator\string>}{-3,-9}
+		\inherit{SE}
+		\operation{@View getStake(validator:V):BigInteger}
+		\operation{@View getInitialSupply():BigInteger}
+		\operation{@View getCurrentSupply():BigInteger}
+		\operation{@View getFinalSupply():BigInteger}
+		\operation{@View getHeight():BigInteger}
+		\operation{@View getNumberOfTransactions():BigInteger}
+	\end{interface}
+	\classcolor
+	\begin{class}[text width=7cm]{SSE}{2,-13.3}
+		\operation{SimpleSharedEntity(shareholder:S, share:BigInteger)}
+	\end{class}
+	\begin{class}[text width=7cm]{SimpleSharedEntity\string<S extends PayableContract O extends Offer\string<S\string>{}\string>}{2,-13}
+		\inherit{PayableContract}
+		\implement{SE}
+		\operation{SimpleSharedEntity(shareholder:S, share:BigInteger)}
+	\end{class}
+	\begin{abstractclass}[text width=6.7cm]{AbstractValidators\string<V extends Validator\string>}{-2,-15.5}
+		\inherit{SSE}
+		\implement{Validators\string<V extends Validator\string>}
+	\end{abstractclass}
+	\begin{class}[text width=17.6cm]{TendermintValidators}{0,-17.5}
+		\inherit{AbstractValidators\string<V extends Validator\string>}
+		\operation{TendermintValidators(validator:TendermintED25519Validator, power:BigInteger)}
+		\operation{@FromContract @Payable accept(amount:BigInteger,buyer:TendermintED25519Validator,offer:Offer\string<TendermintED25519Validator\string>)}
+	\end{class}
+	\end{tikzpicture}
   \end{center}
   \caption{The hierarchy of entities and validators classes.}
   \label{fig:entities_hierarchy}
 \end{figure}
 
 Hotmoka has an interface that represents entities whose shares can be dynamically sold and bought
-among \emph{shareholders}. Fig.~\ref{fig:entities_hierarchy} shows this
+among \emph{shareholders} (see also~\cite{SpotoMGB23}). Fig.~\ref{fig:entities_hierarchy} shows this
 \texttt{SharedEntity}\index{SharedEntity@{\texttt{SharedEntity}}}\index{shared entity}
 interface. As you can see in the figure, the notion of validators\index{validator}
-is just a special case of shared entity (see also~\cite{SpotoMGB23}).
+is just a special case of shared entity.
 It is possible to use shared entities to represent other concepts, such as
 a distributed autonomous organization, or a voting community.
 Here, however, we focus on their use to represent the set
@@ -422,7 +511,8 @@ shareholders of the entity. Method \texttt{getShares()} yields the current
 shares of the entity (who owns how much).
 Method \texttt{isShareholder()} checks if an object is a shareholder. Method
 \texttt{sharesOf()} yields the number of shares that a shareholder owns. As typical in Takamaka,
-the \texttt{snapshot()} method allows one to create a frozen read-only copy of an entity
+the \texttt{snapshot()}\index{snapshot()@{\texttt{snapshot()}}}
+method allows one to create a frozen read-only copy of an entity
 (in constant time), useful when an entity must be queried from a client without
 the risk of race conditions if another client is modifying the same entity concurrently.
 
@@ -458,14 +548,13 @@ are instances of the subclass
 \texttt{TendermintED25519Validator}\index{TendermintED25519Validator@{\texttt{TendermintED25519Validator}}},
 whose identifier is derived from their
 ed25519 public key. This identifier is public information, reported
-in the blocks or easily eavesdropped.
+in the blocks and easy to eavesdrop.
 The \texttt{Validators}\index{Validators@{\texttt{Validators}}}
 interface in Fig.~\ref{fig:entities_hierarchy}
 extends the \texttt{SharedEntity} interface, fixes the shareholders
 to be instances of \texttt{Validator} and adds a method
 \texttt{getStake()} that yields the amount of coins
-at stake for each given validator (if the validator misbehaves, its stake will
-be slashed).
+at stake for each given validator (if the validator misbehaves, its stake will be slashed).
 
 The \texttt{AbstractValidators}\index{AbstractValidators@{\texttt{AbstractValidators}}}
 class implements the set of validators and the distribution
