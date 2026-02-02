@@ -129,15 +129,16 @@ public class UpdateForNewNode {
 	private static URI mokamintServerMining;
 	private static URI mokamintServerPublic;
 	private static URI tendermintServer;
+	private static URI tendermintServerWhisper;
 
 	private UpdateForNewNode() {}
 
 	/**
 	 * Edit the {@code parameters.tex} file by rerunning the experiments of the Hotmoka tutorial.
-	 * It allows one to specify the name of the directory where the files will be created and four further arguments,
+	 * It allows one to specify the name of the directory where the files will be created and five further arguments,
 	 * that are the URI of the remote nodes (for Mokamint and for Tendermint). The first defaults to
-	 * {@code src/main/latex/} and the four two default to {@code ws://panarea.hotmoka.io:8001/8025/8030}
-	 * and {@code ws://panarea.hotmoka.io:8002}.
+	 * {@code src/main/latex/} and the five default to {@code ws://panarea.hotmoka.io:8001/8025/8030}
+	 * and {@code ws://panarea.hotmoka.io:8002/26656}.
 	 * 
 	 * @param args the arguments
 	 * @throws Exception if the editing of the file fails for some reason
@@ -148,6 +149,7 @@ public class UpdateForNewNode {
 		mokamintServerMining = new URI(args.length > 2 ? args[2] : "ws://panarea.hotmoka.io:8025");
 		mokamintServerPublic = new URI(args.length > 3 ? args[3] : "ws://panarea.hotmoka.io:8030");
 		tendermintServer = new URI(args.length > 4 ? args[4] : "ws://panarea.hotmoka.io:8002");
+		tendermintServerWhisper = new URI(args.length > 5 ? args[5] : "ws://panarea.hotmoka.io:26656");
 		Path tempDir = Files.createTempDirectory("tmp");
 		System.out.println("Saving temporary files inside the directory " + tempDir);
 
@@ -178,6 +180,13 @@ public class UpdateForNewNode {
 			report("serverMokamintMining", mokamintServerMining.toString());
 			report("serverMokamintPublic", mokamintServerPublic.toString());
 			report("serverTendermint", tendermintServer.toString());
+			//report("serverTendermintChainId", "mriya");
+			//report("serverMokamintChainId", "octopus");
+			report("serverTendermintWhisper", tendermintServerWhisper.toString());
+			report("serverMokamintMain", "ws://lipari.hotmoka.io:8001");
+			report("serverMokamintMainChainId", "maresia");
+			report("serverMokamintMainMining", "ws://lipari.hotmoka.io:8025");
+			report("serverMokamintMainPublic", "ws://lipari.hotmoka.io:8030");
 			report("hotmokaRepo", "\\website{" + HOTMOKA_REPOSITORY + "}");
 			report("hotmokaRepoReleases", "\\website{" + HOTMOKA_REPOSITORY + "/releases}");
 			report("hotmokaWeb", "\\website{" + HOTMOKA_WEB + "}");
@@ -370,6 +379,7 @@ public class UpdateForNewNode {
 			var output7 = ObjectsCallOutputs.from(Moka.objectsCall(manifest + " " + Constants.MANIFEST_NAME + " getChainId --receiver=" + manifest + " --uri=" + mokamintServer + " --json --timeout=" + TIMEOUT));
 			String chainId = output7.getResult().get().asString(value -> new IllegalStateException("The chain identifier should be a String"));
 			report("chainId", chainId);
+			report("serverMokamintChainId", chainId);
 		
 			var output8 = KeysCreateOutputs.from(Moka.keysCreate("--name account1.pem --output-dir=" + tempDir + " --password=chocolate --json"));
 			createCommandFile("moka_keys_create_account1", "moka keys create --name=account1.pem --password");
@@ -731,6 +741,13 @@ public class UpdateForNewNode {
 
 		@Override
 		protected void generateFiles() throws Exception {
+			var nmao = NodesManifestAddressOutputs.from(Moka.nodesManifestAddress("--uri=" + tendermintServer + " --json --timeout=" + TIMEOUT));
+			StorageReference manifest = nmao.getManifest();
+
+			var oco = ObjectsCallOutputs.from(Moka.objectsCall(manifest + " " + Constants.MANIFEST_NAME + " getChainId --receiver=" + manifest + " --uri=" + tendermintServer + " --json --timeout=" + TIMEOUT));
+			String chainId = oco.getResult().get().asString(value -> new IllegalStateException("The chain identifier should be a String"));
+			report("serverTendermintChainId", chainId);
+
 			createCommandFile("moka_keys_create_account4", "moka keys create --name=account4.pem --password");
 			String output = Moka.keysCreate("--name account4.pem --output-dir=" + tempDir + " --password=banana");
 			createOutputFile("moka_keys_create_account4", "Enter value for --password (the password that will be needed later to use the key pair): banana\n" + output);

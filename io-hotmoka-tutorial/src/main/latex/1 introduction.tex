@@ -188,7 +188,38 @@ to run the tests inside
 the Eclipse JUnit runner, by right-clicking on the \texttt{io-hotmoka-tests} subproject
 and selecting \emph{Run As} and then the \emph{JUnit Test} target.
 
-\section{About the author}
+\section{Available Hotmoka nodes}\label{sec:available_hotmoka_nodes}
+
+Most experiments in this book will be performed against
+Hotmoka nodes of already existing test networks, maintained
+by Hotmoka itself.
+They can be contacted at their respective endpoints and
+publish a \emph{faucet}\index{faucet}, that is, a free source of
+cryptocurrency. They are reported in Fig.~\ref{fig:endpoints}.
+The same figure reports
+the endpoints of a mainnet node, that can be contacted as well, but requires
+to hold some cryptocurrency in order to run updating transactions, since
+it does not publish any faucet.
+
+\begin{figure}[th]
+\begin{center}
+\begin{tabular}{|c||c|c|l|}
+\hline
+network                                & chain id                                           & interface & endpoint \\\hline\hline
+\multirow{3}{*}{Mokamint test network} & \multirow{3}{*}{\texttt{\serverMokamintChainId{}}} & Hotmoka node & \texttt{\serverMokamint{}} \\\cline{3-4}
+\mrowcell                              & \mrowcell                                          & Mokamint node & \texttt{\serverMokamintPublic{}} \\\cline{3-4}
+\mrowcell                              & \mrowcell                                          & Mokamint mining & \texttt{\serverMokamintMining{}} \\\hline\hline
+\multirow{3}{*}{Mokamint main network} & \multirow{3}{*}{\texttt{\serverMokamintMainChainId{}}} & Hotmoka node & \texttt{\serverMokamintMain{}} \\\cline{3-4}
+\mrowcell                              & \mrowcell                                              & Mokamint node & \texttt{\serverMokamintMainPublic{}} \\\cline{3-4}
+\mrowcell                              & \mrowcell                                              & Mokamint mining & \texttt{\serverMokamintMainMining{}} \\\hline\hline
+\multirow{2}{*}{Tendermint test network} & \multirow{2}{*}{\texttt{\serverTendermintChainId{}}} & Hotmoka node & \texttt{\serverTendermint{}} \\\cline{3-4}
+\mrowcell                                & \mrowcell                                            & Tendermint whisper & \texttt{\serverTendermintWhisper{}} \\\hline
+\end{tabular}
+\end{center}
+\caption{The endpoints of the existing Hotmoka nodes that can be used for our experiments.}\label{fig:endpoints}
+\end{figure}
+	
+\section{About the author}\label{sec:about_the_author}
 
 Fausto Spoto holds a PhD in Computer Science from the University of Pisa, Italy.
 Currently, he works as an Associate Professor at the University of Verona, Italy, where
