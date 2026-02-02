@@ -62,12 +62,11 @@ public class TendermintStoreTransformation extends AbstractTrieBasedStoreTransfo
 	 * @param store the initial store of the transformation
 	 * @param consensus the consensus to use for the execution of transactions in the transformation
 	 * @param now the current time to use for the execution of transactions in the transformation
-	 * @param validators the Tendermint validators at the beginning of the transformation
 	 */
-	protected TendermintStoreTransformation(TendermintStore store, ConsensusConfig<?,?> consensus, long now, Optional<TendermintValidator[]> validators) {
+	protected TendermintStoreTransformation(TendermintStore store, ConsensusConfig<?,?> consensus, long now) {
 		super(store, consensus, now);
 
-		this.validators = validators;
+		this.validators = Optional.empty();
 	}
 
 	@Override

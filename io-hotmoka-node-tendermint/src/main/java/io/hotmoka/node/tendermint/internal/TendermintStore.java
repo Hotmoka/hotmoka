@@ -34,20 +34,12 @@ import io.hotmoka.node.tendermint.api.TendermintNodeConfig;
 public class TendermintStore extends AbstractTrieBasedStore<TendermintNodeImpl, TendermintNodeConfig, TendermintStore, TendermintStoreTransformation> {
 
 	/**
-	 * The current validators set in this store transaction. This information could be recovered from the store transaction itself,
-	 * but this field is used for caching. The validators set might be missing if the node is not initialized yet.
-	 */
-	private volatile Optional<TendermintValidator[]> validators;
-
-	/**
      * Creates an empty store for the Tendermint blockchain, with empty cache.
 	 * 
 	 * @param node the node for which the store is created
 	 */
     TendermintStore(TendermintNodeImpl node) {
     	super(node);
-
-    	this.validators = Optional.empty();
     }
 
     /**
@@ -60,8 +52,6 @@ public class TendermintStore extends AbstractTrieBasedStore<TendermintNodeImpl, 
 	 */
     private TendermintStore(TendermintStore toClone, StateId stateId, Optional<StoreCache> cache) throws UnknownStateIdException {
     	super(toClone, stateId, cache);
-
-    	this.validators = toClone.validators;
 	}
 
 	/**
@@ -72,8 +62,6 @@ public class TendermintStore extends AbstractTrieBasedStore<TendermintNodeImpl, 
 	 */
     private TendermintStore(TendermintStore toClone, StoreCache cache) {
     	super(toClone, cache);
-
-    	this.validators = toClone.validators;
 	}
 
     @Override
@@ -89,6 +77,6 @@ public class TendermintStore extends AbstractTrieBasedStore<TendermintNodeImpl, 
 
 	@Override
 	protected TendermintStoreTransformation beginTransformation(ConsensusConfig<?,?> consensus, long now) {
-		return new TendermintStoreTransformation(this, consensus, now, validators);
+		return new TendermintStoreTransformation(this, consensus, now);
 	}
 }

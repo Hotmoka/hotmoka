@@ -148,6 +148,8 @@ public abstract class AbstractTrieBasedStoreImpl<N extends AbstractTrieBasedLoca
 				.setGasStation(extractGasStation(manifest))
 				.setVersions(extractVersions(manifest))
 				.setGasPrice(extractGasPrice(manifest));
+				// TODO: the cache might be enriched with the height extracted from the validators,
+				// which could then be used to modify the behavior of the transactions on the basis of the current height in the store
 		}
 		else
 			newCache = new StoreCacheImpl();

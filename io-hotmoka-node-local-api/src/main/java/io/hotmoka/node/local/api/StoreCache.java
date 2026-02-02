@@ -30,6 +30,7 @@ import io.hotmoka.node.api.values.StorageReference;
  * The caches of a store or store transformation.
  */
 public interface StoreCache {
+	// TODO: add OptionalLong getHeight();
 
 	/**
 	 * Yields the current gas price. This information could be recovered from the store
