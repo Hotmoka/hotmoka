@@ -15,7 +15,7 @@
 
 % --- LWARP IS LOADED NEXT ---
 \usepackage[
-%   HomeHTMLFilename=index,     % Filename of the homepage.
+   HomeHTMLFilename=index,     % Filename of the homepage.
 %   HTMLFilename={node-},       % Filename prefix of other pages.
 %   IndexLanguage=english,      % Language for xindy index, glossary.
 %   latexmk,                    % Use latexmk to compile.
@@ -79,8 +79,8 @@
 \usepackage[T1]{fontenc}
 \usepackage{url}
 \DeclareUrlCommand\email{\urlstyle{tt}}
-\DeclareUrlCommand\website{\urlstyle{same}}
-\DeclareUrlCommand\directory{\urlstyle{same}}
+\DeclareUrlCommand\website{\urlstyle{tt}}
+\DeclareUrlCommand\directory{\urlstyle{tt}}
 \usepackage{mdframed}
 \usepackage{caption}
 \usepackage{subcaption}
@@ -102,7 +102,8 @@
   {\small\begin{minipage}{\textwidth*4/5}
     \begin{center}\myincludegraphics{11ex}{CC_license}\end{center}
     This document is licensed under a Creative Commons Attribution 4.0 International License.
-    Its latest version is available for free in various formats at \hotmokaRepoReleases{}.
+    Its latest version is available for free online
+	at \hotmokaTutorialOnline{} and in PDF at \hotmokaRepoReleases{}.
   \end{minipage}}
 }
 \setcounter{tocdepth}{2}        % Include subsections in the \TOC.
@@ -170,7 +171,7 @@ morekeywords={module,requires,exports,provides}
 
 \lstdefinestyle{myXML}{
   language=XML,
-  escapeinside = ||,
+  escapeinside = {|}{|},
   tabsize = 2, %% set tab space width
   showstringspaces=false,
   commentstyle = \color{violet}, %% set comment color

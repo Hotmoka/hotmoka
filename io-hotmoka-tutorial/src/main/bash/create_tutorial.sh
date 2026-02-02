@@ -2,7 +2,7 @@
 
 # This script compiles the tutorial, generating:
 # A book at target/pdf/tutorial.pdf
-# A web site at target/html/
+# A web site in target/html/
 
 mkdir -p target/pdf
 rm -r target/pdf/*
@@ -15,6 +15,7 @@ bibtex tutorial
 lwarpmk printindex
 lwarpmk print1
 lwarpmk print1
+rm *.tex
 
 cd ../..
 

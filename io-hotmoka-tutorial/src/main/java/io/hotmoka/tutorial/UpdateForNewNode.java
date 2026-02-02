@@ -181,6 +181,7 @@ public class UpdateForNewNode {
 			report("hotmokaRepo", "\\website{" + HOTMOKA_REPOSITORY + "}");
 			report("hotmokaRepoReleases", "\\website{" + HOTMOKA_REPOSITORY + "/releases}");
 			report("hotmokaWeb", "\\website{" + HOTMOKA_WEB + "}");
+			report("hotmokaTutorialOnline", "\\website{" + HOTMOKA_WEB + "/tutorial}");
 			report("hotmokaTutorialDir", HOTMOKA_TUTORIAL_DIR.replace("_", "\\_"));
 
 			createCommandFile("git_clone_hotmoka", "git clone --branch v" + HOTMOKA_VERSION + " " + HOTMOKA_REPOSITORY);

@@ -1,7 +1,7 @@
 #!/bin/bash
 
-# This script compiles the tutorial, generating:
-# A book at target/pdf/tutorial.pdf
+# This script compiles the tutorial, generating
+# a book at target/pdf/tutorial.pdf
 # This book misses links and references, but is quick to generate.
 # The idea is that this script is used during the editing
 # of the tutorial, so that one does not waste a lot of time
