@@ -8,7 +8,7 @@ NC='\033[0m' # No Color
 echo -e "${BOLD_GREEN}Initializing a node for a brand new blockchain, whose configuration has been created with config-new.${NC}"
 
 moka-print-logs nodes mokamint init \
-	/modules/explicit_or_automatic/io-takamaka-code-1.8.0.jar \
+	/modules/explicit_or_automatic/io-takamaka-code-1.8.1.jar \
 	hotmoka_mokamint/plot.plot \
 	hotmoka_mokamint/node.pem \
 	--yes \
