@@ -1,7 +1,8 @@
 <p align="center"><img width="320" src="io-hotmoka-tutorial/src/main/resources/pics/hotmoka_logo.png" alt="Hotmoka logo"></p>
 
 [![Java-Build Action Status](https://github.com/Hotmoka/hotmoka/actions/workflows/java_build.yml/badge.svg)](https://github.com/Hotmoka/hotmoka/actions)
-[![Hotmoka@Maven Central](https://img.shields.io/maven-central/v/io.hotmoka/io-hotmoka-node.svg?label=Hotmoka@Maven%20Central)](https://central.sonatype.com/search?smo=true&q=g:io.hotmoka)
+[![Maven Central](https://img.shields.io/maven-central/v/io.hotmoka/io-hotmoka-node.svg?label=Maven%20Central)](https://central.sonatype.com/search?smo=true&q=g:io.hotmoka)
+[![Docker Hub](https://img.shields.io/docker/pulls/hotmoka/mokamint-node.svg?label=Docker%20Hub%20Pulls)](https://hub.docker.com/u/hotmoka)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](http://www.apache.org/licenses/LICENSE-2.0.html)
 
 Hotmoka is a framework for programming a network of communicating nodes, in a subset of Java called Takamaka. Nodes can belong to a blockchain or can be Internet of Things devices.
