@@ -309,9 +309,9 @@ Its Kotlin source code is available at~\cite{mokito_github},
 together with a small Android service for connecting to a remote Hotmoka node.
 
 The first time you will use Mokito on your mobile device,
-it will connect by default to a testnet Hotmoka node
+it will connect to a default Hotmoka node
 and show the screen in Fig.~\ref{fig:mokito_start}. The server can be changed
-in the preferences section of the app, accessible through the menu in the
+in the settings section of the app, accessible through the menu in the
 top left area of the app.
 %
 \begin{figure}[t]
@@ -322,6 +322,13 @@ top left area of the app.
   \label{fig:mokito_start}
 \end{figure}
 %
+\begin{commentbox}
+The default Hotmoka node used by Mokito might be different in different versions of the app.
+For the experiments that follow, we assume that you are connected to a node
+of a test network, for instance to \texttt{\serverMokamint{}}. Check that is the case
+in the settings page of the app, and change the node if needed.
+\end{commentbox}
+
 You can see in Fig.~\ref{fig:mokito_start} that Mokito shows a \emph{faucet account}\index{faucet},
 that only exists in test networks and that can be used for funding the creation
 of new accounts. We will do this with moka in the next section, but you
