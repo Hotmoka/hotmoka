@@ -282,66 +282,146 @@ public abstract class TransactionResponseJson implements JsonRepresentation<Tran
 			throw new IllegalArgumentException("Unexpected response of type " + response.getClass().getName());
 	}
 
+	/**
+	 * Yields the fully-qualified name of the type of the response.
+	 * 
+	 * @return the fully-qualified name of the type of the response
+	 */
 	public String getType() {
 		return type;
 	}
 
+	/**
+	 * Yields the updates in the response.
+	 * 
+	 * @return the updates in the response
+	 */
 	public Stream<Updates.Json> getUpdates() {
 		return updates == null ? Stream.empty() : Stream.of(updates);
 	}
 
+	/**
+	 * Yields the gamete in the response, if any.
+	 * 
+	 * @return the gamete in the response, if any
+	 */
 	public StorageValues.Json getGamete() {
 		return gamete;
 	}
 
+	/**
+	 * Yields the instrumented jar in the response, if any.
+	 * 
+	 * @return the instrumented jar in the response, as a base64-encoded string of its bytes, if any
+	 */
 	public String getInstrumentedJar() {
 		return instrumentedJar;
 	}
 
+	/**
+	 * Yields the dependencies in the response.
+	 * 
+	 * @return the dependencies in the response
+	 */
 	public Stream<TransactionReferences.Json> getDependencies() {
 		return dependencies == null ? Stream.empty() : Stream.of(dependencies);
 	}
 
+	/**
+	 * Yields the verification version in the response, if any.
+	 * 
+	 * @return the verification version in the response, if any
+	 */
 	public Long getVerificationToolVersion() {
 		return verificationToolVersion;
 	}
 
+	/**
+	 * Yields the gas consumed for CPU in the response, if any.
+	 * 
+	 * @return the gas consumed for CPU in the response, if any
+	 */
 	public BigInteger getGasConsumedForCPU() {
 		return gasConsumedForCPU;
 	}
 
+	/**
+	 * Yields the gas consumed for RAM in the response, if any.
+	 * 
+	 * @return the gas consumed for RAM in the response, if any
+	 */
 	public BigInteger getGasConsumedForRAM() {
 		return gasConsumedForRAM;
 	}
 
+	/**
+	 * Yields the gas consumed for storage in the response, if any.
+	 * 
+	 * @return the gas consumed for storage in the response, if any
+	 */
 	public BigInteger getGasConsumedForStorage() {
 		return gasConsumedForStorage;
 	}
 
+	/**
+	 * Yields the gas consumed for penalty in the response, if any.
+	 * 
+	 * @return the gas consumed for penalty in the response, if any
+	 */
 	public BigInteger getGasConsumedForPenalty() {
 		return gasConsumedForPenalty;
 	}
 
+	/**
+	 * Yields the name of the error class in the response, if any.
+	 * 
+	 * @return the name of the error class in the response, if any
+	 */
 	public String getClassNameOfCause() {
 		return classNameOfCause;
 	}
 
+	/**
+	 * Yields the error message in the response, if any.
+	 * 
+	 * @return the error message in the response, if any
+	 */
 	public String getMessageOfCause() {
 		return messageOfCause;
 	}
 
+	/**
+	 * Yields the events in the response.
+	 * 
+	 * @return the events in the response
+	 */
 	public Stream<StorageValues.Json> getEvents() {
 		return events == null ? Stream.empty() : Stream.of(events);
 	}
 
+	/**
+	 * Yields a description of where the error message in the response occurred, if any.
+	 * 
+	 * @return a description of where the error message in the response occurred, if any
+	 */
 	public String getWhere() {
 		return where;
 	}
 
+	/**
+	 * Yields the new allocated object in the response, if any.
+	 * 
+	 * @return the new allocated object in the response, if any
+	 */
 	public StorageValues.Json getNewObject() {
 		return newObject;
 	}
 
+	/**
+	 * Yields the result of a method call in the response, if any.
+	 * 
+	 * @return the result of a method call in the response, if any
+	 */
 	public StorageValues.Json getResult() {
 		return result;
 	}

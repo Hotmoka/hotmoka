@@ -49,14 +49,29 @@ public abstract class MethodSignatureJson implements JsonRepresentation<MethodSi
 		this.returnType = method instanceof NonVoidMethodSignature nvms ? nvms.getReturnType().getName() : null;
 	}
 
+	/**
+	 * Yields the name of the class defining the method.
+	 * 
+	 * @return the name of the class
+	 */
 	public String getDefiningClass() {
 		return definingClass;
 	}
 
+	/**
+	 * Yields the name of the method.
+	 * 
+	 * @return the name of the method
+	 */
 	public String getName() {
 		return name;
 	}
 
+	/**
+	 * Yields the string description of the types of the formal arguments of the method.
+	 * 
+	 * @return the string description of the types of the formal arguments of the method
+	 */
 	public Stream<String> getFormals() {
 		return formals == null ? Stream.empty() : Stream.of(formals);
 	}

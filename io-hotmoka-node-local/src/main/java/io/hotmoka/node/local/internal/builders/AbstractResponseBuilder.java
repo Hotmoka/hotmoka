@@ -139,7 +139,7 @@ public abstract class AbstractResponseBuilder<Request extends TransactionRequest
 			this.updatesExtractor = new UpdatesExtractor(classLoader, environment, request);
 		}
 
-		public final ResponseCreation<Response> create() throws TransactionRejectedException, InterruptedException {
+		protected final ResponseCreation<Response> create() throws TransactionRejectedException, InterruptedException {
 			try {
 				Response response = environment.submit(new TakamakaCallable(this::body)).get();
 
@@ -181,6 +181,7 @@ public abstract class AbstractResponseBuilder<Request extends TransactionRequest
 		 * The body of the creation of the response.
 		 * 
 		 * @return the response
+		 * @throws TransactionRejectedException if the transaction gets rejected
 		 */
 		protected abstract Response body() throws TransactionRejectedException;
 

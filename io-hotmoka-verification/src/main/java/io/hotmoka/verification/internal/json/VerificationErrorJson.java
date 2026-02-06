@@ -37,14 +37,29 @@ public class VerificationErrorJson implements JsonRepresentation<VerificationErr
 		this.message = error.getMessage();
 	}
 
+	/**
+	 * Yields the type of the error.
+	 * 
+	 * @return the type of the error
+	 */
 	public String getType() {
 		return type;
 	}
 
+	/**
+	 * Yields a description of where the error occurred.
+	 * 
+	 * @return a description of where the error occurred
+	 */
 	public String getWhere() {
 		return where;
 	}
 
+	/**
+	 * Yields the message of the error.
+	 * 
+	 * @return the message of the error
+	 */
 	public String getMessage() {
 		return message;
 	}

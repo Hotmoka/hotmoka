@@ -45,10 +45,20 @@ public abstract class ConstructorSignatureJson implements JsonRepresentation<Con
 		}
 	}
 
+	/**
+	 * Yields the name of the class defining the Constructor.
+	 * 
+	 * @return the name of the class
+	 */
 	public String getDefiningClass() {
 		return definingClass;
 	}
 
+	/**
+	 * Yields the string description of the types of the formal arguments of the constructor.
+	 * 
+	 * @return the string description of the types of the formal arguments of the constructor
+	 */
 	public Stream<String> getFormals() {
 		return formals == null ? Stream.empty() : Stream.of(formals);
 	}

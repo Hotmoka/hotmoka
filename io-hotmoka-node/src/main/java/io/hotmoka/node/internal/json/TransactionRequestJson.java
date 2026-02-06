@@ -217,70 +217,155 @@ public abstract class TransactionRequestJson implements JsonRepresentation<Trans
 			throw new IllegalArgumentException("Unexpected request of type " + request.getClass().getName());
 	}
 
+	/**
+	 * Yields the fully qualified name of the request.
+	 * 
+	 * @return the fully qualified name of the request
+	 */
 	public String getType() {
 		return type;
 	}
 
+	/**
+	 * Yields the classpath in the request, if any.
+	 * 
+	 * @return the classpath in the request, if any
+	 */
 	public TransactionReferences.Json getClasspath() {
 		return classpath;
 	}
 
+	/**
+	 * Yields the gas limit in the request, if any.
+	 * 
+	 * @return the gas limit in the request, if any
+	 */
 	public BigInteger getGasLimit() {
 		return gasLimit;
 	}
 
+	/**
+	 * Yields the gas price in the request, if any.
+	 * 
+	 * @return the gas price in the request, if any
+	 */
 	public BigInteger getGasPrice() {
 		return gasPrice;
 	}
 
+	/**
+	 * Yields the bytes of the jar in the request, as a base64-encoded string, if any.
+	 * 
+	 * @return the bytes of the jar in the request, as a base64-encoded string, if any
+	 */
 	public String getJar() {
 		return jar;
 	}
 
+	/**
+	 * Yields the nonce in the request, if any.
+	 * 
+	 * @return the nonce in the request, if any
+	 */
 	public BigInteger getNonce() {
 		return nonce;
 	}
 
+	/**
+	 * Yields the initial amount of coins in the request, if any.
+	 * 
+	 * @return the initial amount of coins in the request, if any
+	 */
 	public BigInteger getInitialAmount() {
 		return initialAmount;
 	}
 
+	/**
+	 * Yields the public key in the request, if any.
+	 * 
+	 * @return the public key in the request, if any
+	 */
 	public String getPublicKey() {
 		return publicKey;
 	}
 
+	/**
+	 * Yields the dependencies in the request.
+	 * 
+	 * @return the dependencies in the request
+	 */
 	public Stream<TransactionReferences.Json> getDependencies() {
 		return dependencies == null ? Stream.empty() : Stream.of(dependencies);
 	}
 
+	/**
+	 * Yields the manifest in the request, if any.
+	 * 
+	 * @return the manifest in the request, if any
+	 */
 	public StorageValues.Json getManifest() {
 		return manifest;
 	}
 
+	/**
+	 * Yields the caller in the request, if any.
+	 * 
+	 * @return the caller in the request, if any
+	 */
 	public StorageValues.Json getCaller() {
 		return caller;
 	}
 
+	/**
+	 * Yields the receiver in the request, if any.
+	 * 
+	 * @return the receiver in the request, if any
+	 */
 	public StorageValues.Json getReceiver() {
 		return receiver;
 	}
 
+	/**
+	 * Yields the method in the request, if any.
+	 * 
+	 * @return the method in the request, if any
+	 */
 	public MethodSignatures.Json getMethod() {
 		return method;
 	}
 
+	/**
+	 * Yields the constructor in the request, if any.
+	 * 
+	 * @return the constructor in the request, if any
+	 */
 	public ConstructorSignatures.Json getConstructor() {
 		return constructor;
 	}
 
+	/**
+	 * Yields the actual arguments in the request.
+	 * 
+	 * @return the actual arguments in the request
+	 */
 	public Stream<StorageValues.Json> getActuals() {
 		return actuals == null ? Stream.empty() : Stream.of(actuals);
 	}
 
+	/**
+	 * Yields the chain id in the request, if any.
+	 * 
+	 * @return the chain id in the request, if any
+	 */
 	public String getChainId() {
 		return chainId;
 	}
 
+	/**
+	 * Yields the signature in the request, if any.
+	 * 
+	 * @return the signature in the request, if any
+	 */
 	public String getSignature() {
 		return signature;
 	}

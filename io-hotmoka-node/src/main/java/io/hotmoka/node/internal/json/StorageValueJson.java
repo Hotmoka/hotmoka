@@ -54,14 +54,29 @@ public abstract class StorageValueJson implements JsonRepresentation<StorageValu
 	private final BigInteger progressive;
 	private final String stringValue;
 
+	/**
+	 * Yields this value assuming that it is a big integer.
+	 * 
+	 * @return this value assuming that it is a big integer
+	 */
 	public BigInteger getBigIntegerValue() {
 		return bigIntegerValue;
 	}
 
+	/**
+	 * Yields this value assuming that it is a boolean.
+	 * 
+	 * @return this value assuming that it is a boolean
+	 */
 	public Boolean getBooleanValue() {
 		return booleanValue;
 	}
 
+	/**
+	 * Yields this value assuming that it is a byte.
+	 * 
+	 * @return this value assuming that it is a byte
+	 */
 	public Byte getByteValue() {
 		return byteValue;
 	}
@@ -70,38 +85,83 @@ public abstract class StorageValueJson implements JsonRepresentation<StorageValu
 		return charValue;
 	}
 
+	/**
+	 * Yields this value assuming that it is a double.
+	 * 
+	 * @return this value assuming that it is a double
+	 */
 	public Double getDoubleValue() {
 		return doubleValue;
 	}
 
+	/**
+	 * Yields this value assuming that it is a float.
+	 * 
+	 * @return this value assuming that it is a float
+	 */
 	public Float getFloatValue() {
 		return floatValue;
 	}
 
+	/**
+	 * Yields this value assuming that it is an int.
+	 * 
+	 * @return this value assuming that it is an int
+	 */
 	public Integer getIntValue() {
 		return intValue;
 	}
 
+	/**
+	 * Yields this value assuming that it is a long.
+	 * 
+	 * @return this value assuming that it is a long
+	 */
 	public Long getLongValue() {
 		return longValue;
 	}
 
+	/**
+	 * Yields this value assuming that it is {@code null}.
+	 * 
+	 * @return this value assuming that it is {@code null}
+	 */
 	public boolean isNullValue() {
 		return Boolean.TRUE.equals(nullValue);
 	}
 
+	/**
+	 * Yields this value assuming that it is a short.
+	 * 
+	 * @return this value assuming that it is a short
+	 */
 	public Short getShortValue() {
 		return shortValue;
 	}
 
+	/**
+	 * Yields the transaction that has created this value, assuming that it is a storage object.
+	 * 
+	 * @return the transaction that has created this value, assuming that it is a storage object
+	 */
 	public TransactionReferences.Json getTransaction() {
 		return transaction;
 	}
 
+	/**
+	 * Yields the progressive of this value, assuming that it is a storage object.
+	 * 
+	 * @return the progressive of this value, assuming that it is a storage object
+	 */
 	public BigInteger getProgressive() {
 		return progressive;
 	}
 
+	/**
+	 * Yields this value assuming that it is a string.
+	 * 
+	 * @return this value assuming that it is a string
+	 */
 	public String getStringValue() {
 		return stringValue;
 	}

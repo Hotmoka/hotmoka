@@ -89,26 +89,57 @@ public abstract class UpdateJson implements JsonRepresentation<Update> {
 			throw new IllegalArgumentException("Unexpected update of class " + update.getClass().getName());
 	}
 
+	/**
+	 * Yields the updated object: this always exists.
+	 * 
+	 * @return the updated object
+	 */
 	public StorageValues.Json getObject() {
 		return object;
 	}
 
+	/**
+	 * Yields the updated field: this exists only for updates of fields.
+	 * 
+	 * @return the updated field, if any
+	 */
 	public FieldSignatures.Json getField() {
 		return field;
 	}
 
+	/**
+	 * Yields the value written into the updated field: this exists only for updates of fields.
+	 * 
+	 * @return the value written into the updated field, if any
+	 */
 	public StorageValues.Json getValue() {
 		return value;
 	}
 
+	/**
+	 * Yields the name of the class of the updated object: this exists only for a class tag.
+	 * 
+	 * @return the name of the class of the updated object, if any
+	 */
 	public String getClazz() {
 		return clazz;
 	}
 
+	/**
+	 * Yields the reference to the transaction that installed the class of the updated object:
+	 * this exists only for a class tag.
+	 * 
+	 * @return the reference to the transaction that installed the class of the updated object, if any
+	 */
 	public TransactionReferences.Json getJar() {
 		return jar;
 	}
 
+	/**
+	 * Determines if the update is eager: this is meaningful only for updates to {@code null}.
+	 * 
+	 * @return true if and only if the updated, assumed to {@code null}, is eager
+	 */
 	public boolean isEager() {
 		return Boolean.TRUE.equals(eager);
 	}

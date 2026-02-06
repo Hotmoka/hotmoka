@@ -72,78 +72,188 @@ public abstract class ConsensusConfigJson implements JsonRepresentation<Consensu
 		this.signatureForRequests = config.getSignatureForRequests().getName();
 	}
 
+	/**
+	 * Yields the name of the signature algorithm for signing requests.
+	 * 
+	 * @return the name of the signature algorithm
+	 */
 	public String getSignatureForRequests() {
 		return signatureForRequests;
 	}
 
+	/**
+	 * Yields the amount of coins to pay to start a new poll amount the voters,
+	 * for instance in order to change a consensus parameter.
+	 * 
+	 * @return the amount of coins to pay to start a new poll
+	 */
 	public BigInteger getTicketForNewPoll() {
 		return ticketForNewPoll;
 	}
 
+	/**
+	 * Yields the final supply of coins in the node. Once the current supply reaches
+	 * this final amount, it remains constant.
+	 * 
+	 * @return the final supply of coins in the node
+	 */
 	public BigInteger getFinalSupply() {
 		return finalSupply;
 	}
 
+	/**
+	 * Yields the height from which coins are not minted anymore.
+	 * That is exactly the moment when the final supply gets reached.
+	 * From there, validators only earn coins from the gas consumed by the committed transactions.
+	 * 
+	 * @return the height from which coins are not minted anymore
+	 */
 	public BigInteger getHeightAtFinalSupply() {
 		return heightAtFinalSupply;
 	}
 
+	/**
+	 * Yields the initial supply of coins in the node.
+	 * 
+	 * @return the initial supply of coins in the node
+	 */
 	public BigInteger getInitialSupply() {
 		return initialSupply;
 	}
 
+	/**
+	 * Yields the version of the verification module to use.
+	 * 
+	 * @return the version of the verification module to use
+	 */
 	public long getVerificationVersion() {
 		return verificationVersion;
 	}
 
+	/**
+	 * Yields how quickly the gas consumed at previous rewards is forgotten:
+	 * 0 means never, 1_000_000 means immediately.
+	 * Hence a smaller level means that the latest rewards are heavier
+	 * in the determination of the gas price.
+	 * A value of 0 means that the gas price is constant.
+	 * 
+	 * @return how quickly the gas consumed at previous rewards is forgotten:
+	 *         0 means never, 1_000_000 means immediately
+	 */
 	public long getOblivion() {
 		return oblivion;
 	}
 
+	/**
+	 * Yields the units of gas that are aimed to be rewarded at each reward.
+	 * If the actual reward is smaller, the price of gas must decrease.
+	 * If it is larger, the price of gas must increase.
+	 * 
+	 * @return the units of gas that are aimed to be rewarded at each reward
+	 */
 	public BigInteger getTargetGasAtReward() {
 		return targetGasAtReward;
 	}
 
-	public boolean isIgnoresGasPrice() {
+	/**
+	 * Yields true if and only if the node ignores the minimum gas price.
+	 * Hence requests that specify a lower gas price
+	 * than the current gas price of the node are executed anyway.
+	 * This is mainly useful for testing.
+	 * 
+	 * @return true if and only if the gas price must be ignored
+	 */
+	public boolean ignoresGasPrice() {
 		return ignoresGasPrice;
 	}
 
+	/**
+	 * Yields the maximal amount of gas that a non-view transaction can consume.
+	 * 
+	 * @return the maximal amount of gas that a non-view transaction can consume
+	 */
 	public BigInteger getMaxGasPerTransaction() {
 		return maxGasPerTransaction;
 	}
 
+	/**
+	 * Yields the initial gas price.
+	 * 
+	 * @return the initial gas price
+	 */
 	public BigInteger getInitialGasPrice() {
 		return initialGasPrice;
 	}
 
+	/**
+	 * Yields the public key of the gamete account.
+	 * 
+	 * @return the public key, base64-encoded
+	 */
 	public String getPublicKeyOfGameteBase64() {
 		return publicKeyOfGameteBase64;
 	}
 
-	public boolean isSkipsVerification() {
+	/**
+	 * Yields true if and only if the static verification of the classes of the jars installed in the node must be skipped.
+	 * 
+	 * @return true if and only if the condition holds
+	 */
+	public boolean skipsVerification() {
 		return skipsVerification;
 	}
 
-	public boolean isAllowsUnsignedFaucet() {
+	/**
+	 * Yields true if and only if the use of the faucet of the gamete is allowed without a valid signature.
+	 * 
+	 * @return true if and only if the condition holds
+	 */
+	public boolean allowsUnsignedFaucet() {
 		return allowsUnsignedFaucet;
 	}
 
+	/**
+	 * Yields the maximal cumulative size (in bytes) of the instrumented jars of the dependencies
+	 * of a transaction.
+	 * 
+	 * @return the maximal cumulative size (in bytes)
+	 */
 	public long getMaxCumulativeSizeOfDependencies() {
 		return maxCumulativeSizeOfDependencies;
 	}
 
+	/**
+	 * Yields the genesis time, UTC.
+	 * 
+	 * @return the genesis time
+	 */
 	public String getGenesisTime() {
 		return genesisTime;
 	}
 
+	/**
+	 * Yields the chain identifier of the node.
+	 * 
+	 * @return the chain identifier
+	 */
 	public String getChainId() {
 		return chainId;
 	}
 
+	/**
+	 * Yields the maximal number of dependencies in the classpath of a transaction.
+	 * 
+	 * @return the maximal number of dependencies
+	 */
 	public int getMaxDependencies() {
 		return maxDependencies;
 	}
 
+	/**
+	 * Yields the maximum size of a request; larger requests will be rejected.
+	 * 
+	 * @return the maximum size of a request
+	 */
 	public long getMaxRequestSize() {
 		return maxRequestSize;
 	}

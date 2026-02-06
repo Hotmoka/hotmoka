@@ -34,6 +34,11 @@ public abstract class AddJarStoreInitialTransactionMessageJson extends AbstractR
 		this.request = new TransactionRequests.Json(message.getRequest());
 	}
 
+	/**
+	 * Yields the JSON of the request in the message.
+	 * 
+	 * @return the JSON of the request in the message
+	 */
 	public final TransactionRequests.Json getRequest() {
 		return request;
 	}

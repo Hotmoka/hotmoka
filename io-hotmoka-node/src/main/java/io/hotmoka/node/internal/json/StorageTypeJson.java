@@ -31,6 +31,11 @@ public abstract class StorageTypeJson implements JsonRepresentation<StorageType>
 		this.name = type.toString();
 	}
 
+	/**
+	 * Yields the fully-qualified name of this type.
+	 * 
+	 * @return the fully-qualified name
+	 */
 	public String getName() {
 		return name;
 	}

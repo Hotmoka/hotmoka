@@ -35,14 +35,29 @@ public abstract class FieldSignatureJson implements JsonRepresentation<FieldSign
 		this.type = field.getType().getName();
 	}
 
+	/**
+	 * Yields the name of the class defining the field.
+	 * 
+	 * @return the name of the class
+	 */
 	public String getDefiningClass() {
 		return definingClass;
 	}
 
+	/**
+	 * Yields the name of the field.
+	 * 
+	 * @return the name of the field
+	 */
 	public String getName() {
 		return name;
 	}
 
+	/**
+	 * Yields the string description of the type of the field.
+	 * 
+	 * @return the string description of the type of the field
+	 */
 	public String getType() {
 		return type;
 	}

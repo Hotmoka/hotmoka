@@ -34,6 +34,11 @@ public abstract class GetIndexMessageJson extends AbstractRpcMessageJsonRepresen
 		this.reference = new StorageValues.Json(message.getReference());
 	}
 
+	/**
+	 * Yields the JSON of the reference to the object whose index is required.
+	 * 
+	 * @return the JSON of the reference
+	 */
 	public final StorageValues.Json getReference() {
 		return reference;
 	}
