@@ -164,7 +164,7 @@ Next section shows an example of use for \texttt{StorageLinkedList}.
 \subsection{A gradual Ponzi contract}\label{subsec:gradual_ponzi}
 
 \begin{center}
-(See the \texttt{io-hotmoka-tutorial-examples-tictactoe} project in \texttt{\hotmokaRepo{}})
+(See the \texttt{io-hotmoka-tutorial-examples-tictactoe} project in \hotmokaRepo{})
 \end{center}
 
 Consider our previous Ponzi contract from Ch.~\ref{ch:smart_contracts}
@@ -517,7 +517,7 @@ Next section shows an example of use for \texttt{StorageTreeArray<E>}.
 \subsection{A tic-tac-toe contract}\label{subsec:tic_tac_toe}
 
 \begin{center}
-(See the \texttt{io-hotmoka-tutorial-examples-tictactoe} project in \texttt{\hotmokaRepo{}})
+(See the \texttt{io-hotmoka-tutorial-examples-tictactoe} project in \hotmokaRepo{})
 \end{center}
 
 Tic-tac-toe is a game where two players place, alternately,
@@ -804,7 +804,7 @@ X|O|
 \subsection{A more realistic tic-tac-toe contract}\label{subsec:more_realistic_tictactoe}
 
 \begin{center}
-(See the \texttt{io-hotmoka-tutorial-examples-tictactoe\_revised} project in \texttt{\hotmokaRepo{}})
+(See the \texttt{io-hotmoka-tutorial-examples-tictactoe\_revised} project in \hotmokaRepo{})
 \end{center}
 
 The \texttt{TicTacToe.java} code implements the rules of a tic-tac-toe game, but has
@@ -1311,7 +1311,7 @@ Next section shows an example of use for \texttt{StorageTreeMap<K,V>}.
 \subsection{A blind auction contract}\label{subsec:blind_auction}
 
 \begin{center}
-(See the \texttt{io-hotmoka-tutorial-examples-auction} project in \texttt{\hotmokaRepo{}})
+(See the \texttt{io-hotmoka-tutorial-examples-auction} project in \hotmokaRepo{})
 \end{center}
 
 This section exemplifies the use of class \texttt{StorageTreeMap} by writing a smart
@@ -1741,7 +1741,7 @@ that some methods are only run at the right moment.
 \subsection{Events}\label{subsec:events}\index{event}
 
 \begin{center}
-(See the \texttt{io-hotmoka-tutorial-examples-auction\_events} project in \texttt{\hotmokaRepo{}})
+(See the \texttt{io-hotmoka-tutorial-examples-auction\_events} project in \hotmokaRepo{})
 \end{center}
 
 The code in the previous section does not compile since it misses two
@@ -1837,19 +1837,19 @@ Go inside the project \texttt{io-hotmoka-tutorial-examples-auction} and run
 \subsection{Running the blind auction contract}\label{subsec:running_blind_auction}
 
 \begin{center}
-(See the \texttt{io-hotmoka-tutorial-examples-runs} project in \texttt{\hotmokaRepo{}})
+(See the \texttt{io-hotmoka-tutorial-examples-runs} project in \hotmokaRepo{})
 \end{center}
 
 This section presents a Java class that connects to a Hotmoka node and runs the blind auction
-contract of the previous section. We could run it in the \texttt{\serverMokamint{}} server,
+contract of the previous section. We could run it in the \serverMokamint{} server,
 but that Hotmoka node is based on a proof of space consensus, that generates a block every ten
 seconds \emph{on average}. This means that, for a transaction to be committed, one could have to wait
 more, sometime up to one minute. This would make the test slow and would require larger windows
-for the bidding and for the revealing phases. Instead, we use the \texttt{\serverTendermint{}} server,
+for the bidding and for the revealing phases. Instead, we use the \serverTendermint{} server,
 that is a Hotmoka node based on a proof of stake consensus, that generates a block every four seconds.
 This makes the test faster and the timings reliable. However, this means that we must first generate
 some new accounts for our tests, since those that we generated before for
-\texttt{\serverMokamint{}} do not exist in \texttt{\serverTendermint{}}. We do it as previously done,
+\serverMokamint{} do not exist in \serverTendermint{}. We do it as previously done,
 but swapping the server we are talking to:
 %
 \index{moka!keys create@{\texttt{keys create}}}
@@ -2384,7 +2384,7 @@ Its execution should print something like this on the console:
 \subsection{Listening to events}\label{subsec:listening_to_events}
 %
 \begin{center}
-(See the \texttt{io-hotmoka-tutorial-examples-runs} project in \texttt{\hotmokaRepo{}})
+(See the \texttt{io-hotmoka-tutorial-examples-runs} project in \hotmokaRepo{})
 \end{center}
 
 The \texttt{BlindAuction} contract generates events during its execution. If an external tool, such

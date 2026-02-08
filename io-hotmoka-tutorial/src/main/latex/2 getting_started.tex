@@ -325,7 +325,7 @@ top left area of the app.
 \begin{commentbox}
 The default Hotmoka node used by Mokito might be different in different versions of the app.
 For the experiments that follow, we assume that you are connected to a node
-of a test network, for instance to \texttt{\serverMokamint{}}. Check that is the case
+of a test network, for instance to \serverMokamint{}. Check that is the case
 in the settings page of the app, and change the node if needed.
 \end{commentbox}
 
@@ -345,7 +345,7 @@ node or blockchain. However, for now, it is much simpler to experiment with a no
 that is part of one of the public
 test blockchains that we provide for experimentation.
 Namely, we have installed two Hotmoka nodes for testing, of two distinct blockchains, at URIs
-\texttt{\serverMokamint{}} and \texttt{\serverTendermint{}}, respectively.
+\serverMokamint{} and \serverTendermint{}, respectively.
 The peculiarity of these nodes is that they include a \emph{faucet}\index{faucet}, that is,
 an account that gives
 away small amounts of coins, when requested. This is good for experimentation
@@ -356,7 +356,7 @@ sent by some other user or bought from some exchange.
 You can verify that you can contact the test node by typing
 the command \texttt{moka nodes manifest show -{}-uri \serverMokamint}
 to print the \emph{manifest}\index{manifest} of the Hotmoka node
-at \texttt{\serverMokamint}. The result should be something like:
+at \serverMokamint. The result should be something like:
 %
 \inputOutput{moka_nodes_manifest_show}
 %
@@ -442,7 +442,7 @@ that it, to another Java object that provides
 information about the gas\index{gas}, such as its current price. Finally, the manifest refers
 to another Java object, called \emph{validators}\index{validators}, that keeps information about
 the validator nodes of the network, if the network has validators:
-in the case of \texttt{\serverMokamint{}} there are no validators, since that network
+in the case of \serverMokamint{} there are no validators, since that network
 is based on a completely decentralized proof of space consensus, without special validator nodes.
 The validators object contains, in any case, also the initial,
 current and final supply of cryptocurrency

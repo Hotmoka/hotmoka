@@ -2,9 +2,9 @@
 
 The experiments of the previous chapters have been performed on a
 Hotmoka node already existing online, part of a blockchain installed by somebody else.
-Namely, we have used the Hotmoka node at \url{\serverMokamint}, that is part
+Namely, we have used the Hotmoka node at \serverMokamint{}, that is part
 of a blockchain based on a proof of space consensus algorithm~\cite{Spoto25}\index{proof of space},
-and the Hotmoka node at \url{\serverTendermint}, that is part of
+and the Hotmoka node at \serverTendermint{}, that is part of
 another blockchain, this time based on a proof of stake consensus algorithm~\cite{Kwon14}\index{proof of stake}.
 Both are able to execute Hotmoka transactions, store smart contracts and interact with them,
 but they are different for the way they create new blocks and
@@ -140,7 +140,7 @@ the prize for this creation will be shared between the peer and the remote miner
 \subsection{Start a remote miner for an existing node}\label{subsec:mining_hotmoka_mokamint}
 
 The simplest scenario is that of a user who wants to provide mining power to an existing node of a blockchain
-based on Mokamint, such as \url{\serverMokamint}. This user does not want to run a full node of the blockchain,
+based on Mokamint, such as \serverMokamint{}. This user does not want to run a full node of the blockchain,
 for instance because he does not want to perfom a long synchronization, nor hold a copy of the full blockchain
 in his machine, or maybe because his internet connection is not stable enough for running a full node, or
 just because he does not want to keep his machine always on, day and night. This user can contribute
@@ -159,7 +159,7 @@ compatible with the Mokamint node that you are going to mine for, that includes 
 The larger this plot file, the more likely it is that the miner will be selected for creating the next blocks
 of the blockchain and more coins will be earned by your miner, on average.
 For instance, in order to mine for the Mokamint node running the Hotmoka testnet
-and published at \url{\serverMokamintMining}, you start with the creation of the key pair
+and published at \serverMokamintMining{}, you start with the creation of the key pair
 that will identify you as a miner:
 %
 \inputCommand{docker_create_keys_for_mining}
@@ -262,7 +262,7 @@ that you want to start. You can do this as in Sec.~\ref{subsec:mining_hotmoka_mo
 hence generating \texttt{miner.pem}.
 
 You can then run the script that configures the node. Use for it the base58-encoded public key
-of the key pair that you have created above. Specify \url{\serverMokamintPublic}
+of the key pair that you have created above. Specify \serverMokamintPublic{}
 as the URI of a node of the blockchain to join.
 Specify the size of the plot file to use for the proof of space:
 the larger, the more blocks will be created by your node, but also more disk space
@@ -284,7 +284,7 @@ After configuring the node, you can run it with the go script:
 %
 \inputCommand{docker_mokamint_go}
 %
-The command above will start a node of the same blockchain of \url{\serverMokamint},
+The command above will start a node of the same blockchain of \serverMokamint{},
 that allows connections to the ports:
 %
 \begin{description}
@@ -300,7 +300,7 @@ that allows connections to the ports:
 \end{description}
 %
 After the command above, you should see that the node will start up and begin synchronizing
-from \url{\serverMokamintPublic}. This will take some time (hours, days, weeks\ldots) depending
+from \serverMokamintPublic{}. This will take some time (hours, days, weeks\ldots) depending
 on the age of the cloned blockchain and on the speed of your internet connection.
 You can leave the container in the backrground by entering CTRL+p, CTRL+q, as always in docker.
 
@@ -459,7 +459,7 @@ developer only the task to develop the Tendermint app.
 There is a docker image that implements a Hotmoka node as a Tendermint app
 for programming in Takamaka over Tendermint. We have already used that node
 previously, since that installed at
-\texttt{\serverTendermint{}} is a node of that type.
+\serverTendermint{} is a node of that type.
 Fig.~\ref{fig:hotmoka_tendermint_network}
 shows the architecture of a Tendermint Hotmoka node.
 It consists of a few components.
@@ -487,15 +487,15 @@ a standard port.
 As shown in Fig.~\ref{fig:hotmoka_tendermint_network}, clients connect to the Hotmoka
 part of any node of the blockchain. The exact node is irrelevant, since all nodes
 of the same blockchain are kept synchronized by the underlying Tendermint engine.
-For instance, we can use \texttt{\serverTendermint{}} to play with
+For instance, we can use \serverTendermint{} to play with
 accounts and Takamaka contracts. However, we might want to
 install our own node instead, part of the same
-blockchain network of \texttt{\serverTendermint{}}
+blockchain network of \serverTendermint{}
 or part of a brand new blockchain. In the former case, our own node will execute
-the same transactions of \texttt{\serverTendermint{}}, so that we can be sure that they are
+the same transactions of \serverTendermint{}, so that we can be sure that they are
 executed according to the rules. In the latter case, we can have our own blockchain that
 executes our transactions only, instead of using a shared blockchain such as that
-at \texttt{\serverTendermint{}}.
+at \serverTendermint{}.
 
 \subsection{Start a node of an existing blockchain}\label{subsec:join_hotmoka_tendermint}
 
@@ -508,10 +508,10 @@ The \texttt{config-clone} script creates the configuration directory of a node
 that joins an existing Hotmoka blockchain based on the Tendermint byzantine
 consensus engine. For that, you must specify the URI of a node of this blockchain,
 from where the configuration information will be fetched, such as
-\url{\serverTendermint}. This is important, since all nodes of the
+\serverTendermint{}. This is important, since all nodes of the
 same blockchain must have the same consensus parameters.
 You must also specify the average block creation rate of the blockchain,
-that in the case of \url{\serverTendermint} is $10,000$ milliseconds.
+that in the case of \serverTendermint{} is $10,000$ milliseconds.
 We will use two volumes: \texttt{chain} will contain the actual blockchain data
 and \texttt{hotmoka\_tendermint} will contain the configuration information
 created for the node. By using volumes, we can share that information
@@ -532,7 +532,7 @@ After configuring the node, you can run it with the go script:
 %
 \inputCommand{docker_tendermint_go}
 %
-The command above will start a node of the same blockchain of \url{\serverTendermint},
+The command above will start a node of the same blockchain of \serverTendermint{},
 that allows connections to the ports:
 %
 \begin{description}
@@ -542,7 +542,7 @@ that allows connections to the ports:
 \end{description}
 %
 After the command above, you should see that the node will start up and begin synchronizing
-from \url{\serverTendermint}. This will take some time (hours, days, weeks\ldots) depending
+from \serverTendermint{}. This will take some time (hours, days, weeks\ldots) depending
 on the age of the cloned blockchain and on the speed of your internet connection.
 You can leave the container in the backrground by entering CTRL+p, CTRL+q, as always in docker.
 
