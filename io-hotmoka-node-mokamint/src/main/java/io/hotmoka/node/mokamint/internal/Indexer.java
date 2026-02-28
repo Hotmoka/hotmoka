@@ -42,7 +42,7 @@ import io.hotmoka.xodus.env.Store;
 import io.mokamint.node.api.Block;
 import io.mokamint.node.api.NonGenesisBlock;
 import io.mokamint.node.api.PortionRejectedException;
-import io.mokamint.node.api.Transaction;
+import io.mokamint.node.api.Request;
 
 /**
  * The indexer of a Hotmoka node based on Mokamint. The goal of this object is to fetch
@@ -179,8 +179,8 @@ public class Indexer {
 					TransactionReference[] transactions;
 
 					if (block instanceof NonGenesisBlock ngb)
-						transactions = ngb.getTransactions()
-							.map(Transaction::getBytes)
+						transactions = ngb.getRequests()
+							.map(Request::getBytes)
 							.map(sha256::hash)
 							.map(TransactionReferences::of)
 							.toArray(TransactionReference[]::new);

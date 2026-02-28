@@ -57,14 +57,15 @@ import io.mokamint.application.AbstractApplication;
 import io.mokamint.application.api.ClosedApplicationException;
 import io.mokamint.application.api.Description;
 import io.mokamint.application.api.Name;
-import io.mokamint.application.api.UnknownGroupIdException;
+import io.mokamint.application.api.UnknownScopeIdException;
 import io.mokamint.application.api.UnknownStateException;
-import io.mokamint.node.Transactions;
+import io.mokamint.node.Requests;
 import io.mokamint.node.api.ApplicationTimeoutException;
 import io.mokamint.node.api.Block;
 import io.mokamint.node.api.NonGenesisBlock;
 import io.mokamint.node.api.PublicNode;
-import io.mokamint.node.api.Transaction;
+import io.mokamint.node.api.Request;
+import io.mokamint.node.api.RequestRejectedException;
 import io.mokamint.nonce.api.Deadline;
 
 /**
@@ -79,7 +80,7 @@ import io.mokamint.nonce.api.Deadline;
 public class HotmokaApplicationImpl<E extends PublicNode> extends AbstractApplication implements Application<E> {
 
 	/**
-	 * The current store transformations, for each group id of Hotmoka transactions.
+	 * The current store transformations, for each scopeId of Hotmoka transactions.
 	 */
 	private final ConcurrentMap<Integer, MokamintStoreTransformation> transformations = new ConcurrentHashMap<>();
 
@@ -94,7 +95,7 @@ public class HotmokaApplicationImpl<E extends PublicNode> extends AbstractApplic
 	private final ConcurrentMap<Integer, io.hotmoka.xodus.env.Transaction> txns = new ConcurrentHashMap<>();
 
 	/**
-	 * The next group id to use for the next transformation that will be started with this application.
+	 * The next scope id to use for the next transformation that will be started with this application.
 	 */
 	private final AtomicInteger nextId = new AtomicInteger();
 
@@ -157,23 +158,24 @@ public class HotmokaApplicationImpl<E extends PublicNode> extends AbstractApplic
 	}
 
 	@Override
-	public void checkTransaction(Transaction transaction) throws ClosedApplicationException {
+	public void checkRequest(Request request) throws io.mokamint.node.api.RequestRejectedException, ClosedApplicationException {
 		try (var scope = mkScope()) {
-			// nothing, there is nothing we can check for Hotmoka
+			// there is nothing we can check for Hotmoka, beyond the pure syntax of the transaction request
+			//intoHotmokaRequest(transaction);
 		}
 	}
 
 	@Override
-	public long getPriority(Transaction transaction) throws ClosedApplicationException {
+	public long getPriority(Request request) throws ClosedApplicationException {
 		try (var scope = mkScope()) {
 			return 0;
 		}
 	}
 
 	@Override
-	public String getRepresentation(Transaction transaction) throws io.mokamint.node.api.TransactionRejectedException, ClosedApplicationException {
+	public String getRepresentation(Request request) throws io.mokamint.node.api.RequestRejectedException, ClosedApplicationException {
 		try (var scope = mkScope()) {
-			return intoHotmokaRequest(transaction).toString();
+			return intoHotmokaRequest(request).toString();
 		}
 	}
 
@@ -198,34 +200,34 @@ public class HotmokaApplicationImpl<E extends PublicNode> extends AbstractApplic
 			throw new UnknownStateException(e);
 		}
 
-		int groupId = nextId.getAndIncrement();
-		transformations.put(groupId, start.beginTransformation(when.toInstant(ZoneOffset.UTC).toEpochMilli()));
+		int scopeId = nextId.getAndIncrement();
+		transformations.put(scopeId, start.beginTransformation(when.toInstant(ZoneOffset.UTC).toEpochMilli()));
 
-		return groupId;
+		return scopeId;
 	}
 
 	@Override
-	public void deliverTransaction(int groupId, Transaction transaction) throws io.mokamint.node.api.TransactionRejectedException, UnknownGroupIdException, ClosedApplicationException, InterruptedException {
+	public void executeTransaction(int scopeId, Request request) throws io.mokamint.node.api.RequestRejectedException, UnknownScopeIdException, ClosedApplicationException, InterruptedException {
 		try (var scope = mkScope()) {
 			// no need to signalRejected() if the following fails, since it means that the transaction is not really
 			// a Hotmoka request, therefore nobody is waiting for it
-			TransactionRequest<?> hotmokaRequest = intoHotmokaRequest(transaction);
-			MokamintStoreTransformation transformation = getTransformation(groupId);
+			TransactionRequest<?> hotmokaRequest = intoHotmokaRequest(request);
+			MokamintStoreTransformation transformation = getTransformation(scopeId);
 
 			try {
 				transformation.deliverTransaction(hotmokaRequest);
 			}
 			catch (TransactionRejectedException e) {
 				node.signalRejected(hotmokaRequest, e);
-				throw new io.mokamint.node.api.TransactionRejectedException(e.getMessage(), e);
+				throw new io.mokamint.node.api.RequestRejectedException(e.getMessage(), e);
 			}
 		}
 	}
 
 	@Override
-	public byte[] endBlock(int groupId, Deadline deadline) throws ClosedApplicationException, UnknownGroupIdException, InterruptedException {
+	public byte[] endBlock(int scopeId, Deadline deadline) throws ClosedApplicationException, UnknownScopeIdException, InterruptedException {
 		try (var scope = mkScope()) {
-			MokamintStoreTransformation transformation = getTransformation(groupId);
+			MokamintStoreTransformation transformation = getTransformation(scopeId);
 			transformation.deliverCoinbaseTransactions(deadline.getProlog());
 			io.hotmoka.xodus.env.Transaction txn = node.getEnvironment().beginExclusiveTransaction();
 			StateId idOfFinalStore;
@@ -238,20 +240,20 @@ public class HotmokaApplicationImpl<E extends PublicNode> extends AbstractApplic
 				throw e;
 			}
 
-			finalStateIds.put(groupId, idOfFinalStore);
+			finalStateIds.put(scopeId, idOfFinalStore);
 			stateIdentifiersCache.put(idOfFinalStore, transformation.getCache());
-			txns.put(groupId, txn);
+			txns.put(scopeId, txn);
 
 			return idOfFinalStore.getBytes();
 		}
 	}
 
 	@Override
-	public void commitBlock(int groupId) throws UnknownGroupIdException, ClosedApplicationException {
+	public void commitBlock(int scopeId) throws UnknownScopeIdException, ClosedApplicationException {
 		try (var scope = mkScope()) {
-			var transformation = getTransformation(groupId);
-			var idOfFinalStore = finalStateIds.get(groupId);
-			var txn = txns.remove(groupId);
+			var transformation = getTransformation(scopeId);
+			var idOfFinalStore = finalStateIds.get(scopeId);
+			var txn = txns.remove(scopeId);
 
 			try {
 				node.persist(idOfFinalStore, transformation.getNow(), txn);
@@ -267,8 +269,8 @@ public class HotmokaApplicationImpl<E extends PublicNode> extends AbstractApplic
 			}
 			finally {
 				node.exit(transformation.getInitialStore());
-				transformations.remove(groupId);
-				finalStateIds.remove(groupId);
+				transformations.remove(scopeId);
+				finalStateIds.remove(scopeId);
 			}
 
 			LOGGER.fine(() -> "persisted state " + idOfFinalStore);
@@ -276,12 +278,12 @@ public class HotmokaApplicationImpl<E extends PublicNode> extends AbstractApplic
 	}
 
 	@Override
-	public void abortBlock(int groupId) throws UnknownGroupIdException, ClosedApplicationException {
+	public void abortBlock(int scopeId) throws UnknownScopeIdException, ClosedApplicationException {
 		try (var scope = mkScope()) {
-			var transformation = getTransformation(groupId);
+			var transformation = getTransformation(scopeId);
 			var initialStore = transformation.getInitialStore();
 			var initialStateId = initialStore.getStateId();
-			var txn = txns.remove(groupId);
+			var txn = txns.remove(scopeId);
 
 			try {
 				// txn might be null if abortBlock() is called before previously calling endBlock()
@@ -290,8 +292,8 @@ public class HotmokaApplicationImpl<E extends PublicNode> extends AbstractApplic
 			}
 			finally {
 				node.exit(initialStore);
-				transformations.remove(groupId);
-				finalStateIds.remove(groupId);
+				transformations.remove(scopeId);
+				finalStateIds.remove(scopeId);
 			}
 
 			LOGGER.info(() -> "aborted block creation from state " + initialStateId);
@@ -316,7 +318,7 @@ public class HotmokaApplicationImpl<E extends PublicNode> extends AbstractApplic
 					MokamintStore store = node.enter(si, Optional.ofNullable(stateIdentifiersCache.get(si)));
 
 					try {
-						ngb.getTransactions().forEachOrdered(tx -> publish(tx, store));
+						ngb.getRequests().forEachOrdered(tx -> publish(tx, store));
 					}
 					finally {
 						node.exit(store);
@@ -336,9 +338,9 @@ public class HotmokaApplicationImpl<E extends PublicNode> extends AbstractApplic
 		super.closeResources();
 	}
 
-	private void publish(Transaction tx, MokamintStore store) {
+	private void publish(Request request, MokamintStore store) {
 		try {
-			var reference = TransactionReferences.of(tx.getHash(sha256));
+			var reference = TransactionReferences.of(request.getHash(sha256));
 			node.publish(reference, store.getResponse(reference), store);
 		}
 		catch (UnknownReferenceException e) {
@@ -347,13 +349,13 @@ public class HotmokaApplicationImpl<E extends PublicNode> extends AbstractApplic
 		}
 	}
 
-	private static TransactionRequest<?> intoHotmokaRequest(Transaction transaction) throws io.mokamint.node.api.TransactionRejectedException {
-		try (var context = NodeUnmarshallingContexts.of(new ByteArrayInputStream(transaction.getBytes()))) {
+	private static TransactionRequest<?> intoHotmokaRequest(Request request) throws io.mokamint.node.api.RequestRejectedException {
+		try (var context = NodeUnmarshallingContexts.of(new ByteArrayInputStream(request.getBytes()))) {
 			try {
 				return TransactionRequests.from(context);
 			}
 			catch (IOException e) {
-				throw new io.mokamint.node.api.TransactionRejectedException(e.getMessage());
+				throw new io.mokamint.node.api.RequestRejectedException(e.getMessage());
 			}
 		}
 		catch (IOException e) {
@@ -364,19 +366,19 @@ public class HotmokaApplicationImpl<E extends PublicNode> extends AbstractApplic
 	}
 
 	/**
-	 * Yields the transformation with the given group id, if it is currently under execution with this application.
+	 * Yields the transformation with the given scope id, if it is currently under execution with this application.
 	 * 
-	 * @param groupId the group id of the transformation
+	 * @param scopeId the scope id of the transformation
 	 * @return the transformation
-	 * @throws UnknownGroupIdException if no transformation for the given group id is currently under execution with this application
+	 * @throws UnknownScopeIdException if no transformation for the given scope id is currently under execution with this application
 	 */
-	private MokamintStoreTransformation getTransformation(int groupId) throws UnknownGroupIdException {
-		MokamintStoreTransformation transformation = transformations.get(groupId);
+	private MokamintStoreTransformation getTransformation(int scopeId) throws UnknownScopeIdException {
+		MokamintStoreTransformation transformation = transformations.get(scopeId);
 
 		if (transformation != null)
 			return transformation;
 		else
-			throw new UnknownGroupIdException("Group id " + groupId + " is unknown");
+			throw new UnknownScopeIdException("Scope id " + scopeId + " is unknown");
 	}
 
 	/**
@@ -498,9 +500,9 @@ public class HotmokaApplicationImpl<E extends PublicNode> extends AbstractApplic
 		@Override
 		protected void postRequest(TransactionRequest<?> request) throws ClosedNodeException, InterruptedException, TimeoutException {
 			try {
-				engine.add(Transactions.of(request.toByteArray()));
+				engine.add(Requests.of(request.toByteArray()));
 			}
-			catch (io.mokamint.node.api.TransactionRejectedException e) {
+			catch (RequestRejectedException e) {
 				// the mempool of the Mokamint engine has rejected the transaction
 				signalRejected(request, new TransactionRejectedException(e.getMessage()));
 			}
