@@ -18,7 +18,7 @@ BOLD_GREEN='\033[1;32m'
 BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
-MOKAMINT_PUBLIC_SERVICE_URI=${MOKAMINT_PUBLIC_SERVICE_URI:-ws://panarea.hotmoka.io:8030}
+MOKAMINT_PUBLIC_SERVICE_URI=${MOKAMINT_PUBLIC_SERVICE_URI:-ws://lipari.hotmoka.io:8030}
 PLOT_SIZE=${PLOT_SIZE:-1000}
 
 echo -e "${BOLD_GREEN}Going to create the configuration directory of a Hotmoka node using the Mokamint proof of space consensus engine, with the following parameters:${NC}"

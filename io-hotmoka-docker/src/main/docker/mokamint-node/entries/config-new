@@ -11,7 +11,7 @@
 #
 # where:
 # 1) node.pem is a key pair with empty password
-# 2) plot.plot uses node.pem as key for signing the blocks, the provided public key as key for signing the deadlines and the chain identifier in mokamint_config.toml
+# 2) plot.plot uses node.pem as key for signing the blocks, the provided public key as key for signing the deadlines and the provided chain identifier
 # 3) options not explicitly reported in the three toml configuration files hold, implicitly, default values
 
 RED='\033[0;31m'
