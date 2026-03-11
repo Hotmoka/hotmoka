@@ -53,6 +53,7 @@ import io.hotmoka.node.mokamint.api.Application;
 import io.hotmoka.node.mokamint.api.MokamintNode;
 import io.hotmoka.node.mokamint.api.MokamintNodeConfig;
 import io.hotmoka.xodus.env.Environment;
+import io.hotmoka.xodus.env.Transaction;
 import io.mokamint.application.AbstractApplication;
 import io.mokamint.application.api.ClosedApplicationException;
 import io.mokamint.application.api.Description;
@@ -92,7 +93,7 @@ public class HotmokaApplicationImpl<E extends PublicNode> extends AbstractApplic
 	/**
 	 * The database transaction that begins at {@link #endBlock(int, Deadline)} for each of the {@link #transformations}.
 	 */
-	private final ConcurrentMap<Integer, io.hotmoka.xodus.env.Transaction> txns = new ConcurrentHashMap<>();
+	private final ConcurrentMap<Integer, Transaction> txns = new ConcurrentHashMap<>();
 
 	/**
 	 * The next scope id to use for the next transformation that will be started with this application.
@@ -229,7 +230,7 @@ public class HotmokaApplicationImpl<E extends PublicNode> extends AbstractApplic
 		try (var scope = mkScope()) {
 			MokamintStoreTransformation transformation = getTransformation(scopeId);
 			transformation.deliverCoinbaseTransactions(deadline.getProlog());
-			io.hotmoka.xodus.env.Transaction txn = node.getEnvironment().beginExclusiveTransaction();
+			Transaction txn = node.getEnvironment().beginExclusiveTransaction();
 			StateId idOfFinalStore;
 
 			try {
@@ -330,6 +331,11 @@ public class HotmokaApplicationImpl<E extends PublicNode> extends AbstractApplic
 				}
 			}
 		}
+	}
+
+	@Override
+	public void setHead(byte[] stateId) throws UnknownStateException, ClosedApplicationException {
+		// TODO: maybe do something here?
 	}
 
 	@Override
@@ -540,17 +546,17 @@ public class HotmokaApplicationImpl<E extends PublicNode> extends AbstractApplic
 		}
 
 		@Override
-		protected void keepPersistedOnlyNotOlderThan(long limitCreationTime, io.hotmoka.xodus.env.Transaction txn) {
+		protected void keepPersistedOnlyNotOlderThan(long limitCreationTime, Transaction txn) {
 			super.keepPersistedOnlyNotOlderThan(limitCreationTime, txn);
 		}
 
 		@Override
-		protected void persist(StateId stateId, long now, io.hotmoka.xodus.env.Transaction txn) throws UnknownStateIdException {
+		protected void persist(StateId stateId, long now, Transaction txn) throws UnknownStateIdException {
 			super.persist(stateId, now, txn);
 		}
 
 		@Override
-		protected void free(StateId stateId, io.hotmoka.xodus.env.Transaction txn) throws UnknownStateIdException {
+		protected void free(StateId stateId, Transaction txn) throws UnknownStateIdException {
 			super.free(stateId, txn);
 		}
 
