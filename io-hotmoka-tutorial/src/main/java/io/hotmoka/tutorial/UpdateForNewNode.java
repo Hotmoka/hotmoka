@@ -59,6 +59,7 @@ import io.hotmoka.tutorial.examples.runs.Events;
 import io.hotmoka.tutorial.examples.runs.Family;
 import io.hotmoka.tutorial.examples.runs.FamilyExported;
 import io.hotmoka.tutorial.examples.runs.FamilyStorage;
+import io.mokamint.node.cli.MokamintNode;
 import io.takamaka.code.constants.Constants;
 
 /**
@@ -89,6 +90,11 @@ public class UpdateForNewNode {
 	 * The name where Latex commands are generated, for the experiments with the Mokamint node.
 	 */
 	public static final String LATEX_MOKAMINT_FILE_NAME = "parameters_mokamint.tex";
+
+	/**
+	 * The name where Latex commands are generated, for the experiments with the Mokamint mainnet node.
+	 */
+	public static final String LATEX_MOKAMINT_MAINNET_FILE_NAME = "parameters_mokamint_mainnet.tex";
 
 	/**
 	 * The name where Latex commands are generated, for the experiments with the Mokamint node and quantum-resistant keys.
@@ -128,6 +134,9 @@ public class UpdateForNewNode {
 	private static URI mokamintServer;
 	private static URI mokamintServerMining;
 	private static URI mokamintServerPublic;
+	private static URI mokamintMainServer;
+	private static URI mokamintMainServerMining;
+	private static URI mokamintMainServerPublic;
 	private static URI tendermintServer;
 	private static URI tendermintServerWhisper;
 
@@ -135,10 +144,10 @@ public class UpdateForNewNode {
 
 	/**
 	 * Edit the {@code parameters.tex} file by rerunning the experiments of the Hotmoka tutorial.
-	 * It allows one to specify the name of the directory where the files will be created and five further arguments,
+	 * It allows one to specify the name of the directory where the files will be created and six further arguments,
 	 * that are the URI of the remote nodes (for Mokamint and for Tendermint). The first defaults to
-	 * {@code src/main/latex/} and the five default to {@code ws://panarea.hotmoka.io:8001/8025/8030}
-	 * and {@code ws://panarea.hotmoka.io:8002/26656}.
+	 * {@code src/main/latex/generated} and the five default to {@code ws://panarea.hotmoka.io:8001/8025/8030},
+	 * {@code ws://panarea.hotmoka.io:8002/26656} and {@code ws://lipari.hotmoka.io:8001/8025/8030}.
 	 * 
 	 * @param args the arguments
 	 * @throws Exception if the editing of the file fails for some reason
@@ -150,11 +159,15 @@ public class UpdateForNewNode {
 		mokamintServerPublic = new URI(args.length > 3 ? args[3] : "ws://panarea.hotmoka.io:8030");
 		tendermintServer = new URI(args.length > 4 ? args[4] : "ws://panarea.hotmoka.io:8002");
 		tendermintServerWhisper = new URI(args.length > 5 ? args[5] : "ws://panarea.hotmoka.io:26656");
+		mokamintMainServer = new URI(args.length > 6 ? args[6] : "ws://lipari.hotmoka.io:8001");
+		mokamintMainServerMining = new URI(args.length > 7 ? args[7] : "ws://lipari.hotmoka.io:8025");
+		mokamintMainServerPublic = new URI(args.length > 8 ? args[8] : "ws://lipari.hotmoka.io:8030");
 		Path tempDir = Files.createTempDirectory("tmp");
 		System.out.println("Saving temporary files inside the directory " + tempDir);
 
 		// you can comment out some of the following lines if you only want to regenerate a subset of the experiments
 		new ExperimentsWithoutServer(outputDir, tempDir);
+		new ExperimentsWithoutMokamintMainnet(outputDir, tempDir);
 		new ExperimentsQuantumWithMokamintServer(outputDir, tempDir);
 		new ExperimentsWithMokamintServer(outputDir, tempDir);
 		new ExperimentsWithTendermintServer(outputDir, tempDir);
@@ -335,6 +348,23 @@ public class UpdateForNewNode {
 			createCommandFile("docker_tendermint_config_new", "docker run -it --rm -e PUBLIC_KEY_GAMETE_BASE64=\"" + gametePublicKeyBase64 + "\" -e CHAIN_ID=whale -e TARGET_BLOCK_CREATION_TIME=10000 -v chain:/home/hotmoka/chain -v hotmoka_tendermint:/home/hotmoka/hotmoka_tendermint hotmoka/tendermint-node:" + HOTMOKA_VERSION + " config-new");
 
 			createCommandFile("docker_tendermint_init", "docker run -it --rm -v chain:/home/hotmoka/chain -v hotmoka_tendermint:/home/hotmoka/hotmoka_tendermint hotmoka/tendermint-node:" + HOTMOKA_VERSION + " init");
+		}
+	}
+
+	/**
+	 * Generates Latex files and commands that contact the Mokamint mainnet.
+	 */
+	private static class ExperimentsWithoutMokamintMainnet extends Experiments {
+		private ExperimentsWithoutMokamintMainnet(Path outputDir, Path tempDir) throws Exception {
+			super(outputDir, LATEX_MOKAMINT_MAINNET_FILE_NAME, tempDir);
+		}
+
+		@Override
+		protected void generateFiles() throws Exception {
+			createCommandFile("docker_mokamintnode_peers_ls", "docker run -it --rm hotmoka/mokamint-node:" + HOTMOKA_VERSION + " mokamint-node peers ls --uri=" + mokamintMainServerPublic);
+			createOutputFile("docker_mokamintnode_peers_ls", MokamintNode.peersLs("--uri=" + mokamintMainServerPublic));
+			createCommandFile("docker_mokamintnode_miners_ls", "docker run -it --rm hotmoka/mokamint-node:" + HOTMOKA_VERSION + " mokamint-node miners ls --uri=" + mokamintMainServerPublic);
+			createOutputFile("docker_mokamintnode_miners_ls", MokamintNode.minersLs("--uri=" + mokamintMainServerPublic));
 		}
 	}
 

@@ -9,10 +9,134 @@ and can execute, on those objects,
 code written in a subset of Java called Takamaka\index{Takamaka}. Such a device is
 called a \emph{Hotmoka node} and such programs are known as
 \emph{smart contracts}, taking that terminology from programs that run inside
-a blockchain. It is well true that Hotmoka nodes can be different from the nodes
-of a blockchain (for instance, they can be an Internet of Things device);
-however, the most prominent application of Hotmoka nodes is, at the
-moment, the construction of blockchains whose nodes are Hotmoka nodes.
+a blockchain. Note that Hotmoka itself is not a bockchain: it is the
+definition of an abstract machine, of its states and of the transactions
+that modify that state. Hotmoka becomes a blockchain only if it runs on top
+of a software component that takes care of networking and consensus among
+the many peers of a blockchain. Currently, Hotmoka can run on top of
+Mokamint~\cite{mokamint_github}, that implements a proof of space consensus,
+and of Tendermint~\cite{Tendermint}, that implements a proof of stake consensus.
+Of course, you cannot mix such tools: if a blockchain network is running
+on Mokamint, a new peer that joins the network
+must use Mokamint, and the same for Tendermint.
+
+Next section shows how you can earn some coins by mining for the
+Mokamint-based main network of Hotmoka and how you can install a full node
+of that main network, for earning even more coins. For now, we will
+perform everything inside the docker container of Mokamint, so that
+nothing must be installed in the local machine. Sec.~\ref{subsec:moka}
+will show, later, how it is possible to install some utilities
+in your local machine, so that you can run the commands directly there,
+not inside a docker container.
+
+\begin{figure}[t]
+  \begin{center}
+    \begin{tikzpicture}
+      \draw [fill=verylightviolet,thick] (-0.5,-1.5) rectangle +(4,3);
+      \draw (1.5,1.1) node {Mokamint};
+      \draw (1.5,0.6) node {{\scriptsize (networking and consensus)}};
+      \draw[-, thick] (1.5,-1.5) -- (1.5,-2.7);
+      \draw (1.5,-2.7) node[scale=0.7] {\db};
+      \draw (1.5,-3.6) node {database of blocks};
+      \draw[<->, thick] (3.5,-1) -- (5.5,-1);
+      \draw (7.8,-1) node {other blockchain peers};
+      \draw (4.5,-1.2) node {{\scriptsize whispering}};
+
+      \draw [fill=verylightyellow,thick] (0.5,-0.7) rectangle +(2,0.5);
+      \draw (1.5,-0.45) node {mempool};
+      \draw[->, thick] (-1.5,-0.45) -- (0.5,-0.45);
+      \draw (-3.5,-0.45) node {transaction requests};
+
+      \draw [fill=verylightred,thick] (7,0.35) rectangle +(2,0.8);
+      \draw (8.0,0.75) node {miner(s)};
+
+      \draw [fill=verylightgreen,thick] (0.3,3) rectangle +(2.4,0.8);
+      \draw (1.5,3.4) node {Hotmoka};
+      \draw[-, thick] (0.3,3.4) -- (-1,3.4);
+      \draw (-1,3.4) node[scale=0.7] {\db};
+      \draw (-1,2.5) node {database of states};
+
+      \draw[->, thick] (3.5,1.0) -- (7,1.0);
+      \draw (5.25,1.2) node {{\small challenges}};
+
+      \draw[<-, thick] (3.5,0.5) -- (7,0.5);
+      \draw (5.25,0.25) node {{\small answers}};
+
+      \draw[->, thick] (1.2,1.5) -- (1.2,3);
+      \draw[->, thick] (1.8,3) -- (1.8,1.5);
+      \draw (1.5,2.25) node {{\scriptsize API}};
+    \end{tikzpicture}
+  \end{center}
+  \caption{The architecture of a Hotmoka node based on the Mokamint proof of space engine.
+    Mokamint peer, miner(s) and Hotmoka application are separate software
+    components, possibly running in distinct machines connected through a network.}\label{fig:architecture}
+\end{figure}
+
+Fig.~\ref{fig:architecture} shows the architecture of a Hotmoka peer running on top of Mokamint.
+As you can see, Mokamint is taking care of networking and consensus and keeps the actual blockchain
+inside its own database. It takes part in mining new blocks through one or more miners.
+Miners are not necessarily local, that is, providing themselves support for mining. They can also
+be \emph{remote} miners, that can be imagined as plugs to which external miners can connect to help
+the Mokamint node create new node, in exchange of a part of the earned coins.
+Moreover, each Mokamint node is a peer connected to other Mokamint peers, from which it can receive blocks through
+whispering. Users can send transaction requests to a Mokamint node: initially, they will be stored
+in a temporary area called mempool, from where they get eventually selecxted for inclusion in a block.
+Hotmoka is a separate component that runs transactions inside its database of states. This database
+is where Java objects, including accounts, are stored. The architecture is similar if Tendermint is used
+instead of Mokamint. The only difference is that Tendermint does not use miners, but creates new
+blocks through validators.
+
+The software components of Fig.~\ref{fig:architecture} are normally exposed through some IP ports, so that
+remote users can interact with them. Interaction with Hotmoka is possible through the \texttt{moka} command-line utility.
+Interaction with Mokamint's peer and miner is possible through a few utilities of Mokamint itself:
+%
+\begin{itemize}
+\item \texttt{moka}\index{moka@{\texttt{moka}}} allows interaction with any Hotmoka node,
+  independently from the underlying engine (Mokamint or Tendermint);
+\item \texttt{mokamint-node}\index{mokamint-node@{\texttt{mokamint-node}}} allows one to interact with the Mokamint node;
+\item \texttt{mokamint-miner}\index{mokamint-miners@{\texttt{mokamint-miners}}} allows one to interact with the miners of a Mokamint node;
+\item \texttt{mokamint-application}\index{mokamint-application@{\texttt{mokamint-application}}} allows one to interact with the application of a Mokamint node, including Hotmoka.
+\end{itemize}
+%
+While \texttt{mokamint-application} implements very generic operations, valid for all applications running on top of
+Mokamint, \texttt{moka} implements operations specific to Hotmoka only.
+
+Let us start by using some of these utilities with the Mokamint-based main network \texttt{\serverMokamintMainChainId{}}
+of Hotmoka. Fig.~\ref{fig:endpoints} reports the endpoints of a node of that network: Hotmoka node, Mokamint node and a remote miner
+of that node.
+
+The first command let us see which are the peers known by a node:
+%
+\index{mokamint-node@{\texttt{mokamint-node}}!{peers ls}@{\texttt{peers ls}}}
+\inputCommand{docker_mokamintnode_peers_ls}
+%
+Note that the command above is talking to Mokamint, not to Hotmoka: it is Mokamint
+that takes care of networking. Moreover, the command is run inside a docker container, so
+that you do not need to install anything in your machine. Later we will see how to
+run it, directly, in your machine. In any case, the output will be something like:
+%
+\inputOutput{docker_mokamintnode_peers_ls}
+%
+These are the peers connected to node \serverMokamintMainPublic{} of the main network.
+You can, in turn, replace that URI with that of one of such peer, to see its peers.
+
+Let us check which miners are connected to \serverMokamintMainPublic{}:
+%
+\index{mokamint-node@{\texttt{mokamint-node}}!{miners ls}@{\texttt{miners ls}}}
+\inputCommand{docker_mokamintnode_miners_ls}
+%
+The output tells us that there are two miners: a local and a remote one:
+%
+\inputOutput{docker_mokamintnode_miners_ls}
+%
+The local miner is working in the same machine of the Mokamint node, connected directly to it.
+The remote miner, instead, is just a plug, listening to port $8025$: any external miner
+can connect to that port and help peer \serverMokamintMainPublic{} to create new blocks.
+Whenever this help actually leads to the creation of a new block, the reward for that block
+will be split between the helper and the node at \serverMokamintMainPublic{}. We will show
+soon how to start our own miner that helps an existing Mokamint node.
+%
+\section{The state of a Hotmoka node}\label{hotmoka_state}
 
 Every Hotmoka node has its own persistent state, that contains code and
 objects. Since Hotmoka nodes are made for running Java code, the code
@@ -196,16 +320,16 @@ known as Takamaka. This is done in a way completely different from other blockch
 
 In order to query a Hotmoka node, handle accounts and run transactions on the node,
 one needs a client application. Currently, there is a command-line client, called
-moka\index{moka} and a mobile client for Android, called Mokito\index{Mokito}. Mokito provides
+\texttt{moka}\index{moka@{\texttt{moka}}} and a mobile client for Android, called Mokito\index{Mokito}. Mokito provides
 basic functionalities only (handling accounts, querying the state of the objects in the node,
-running simple transactions), while moka is the most complete solution.
+running simple transactions), while \texttt{moka} is the most complete solution.
 
 \subsection{Moka}\label{subsec:moka}
 
-You can use the moka tool to interact with an existing Hotmoka node,
-install code in the node and run transactions. There are two ways of using moka.
-You can either use moka inside a docker container provided by the Hotmoka developers.
-Or you can download its source code, compile it and add the moka executable to
+You can use \texttt{moka} to interact with an existing Hotmoka node,
+install code in the node and run transactions. There are two ways of using \texttt{moka}.
+You can either use \texttt{moka} inside a docker container provided by the Hotmoka developers.
+Or you can download its source code, compile it and add the \texttt{moka} executable to
 the command path of your machine. This latter approach is more flexible but requires to have
 Java JDK version 21 (or higher) installed in your
 computer, along with a recent version of Maven. The former approach avoids to install
@@ -213,20 +337,20 @@ and compile software on your machine, beyond having docker installed of course.
 Moreover, many operations become ackward with docker, because, for instance, files
 created inside a docker container remain there, unless explicitly copied out of there.
 Both alternatives are described in the following paragraphs, but
-our suggested solution is to compile and install moka in your machine.
+our suggested solution is to compile and install \texttt{moka} in your machine.
 
-\subsubsection{Invoking moka from inside a docker container}
+\subsubsection{Invoking \texttt{moka} from inside a docker container}
 \label{subsubsec:moka_inside_docker}
 
-There are a few docker containers\index{docker!Hotmoka containers} providing moka and all the machinery
+There are a few docker containers\index{docker!Hotmoka containers} providing \texttt{moka} and all the machinery
 for running Hotmoka nodes. They are maintained in DockerHub~\cite{hotmoka_dockerhub}.
-For instance, you can query the provided version of moka as follows:
+For instance, you can query the provided version of \texttt{moka} as follows:
 %
 \inputCommand{docker_run_moka}
 %
 You should see \texttt{\hotmokaVersion{}} answered on the screen.
 You do need Java nor Maven for this, nor to compile anything: docker will take care
-of downloading the image of the container and run moka inside it.
+of downloading the image of the container and run \texttt{moka} inside it.
 
 You can also contact an existing Hotmoka node and query the current state of an object,
 allocated at a given storage reference, such as the payer account
@@ -242,10 +366,10 @@ Note that the classpath (the \emph{jar installed at\ldots}) corresponds to
 what reported in Fig.~\ref{fig:receiver_payer}, since it is an immutable
 property of an object.
 
-\subsubsection{Invoking moka in the local machine}
+\subsubsection{Invoking \texttt{moka} in the local machine}
 \label{subsubsec:moka_local}
 
-In order to invoke moka directly, in the local machine, one needs to download
+In order to invoke \texttt{moka} directly, in the local machine, one needs to download
 its code, compile it and extend the path of the shell so that it finds the compiled code.
 Below, it is shown how to perform this on a Linux machine.
 
@@ -260,29 +384,29 @@ the following command, that expands the command path of the shell:
 %
 \inputCommand{export_path_moka}
 %
-Exit the terminal and spawn a new one. You should be able to run moka directly now.
+Exit the terminal and spawn a new one. You should be able to run \texttt{moka} directly now.
 For instance, you can run the same commands of Sec.~\ref{subsubsec:moka_inside_docker}, but
 without the help of docker:
 %
-\index{moka!version@{\texttt{version}}}
+\index{moka@{\texttt{moka}}!version@{\texttt{version}}}
 \inputCommand{moka_version}
 %
 and
 %
-\index{moka!objects show@{\texttt{objects show}}}
+\index{moka@{\texttt{moka}}!objects show@{\texttt{objects show}}}
 \inputCommand{moka_objects_show_account1}
 
 In the rest of this book, we will normally show direct invocations
-of moka, outside of a docker container.
+of \texttt{moka}, outside of a docker container.
 Remember, however, that you can also run it from inside its docker container if you prefer.
 
 \subsubsection{Getting help about moka's commands}
 \label{subsubsec:moka_help}
 
-If you want help about the commands of moka, just use the \texttt{help} command.
+If you want help about the commands of \texttt{moka}, just use the \texttt{help} command.
 Namely, \texttt{moka help} will print on the screen the following help lines:
 %
-\index{moka!help@{\texttt{help}}}
+\index{moka@{\texttt{moka}}!help@{\texttt{help}}}
 \inputOutput{moka_help}
 %
 You can see that commands are organized in groups. You can get help about a specific
@@ -299,7 +423,7 @@ For instance, the command \texttt{moka objects help show} will show information 
 
 \subsection{Mokito}\label{subsec:mokito}
 
-The moka tool allows one to perform a large variety of operations
+The \texttt{moka} tool allows one to perform a large variety of operations
 on a Hotmoka node. However, it is a technical tool, meant for developers.
 Most users will only perform simple tasks with a Hotmoka node.
 For them, it is simpler to use a mobile app, with a simpler user
@@ -331,7 +455,7 @@ in the settings page of the app, and change the node if needed.
 
 You can see in Fig.~\ref{fig:mokito_start} that Mokito shows a \emph{faucet account}\index{faucet},
 that only exists in test networks and that can be used for funding the creation
-of new accounts. We will do this with moka in the next section, but you
+of new accounts. We will do this with \texttt{moka} in the next section, but you
 can do it from Mokito as well. In Mokito, you can also create keys, pay to keys,
 show the manifest of the contacted node, show and navigate  objects in the state of the node.
 This should all be intuitive.
@@ -454,7 +578,7 @@ storage reference, such as \texttt{\gasStation}.
 You can think at a storage reference as a machine-independent pointer inside the
 memory, or state, of the node.
 
-We have used the moka command to see the manifest of a node. You can also use the
+We have used \texttt{moka} to see the manifest of a node. You can also use the
 Mokito app for that. Namely, tap on the app menu icon on the top-left corner of the screen
 and select \emph{Manifest} from the menu that will appear (see Fig.~\ref{fig:mokito_menu}).
 %
@@ -506,7 +630,7 @@ inside a \texttt{\hotmokaTutorialDir{}} directory of your home, so that moka
 will save the key pair of your account
 there, which will simplify your subsequent work:
 %
-\index{moka!keys create@{\texttt{keys create}}}
+\index{moka@{\texttt{moka}}!keys create@{\texttt{keys create}}}
 \inputCommand{moka_keys_create_account1}\index{key!creation}
 \inputOutput{moka_keys_create_account1}
 %
@@ -519,7 +643,7 @@ there, which will simplify your subsequent work:
 %
 We can now create an account that uses the key pair, letting the faucet pay for it:\index{faucet}
 %
-\index{moka!accounts create@{\texttt{accounts create}}}
+\index{moka@{\texttt{moka}}!accounts create@{\texttt{accounts create}}}
 \inputCommand{moka_accounts_create_account1}\index{account!creation}
 \inputOutput{moka_accounts_create_account1}
 %
@@ -542,7 +666,7 @@ Note that the password is not written anywhere: if you lose it, it cannot be rec
 Let us check that our account really exists,
 by querying the node about the state of the object allocated at \texttt{\accountOne}:
 %
-\index{moka!objects show@{\texttt{objects show}}}
+\index{moka@{\texttt{moka}}!objects show@{\texttt{objects show}}}
 \inputCommand{moka_objects_show_account1}
 \inputOutput{moka_objects_show_account1}
 %
@@ -641,7 +765,7 @@ Whenever your account will run out of coins, you can recharge it with the
 \texttt{moka send} command, by using, again, the faucet as source of coins. Namely,
 if you want to recharge your account with \accountOneRecharge{} extra coins, you can type:
 %
-\index{moka!accounts send@{\texttt{accounts send}}}
+\index{moka@{\texttt{moka}}!accounts send@{\texttt{accounts send}}}
 \inputCommand{moka_accounts_send_account1}
 \inputOutput{moka_accounts_send_account1}
 %
@@ -678,7 +802,7 @@ For instance, you can fill it as in Fig.~\ref{fig:mokito_elvis_new_account}.
 \begin{commentbox}
 The name of the accounts is a feature of Mokito to simplify the identification
 of the accounts. However, keep in mind that accounts have no name in Hotmoka: they
-are just identified by their storage reference. For instance, moka currently does not
+are just identified by their storage reference. For instance, \texttt{moka} currently does not
 allow one to associate names to accounts.
 \end{commentbox}
 %
@@ -710,17 +834,17 @@ has been added to your accounts (see Fig.~\ref{fig:mokito_added_elvis}).
 
 \section{Importing accounts}\label{sec:importing_accounts}\index{account!import}
 
-We have created \texttt{\accountOneShort{}} with moka and
+We have created \texttt{\accountOneShort{}} with \texttt{moka} and
 \texttt{\accountMokitoShort{}} with Mokito. We might want to \emph{import} the former in Mokito
 and the latter in moka, so that we can operate on both accounts with both tools. In order to import
 \texttt{\accountMokitoShort{}} in moka, we can use the \texttt{moka accounts import} command
 and insert its 36 words passphrase from Fig.~\ref{fig:mokito_show_elvis}:
 %
-\index{moka!accounts import@{\texttt{accounts import}}}
+\index{moka@{\texttt{moka}}!accounts import@{\texttt{accounts import}}}
 \inputCommand{moka_accounts_import_account_mokito}
 \inputOutput{moka_accounts_import_account_mokito}
 %
-After that, it is possible to control that account with moka (if we remember
+After that, it is possible to control that account with \texttt{moka} (if we remember
 its password, that is, \texttt{chocolate}).
 %
 \begin{figure}[t]
@@ -751,7 +875,7 @@ its password, that is, \texttt{chocolate}).
 Vice versa, in order to import into Mokito the account that was created with moka,
 first export\index{account!export} the 36 words of that account:
 %
-\index{moka!accounts export@{\texttt{accounts export}}}
+\index{moka@{\texttt{moka}}!accounts export@{\texttt{accounts export}}}
 \inputCommand{moka_accounts_export_account1}
 \inputOutput{moka_accounts_export_account1}
 %
@@ -817,7 +941,7 @@ but still wants to remain unknown. He can receive the payment in many ways:
 Let us show how the third possibility works. Anonymous starts by creating a new private/public key,
 exactly as we did before:
 %
-\index{moka!keys create@{\texttt{keys create}}}
+\index{moka@{\texttt{moka}}!keys create@{\texttt{keys create}}}
 \inputCommand{moka_keys_create_anonymous}
 \inputOutput{moka_keys_create_anonymous}
 %
@@ -838,7 +962,7 @@ Anonymous pastes the new key into an anonymous email message and sends it to us:
 Once we receive that email, we use (for instance) our previous account
 to send $\sentToAnonymous{}$ coins to that key:
 %
-\index{moka!accounts send@{\texttt{accounts send}}}
+\index{moka@{\texttt{moka}}!accounts send@{\texttt{accounts send}}}
 \inputCommand{moka_accounts_send_account1_anonymous}\index{account!payment}\index{payment!to account}
 \inputOutput{moka_accounts_send_account1_anonymous}
 %
@@ -846,7 +970,7 @@ And that's all! No interaction is needed with Anonymous. He will check
 from time to time to see if we have paid, by running the command \texttt{moka keys bind}\index{key!binding}
 until it succeeds. First attempt:
 %
-\index{moka!keys bind@{\texttt{keys bind}}}
+\index{moka@{\texttt{moka}}!keys bind@{\texttt{keys bind}}}
 \inputCommand{moka_keys_bind_anonymous}
 \inputOutput{moka_keys_bind_anonymous_not_yet}
 %

@@ -241,7 +241,7 @@ Once this is done, you can create a key pair for the \emph{gamete}\index{gamete}
 of the node that you are going to start. This is an account that holds all initial
 crypto coins, if any. You perform this with moka:
 %
-\index{moka!keys create@{\texttt{keys create}}}
+\index{moka@{\texttt{moka}}!keys create@{\texttt{keys create}}}
 \inputCommand{moka_keys_create_gamete}
 \inputOutput{moka_keys_create_gamete}
 
@@ -256,7 +256,7 @@ local Maven's cache for that but you can alternatively download the
 \texttt{io.takamaka-code-\takamakaVersion{}.jar} file from Maven and refer to
 it in the following command line:
 %
-\index{moka!nodes tendermint init@{\texttt{nodes tendermint init}}}
+\index{moka@{\texttt{moka}}!nodes tendermint init@{\texttt{nodes tendermint init}}}
 \inputCommand{moka_nodes_tendermint_init}
 \inputOutput{moka_nodes_tendermint_init}
 
@@ -287,7 +287,7 @@ In order to use the gamete, you should bind its key to its actual storage
 reference in the node, on your local machine. Open another shell,
 move inside the directory holding the keys of the gamete and run:
 %
-\index{moka!keys bind@{\texttt{keys bind}}}\index{key!binding}
+\index{moka@{\texttt{moka}}!keys bind@{\texttt{keys bind}}}\index{key!binding}
 \inputCommand{moka_keys_bind_gamete}
 \inputOutput{moka_keys_bind_gamete}
 %
@@ -316,7 +316,7 @@ you must add the \texttt{-{}-open-unsigned-faucet} option to the \texttt{moka no
 command above. If you do that, you can then go into another shell (since the previous one is busy with the
 execution of the node), in a directory holding the key pair file of the gamete, and type:
 %
-\index{moka!nodes faucet@{\texttt{nodes faucet}}}
+\index{moka@{\texttt{moka}}!nodes faucet@{\texttt{nodes faucet}}}
 \inputCommand{moka_nodes_faucet}
 \inputOutput{moka_nodes_faucet}
 %
@@ -340,7 +340,7 @@ Try for instance to stop the Tendermint node that we initialized before
 (press enter in the window where it was running).
 You can subsequently resume that node from its latest state, by typing:
 %
-\index{moka!nodes tendermint resume@{\texttt{nodes tendermint resume}}}
+\index{moka@{\texttt{moka}}!nodes tendermint resume@{\texttt{nodes tendermint resume}}}
 \inputCommand{moka_nodes_tendermint_resume}
 \inputOutput{moka_nodes_tendermint_resume}
 
@@ -601,7 +601,7 @@ this time, but still need a key to control the gamete of the node, that you can 
 exactly as for the previous Hotmoka nodes.
 You then specify the Base58-encoded public key when starting the node:
 %
-\index{moka!nodes disk init@{\texttt{nodes disk init}}}
+\index{moka@{\texttt{moka}}!nodes disk init@{\texttt{nodes disk init}}}
 \inputCommand{moka_nodes_disk_init}
 \inputOutput{moka_nodes_disk_init}
 %
@@ -1204,18 +1204,18 @@ algorithm for the node.
 Let us for instance create an account that uses the default signature algorithm for the node.
 We charge its creation to the faucet of the node:
 %
-\index{moka!keys create@{\texttt{keys create}}}
+\index{moka@{\texttt{moka}}!keys create@{\texttt{keys create}}}
 \inputCommand{moka_keys_create_account7}
 \inputOutput{moka_keys_create_account7}
 %
-\index{moka!accounts create@{\texttt{accounts create}}}
+\index{moka@{\texttt{moka}}!accounts create@{\texttt{accounts create}}}
 \inputCommand{moka_accounts_create_account7}
 \inputOutput{moka_accounts_create_account7}
 %
 You can check the class of the new account with the \texttt{moka objects show} command:
 %
 \index{ExternallyOwnedAccountED25519@{\texttt{ExternallyOwnedAccountED25519}}}
-\index{moka!objects show@{\texttt{objects show}}}
+\index{moka@{\texttt{moka}}!objects show@{\texttt{objects show}}}
 \inputCommand{moka_objects_show_account7}
 \inputOutput{moka_objects_show_account7}
 %
@@ -1225,11 +1225,11 @@ Assume that we want to create an account now, that always uses the sha256dsa sig
 regardless of the default signature algorithm of the node. We can specify that when invoking the
 \texttt{moka accounts create} command:
 %
-\index{moka!keys create@{\texttt{keys create}}}
+\index{moka@{\texttt{moka}}!keys create@{\texttt{keys create}}}
 \inputCommand{moka_keys_create_account8}
 \inputOutput{moka_keys_create_account8}
 %
-\index{moka!accounts create@{\texttt{accounts create}}}
+\index{moka@{\texttt{moka}}!accounts create@{\texttt{accounts create}}}
 \inputCommand{moka_accounts_create_account8}
 \inputOutput{moka_accounts_create_account8}
 %
@@ -1237,7 +1237,7 @@ This creation has been more expensive than for the previous account, because the
 sha256dsa algorithm is much longer than that for the ed25519 algorithm.
 You can verify this with the \texttt{moka objects show} command:
 %
-\index{moka!objects show@{\texttt{objects show}}}
+\index{moka@{\texttt{moka}}!objects show@{\texttt{objects show}}}
 \inputCommand{moka_objects_show_account8}
 \inputOutput{moka_objects_show_account8}
 %
@@ -1245,11 +1245,11 @@ Note that the class of the account is \texttt{ExternallyOwnedAccountSHA256DSA} t
 
 Let us create an account that uses the qtesla-p-I signature algorithm now:
 %
-\index{moka!keys create@{\texttt{keys create}}}
+\index{moka@{\texttt{moka}}!keys create@{\texttt{keys create}}}
 \inputCommand{moka_keys_create_account9}
 \inputOutput{moka_keys_create_account9}
 %
-\index{moka!accounts create@{\texttt{accounts create}}}
+\index{moka@{\texttt{moka}}!accounts create@{\texttt{accounts create}}}
 \inputCommand{moka_accounts_create_account9}
 \inputOutput{moka_accounts_create_account9}
 %
@@ -1259,11 +1259,11 @@ command to verify that it has class \texttt{ExternallyOwnedAccountQTESLA1}.
 
 Finally, let us use the previous qtesla-p-I account to create a qtesla-p-III account:
 %
-\index{moka!keys create@{\texttt{keys create}}}
+\index{moka@{\texttt{moka}}!keys create@{\texttt{keys create}}}
 \inputCommand{moka_keys_create_account10}
 \inputOutput{moka_keys_create_account10}
 %
-\index{moka!accounts create@{\texttt{accounts create}}}
+\index{moka@{\texttt{moka}}!accounts create@{\texttt{accounts create}}}
 \inputCommand{moka_accounts_create_account10}
 \inputOutput{moka_accounts_create_account10}
 %
@@ -1276,7 +1276,7 @@ use the moka tool. For instance, let us use our qtesla-p-I account to install
 the \texttt{io-hotmoka-tutorial-examples-family-\hotmokaVersion{}.jar} file from
 Sec.~\ref{sec:calling_method} in the node:
 %
-\index{moka!jars install@{\texttt{jars install}}}
+\index{moka@{\texttt{moka}}!jars install@{\texttt{jars install}}}
 \inputCommand{moka_jars_install_family_quantum}
 \inputOutput{moka_jars_install_family_quantum}
 %

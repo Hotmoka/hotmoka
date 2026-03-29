@@ -210,7 +210,7 @@ that identifies your miner, as follows:
 %
 When the balance will finally be non-zero, you can bind the public key to the actual account that holds its crypto coins, with
 %
-\index{moka!keys bind@{\texttt{keys bind}}}
+\index{moka@{\texttt{moka}}!keys bind@{\texttt{keys bind}}}
 \inputCommand{moka_keys_bind_miner}
 %
 that requires you to have \texttt{moka} installed in your machine (Sec.~\ref{subsubsec:moka_local})
@@ -567,7 +567,7 @@ docker logs -f hotmoka
 
 The resulting node will not be a validator. For that, you need to buy some validation power
 from a validator who is willing to sell it to you.
-Check the \texttt{moka nodes tendermint validators}\index{moka!nodes tendermint validators@{\texttt{nodes tendermint validators}}} commands.
+Check the \texttt{moka nodes tendermint validators}\index{moka@{\texttt{moka}}!nodes tendermint validators@{\texttt{nodes tendermint validators}}} commands.
 
 \subsection{Start a node of a new blockchain}\label{subsec:start_hotmoka_tendermint}
 
@@ -743,16 +743,16 @@ The configuration of a Hotmoka Tendermint node, created thorugh the \texttt{conf
 or \texttt{config-new} commands,
 contains a \texttt{validator.pem} key pair file, as said above. You can use that file to create an actual
 account object, a candidate for becoming a validator of the network. You can do this with the
-\texttt{moka nodes tendermint validators create}\index{moka!nodes tendermint validators create@{\texttt{nodes tendermint validators create}}}
+\texttt{moka nodes tendermint validators create}\index{moka@{\texttt{moka}}!nodes tendermint validators create@{\texttt{nodes tendermint validators create}}}
 command, which is similar to
 \texttt{moka accounts create} but creates instances of
 \texttt{TendermintED25519Validator}\index{TendermintED25519Validator@{\texttt{TendermintED25519Validator}}}.
 Once you have a validator object for your \texttt{validator.pem}, you can become an actual validator
 when one of the existing validators decides to sell (part of) its shares and you buy it.
 The seller validator creates a sale offer with the
-\texttt{moka nodes tendermint validators sell}\index{moka!nodes tendermint validators sell@{\texttt{nodes tendermint validators sell}}}
+\texttt{moka nodes tendermint validators sell}\index{moka@{\texttt{moka}}!nodes tendermint validators sell@{\texttt{nodes tendermint validators sell}}}
 command. The sale offer will be visible in the manifest of the node and can be bought with
-the \texttt{moka nodes tendermint validators buy}\index{moka!nodes tendermint validators buy@{\texttt{nodes tendermint validators buy}}}
+the \texttt{moka nodes tendermint validators buy}\index{moka@{\texttt{moka}}!nodes tendermint validators buy@{\texttt{nodes tendermint validators buy}}}
 command. After that, the buyer will be a new validator of the network.
 
 \begin{commentbox}

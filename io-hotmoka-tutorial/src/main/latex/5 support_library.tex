@@ -320,13 +320,13 @@ useless in Takamaka and more expensive than paying back previous contracts immed
 Let us play with the \texttt{GradualPonzi} contract now.
 We can now start by installing its jar in the node:
 %
-\index{moka!jars install@{\texttt{jars install}}}
+\index{moka@{\texttt{moka}}!jars install@{\texttt{jars install}}}
 \inputCommand{moka_jars_install_gradual_ponzi}
 \inputOutput{moka_jars_install_gradual_ponzi}
 %
 Create two more keys now, for two more accounts that we are going to create soon:
 %
-\index{moka!keys create@{\texttt{keys create}}}
+\index{moka@{\texttt{moka}}!keys create@{\texttt{keys create}}}
 \inputCommand{moka_keys_create_account2}
 \inputOutput{moka_keys_create_account2}
 %
@@ -337,7 +337,7 @@ and then
 %
 We can create the two new accounts now:
 %
-\index{moka!accounts create@{\texttt{accounts create}}}
+\index{moka@{\texttt{moka}}!accounts create@{\texttt{accounts create}}}
 \inputCommand{moka_accounts_create_account2}
 \inputOutput{moka_accounts_create_account2}
 %
@@ -349,14 +349,14 @@ and
 We let our first account create an instance of \texttt{GradualPonzi} in the node now
 and become the first investor of the contract:
 %
-\index{moka!objects create@{\texttt{objects create}}}
+\index{moka@{\texttt{moka}}!objects create@{\texttt{objects create}}}
 \inputCommand{moka_objects_create_gradual_ponzi}
 \inputOutput{moka_objects_create_gradual_ponzi}
 %
 We let the other two players invest, in sequence, in this new \texttt{GradualPonzi} contract.
 First investment:
 %
-\index{moka!objects call@{\texttt{objects call}}}
+\index{moka@{\texttt{moka}}!objects call@{\texttt{objects call}}}
 \inputCommand{moka_objects_call_invest_1}
 \inputOutput{moka_objects_call_invest_1}
 %
@@ -387,7 +387,7 @@ require(BigIntegerSupport.compareTo(amount, MINIMUM_INVESTMENT) >= 0,
 %
 Finally, we can check the state of the contract:
 %
-\index{moka!objects show@{\texttt{objects show}}}
+\index{moka@{\texttt{moka}}!objects show@{\texttt{objects show}}}
 \inputCommand{moka_objects_show_gradual_ponzi}
 \inputOutput{moka_objects_show_gradual_ponzi}
 %
@@ -1002,13 +1002,13 @@ Let us play with the \texttt{TicTacToe} contract. Go in
 the \texttt{io-hotmoka-tutorial-examples-tictactoe} project,
 compile it with Maven and store it in the Hotmoka node:
 %
-\index{moka!jars install@{\texttt{jars install}}}
+\index{moka@{\texttt{moka}}!jars install@{\texttt{jars install}}}
 \inputCommand{moka_jars_install_tictactoe_revised}
 \inputOutput{moka_jars_install_tictactoe_revised}
 %
 Then we create an instance of the contract in the node:
 %
-\index{moka!objects create@{\texttt{objects create}}}
+\index{moka@{\texttt{moka}}!objects create@{\texttt{objects create}}}
 \inputCommand{moka_objects_create_tictactoe_revised}
 \inputOutput{moka_objects_create_tictactoe_revised}
 
@@ -1018,7 +1018,7 @@ We will report the resulting of calling \texttt{toString()} on the contract, aft
 
 The first player starts, by playing at (1,1), and bets 100:
 %
-\index{moka!objects call@{\texttt{objects call}}}
+\index{moka@{\texttt{moka}}!objects call@{\texttt{objects call}}}
 \inputCommand{moka_objects_call_tictactoe_play_1}
 \inputOutput{moka_objects_call_tictactoe_play_1}
 %
@@ -1062,7 +1062,7 @@ The first player wins by playing at (1,3):
 %
 We can verify that the game is over now:
 %
-\index{moka!objects show@{\texttt{objects show}}}
+\index{moka@{\texttt{moka}}!objects show@{\texttt{objects show}}}
 \inputCommand{moka_objects_show_tictactoe}
 \inputOutput{moka_objects_show_tictactoe}
 %
@@ -1852,7 +1852,7 @@ some new accounts for our tests, since those that we generated before for
 \serverMokamint{} do not exist in \serverTendermint{}. We do it as previously done,
 but swapping the server we are talking to:
 %
-\index{moka!keys create@{\texttt{keys create}}}
+\index{moka@{\texttt{moka}}!keys create@{\texttt{keys create}}}
 \inputCommand{moka_keys_create_account4}
 \inputOutput{moka_keys_create_account4}
 %
@@ -1862,7 +1862,7 @@ but swapping the server we are talking to:
 \inputCommand{moka_keys_create_account6}
 \inputOutput{moka_keys_create_account6}
 %
-\index{moka!accounts create@{\texttt{accounts create}}}
+\index{moka@{\texttt{moka}}!accounts create@{\texttt{accounts create}}}
 \inputCommand{moka_accounts_create_account4}
 \inputOutput{moka_accounts_create_account4}
 %

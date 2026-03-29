@@ -390,7 +390,7 @@ mvn install
 \end{ttlst}\end{shellcommandbox}
 
 Let us start with the verification of \texttt{io-takamaka-code-\takamakaVersion{}.jar},
-that we should find in the cache of Maven:\index{moka!jars verify@{\texttt{jars verify}}}
+that we should find in the cache of Maven:\index{moka@{\texttt{moka}}!jars verify@{\texttt{jars verify}}}
 %
 \inputCommand{moka_jars_verify_takamaka}
 \inputOutput{moka_jars_verify_takamaka}
@@ -402,7 +402,7 @@ switch, we verify the jar as it would be verified before node initialization,
 that is, by considering such package as legal.
 
 We can generate the instrumented jar, exactly as it would be generated during
-installation in a Hotmoka node. For that, we run:\index{moka!jars instrument@{\texttt{jars instrument}}}
+installation in a Hotmoka node. For that, we run:\index{moka@{\texttt{moka}}!jars instrument@{\texttt{jars instrument}}}
 %
 \inputCommand{moka_jars_instrument_takamaka}
 \inputOutput{moka_jars_instrument_takamaka}
@@ -414,7 +414,7 @@ Let us verify and instrument \texttt{io-hotmoka-tutorial-examples-family-\hotmok
 (that is, the correct version of the project).
 As all Takamaka programs, that jar uses classes from the \texttt{io-takamaka-code} jar,
 hence it depends on it. We specify this with the \texttt{-{}-libs} option, that must
-refer to an already instrumented jar:\index{moka!jars instrument@{\texttt{jars instrument}}}
+refer to an already instrumented jar:\index{moka@{\texttt{moka}}!jars instrument@{\texttt{jars instrument}}}
 %
 \inputCommand{moka_jars_instrument_family}
 \inputOutput{moka_jars_instrument_family}
@@ -428,14 +428,14 @@ when users add their jars to the store of the node.
 
 Let us verify the \texttt{io-hotmoka-tutorial-examples-family\_errors-\hotmokaVersion{}.jar} archive now, that
 (we know) contains a few errors. This time, verification will fail and the errors will
-be printed on the screen:\index{moka!jars verify@{\texttt{jars verify}}}
+be printed on the screen:\index{moka@{\texttt{moka}}!jars verify@{\texttt{jars verify}}}
 %
 \inputCommand{moka_jars_verify_family_errors}
 \inputOutput{moka_jars_verify_family_errors}
 %
 The same failure occurs with the \texttt{moka jars instrument} command,
 that will not generate the instrumented jar. It only
-reports the first encountered error before failure:\index{moka!jars instrument@{\texttt{jars instrument}}}
+reports the first encountered error before failure:\index{moka@{\texttt{moka}}!jars instrument@{\texttt{jars instrument}}}
 %
 \inputCommand{moka_jars_instrument_family_errors}
 \inputOutput{moka_jars_instrument_family_errors}
