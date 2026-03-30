@@ -166,11 +166,11 @@ public class UpdateForNewNode {
 		System.out.println("Saving temporary files inside the directory " + tempDir);
 
 		// you can comment out some of the following lines if you only want to regenerate a subset of the experiments
-		new ExperimentsWithoutServer(outputDir, tempDir);
-		new ExperimentsWithoutMokamintMainnet(outputDir, tempDir);
-		new ExperimentsQuantumWithMokamintServer(outputDir, tempDir);
+		//new ExperimentsWithoutServer(outputDir, tempDir);
+		//new ExperimentsWithMokamintMainnet(outputDir, tempDir);
+		//new ExperimentsQuantumWithMokamintServer(outputDir, tempDir);
 		new ExperimentsWithMokamintServer(outputDir, tempDir);
-		new ExperimentsWithTendermintServer(outputDir, tempDir);
+		//new ExperimentsWithTendermintServer(outputDir, tempDir);
 	}
 
 	/**
@@ -354,17 +354,24 @@ public class UpdateForNewNode {
 	/**
 	 * Generates Latex files and commands that contact the Mokamint mainnet.
 	 */
-	private static class ExperimentsWithoutMokamintMainnet extends Experiments {
-		private ExperimentsWithoutMokamintMainnet(Path outputDir, Path tempDir) throws Exception {
+	private static class ExperimentsWithMokamintMainnet extends Experiments {
+		private ExperimentsWithMokamintMainnet(Path outputDir, Path tempDir) throws Exception {
 			super(outputDir, LATEX_MOKAMINT_MAINNET_FILE_NAME, tempDir);
 		}
 
 		@Override
 		protected void generateFiles() throws Exception {
-			createCommandFile("docker_mokamintnode_peers_ls", "docker run -it --rm hotmoka/mokamint-node:" + HOTMOKA_VERSION + " mokamint-node peers ls --uri=" + mokamintMainServerPublic);
-			createOutputFile("docker_mokamintnode_peers_ls", MokamintNode.peersLs("--uri=" + mokamintMainServerPublic));
-			createCommandFile("docker_mokamintnode_miners_ls", "docker run -it --rm hotmoka/mokamint-node:" + HOTMOKA_VERSION + " mokamint-node miners ls --uri=" + mokamintMainServerPublic);
-			createOutputFile("docker_mokamintnode_miners_ls", MokamintNode.minersLs("--uri=" + mokamintMainServerPublic));
+			createCommandFile("docker_mokamintnode_enter_container", "docker run -it --rm hotmoka/mokamint-node:" + HOTMOKA_VERSION + " /bin/bash");
+			createCommandFile("mokamintnode_peers_ls", "mokamint-node peers ls --uri=" + mokamintMainServerPublic);
+			createOutputFile("mokamintnode_peers_ls", MokamintNode.peersLs("--uri=" + mokamintMainServerPublic));
+			createCommandFile("mokamintnode_miners_ls", "mokamint-node miners ls --uri=" + mokamintMainServerPublic);
+			createOutputFile("mokamintnode_miners_ls", MokamintNode.minersLs("--uri=" + mokamintMainServerPublic));
+			createCommandFile("mokamintnode_config_show", "mokamint-node config show --uri=" + mokamintMainServerPublic);
+			createOutputFile("mokamintnode_config_show", MokamintNode.configShow("--uri=" + mokamintMainServerPublic));
+			createCommandFile("mokamintnode_chain_ls", "mokamint-node chain ls 5 --uri=" + mokamintMainServerPublic);
+			createOutputFile("mokamintnode_chain_ls", MokamintNode.chainLs("5 --uri=" + mokamintMainServerPublic));
+			createCommandFile("mokamintnode_chain_show_head", "mokamint-node chain show head --full --uri=" + mokamintMainServerPublic);
+			createOutputFile("mokamintnode_chain_show_head", MokamintNode.chainShow("head --full --uri=" + mokamintMainServerPublic));
 		}
 	}
 
@@ -391,7 +398,10 @@ public class UpdateForNewNode {
 			StorageReference gamete = output3.getResult().get().asReference(value -> new IllegalStateException("The gamete should be a storage reference"));
 			report("gamete", gamete);
 			reportShort("gamete", gamete);
-		
+
+			createCommandFile("moka_accounts_show", "moka accounts show " + gamete + " --uri " + mokamintServer);
+			createOutputFile("moka_accounts_show", Moka.accountsShow(gamete + " --uri=" + mokamintServer  + " --timeout=" + TIMEOUT));
+
 			var output4 = ObjectsCallOutputs.from(Moka.objectsCall(manifest + " " + Constants.MANIFEST_NAME + " getGasStation --receiver=" + manifest + " --uri=" + mokamintServer + " --json --timeout=" + TIMEOUT));
 			StorageReference gasStation = output4.getResult().get().asReference(value -> new IllegalStateException("The gas station should be a storage reference"));
 			report("gasStation", gasStation);

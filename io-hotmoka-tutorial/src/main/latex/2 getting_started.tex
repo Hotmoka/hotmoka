@@ -1,7 +1,5 @@
 \chapter{Getting started with Hotmoka}\label{ch:getting_started_with_hotmoka}
 
-\section{Hotmoka in a nutshell}\label{hotmoka_in_a_nutshell}
-
 Hotmoka is the abstract definition of a device that can store
 objects (data structures) in its persistent memory
 (its \emph{state}\index{state} or \emph{storage}\index{storage})
@@ -17,125 +15,8 @@ the many peers of a blockchain. Currently, Hotmoka can run on top of
 Mokamint~\cite{mokamint_github}, that implements a proof of space consensus,
 and of Tendermint~\cite{Tendermint}, that implements a proof of stake consensus.
 Of course, you cannot mix such tools: if a blockchain network is running
-on Mokamint, a new peer that joins the network
-must use Mokamint, and the same for Tendermint.
+on Mokamint, a new peer that joins the network must use Mokamint, and the same for Tendermint.
 
-Next section shows how you can earn some coins by mining for the
-Mokamint-based main network of Hotmoka and how you can install a full node
-of that main network, for earning even more coins. For now, we will
-perform everything inside the docker container of Mokamint, so that
-nothing must be installed in the local machine. Sec.~\ref{subsec:moka}
-will show, later, how it is possible to install some utilities
-in your local machine, so that you can run the commands directly there,
-not inside a docker container.
-
-\begin{figure}[t]
-  \begin{center}
-    \begin{tikzpicture}
-      \draw [fill=verylightviolet,thick] (-0.5,-1.5) rectangle +(4,3);
-      \draw (1.5,1.1) node {Mokamint};
-      \draw (1.5,0.6) node {{\scriptsize (networking and consensus)}};
-      \draw[-, thick] (1.5,-1.5) -- (1.5,-2.7);
-      \draw (1.5,-2.7) node[scale=0.7] {\db};
-      \draw (1.5,-3.6) node {database of blocks};
-      \draw[<->, thick] (3.5,-1) -- (5.5,-1);
-      \draw (7.8,-1) node {other blockchain peers};
-      \draw (4.5,-1.2) node {{\scriptsize whispering}};
-
-      \draw [fill=verylightyellow,thick] (0.5,-0.7) rectangle +(2,0.5);
-      \draw (1.5,-0.45) node {mempool};
-      \draw[->, thick] (-1.5,-0.45) -- (0.5,-0.45);
-      \draw (-3.5,-0.45) node {transaction requests};
-
-      \draw [fill=verylightred,thick] (7,0.35) rectangle +(2,0.8);
-      \draw (8.0,0.75) node {miner(s)};
-
-      \draw [fill=verylightgreen,thick] (0.3,3) rectangle +(2.4,0.8);
-      \draw (1.5,3.4) node {Hotmoka};
-      \draw[-, thick] (0.3,3.4) -- (-1,3.4);
-      \draw (-1,3.4) node[scale=0.7] {\db};
-      \draw (-1,2.5) node {database of states};
-
-      \draw[->, thick] (3.5,1.0) -- (7,1.0);
-      \draw (5.25,1.2) node {{\small challenges}};
-
-      \draw[<-, thick] (3.5,0.5) -- (7,0.5);
-      \draw (5.25,0.25) node {{\small answers}};
-
-      \draw[->, thick] (1.2,1.5) -- (1.2,3);
-      \draw[->, thick] (1.8,3) -- (1.8,1.5);
-      \draw (1.5,2.25) node {{\scriptsize API}};
-    \end{tikzpicture}
-  \end{center}
-  \caption{The architecture of a Hotmoka node based on the Mokamint proof of space engine.
-    Mokamint peer, miner(s) and Hotmoka application are separate software
-    components, possibly running in distinct machines connected through a network.}\label{fig:architecture}
-\end{figure}
-
-Fig.~\ref{fig:architecture} shows the architecture of a Hotmoka peer running on top of Mokamint.
-As you can see, Mokamint is taking care of networking and consensus and keeps the actual blockchain
-inside its own database. It takes part in mining new blocks through one or more miners.
-Miners are not necessarily local, that is, providing themselves support for mining. They can also
-be \emph{remote} miners, that can be imagined as plugs to which external miners can connect to help
-the Mokamint node create new node, in exchange of a part of the earned coins.
-Moreover, each Mokamint node is a peer connected to other Mokamint peers, from which it can receive blocks through
-whispering. Users can send transaction requests to a Mokamint node: initially, they will be stored
-in a temporary area called mempool, from where they get eventually selecxted for inclusion in a block.
-Hotmoka is a separate component that runs transactions inside its database of states. This database
-is where Java objects, including accounts, are stored. The architecture is similar if Tendermint is used
-instead of Mokamint. The only difference is that Tendermint does not use miners, but creates new
-blocks through validators.
-
-The software components of Fig.~\ref{fig:architecture} are normally exposed through some IP ports, so that
-remote users can interact with them. Interaction with Hotmoka is possible through the \texttt{moka} command-line utility.
-Interaction with Mokamint's peer and miner is possible through a few utilities of Mokamint itself:
-%
-\begin{itemize}
-\item \texttt{moka}\index{moka@{\texttt{moka}}} allows interaction with any Hotmoka node,
-  independently from the underlying engine (Mokamint or Tendermint);
-\item \texttt{mokamint-node}\index{mokamint-node@{\texttt{mokamint-node}}} allows one to interact with the Mokamint node;
-\item \texttt{mokamint-miner}\index{mokamint-miners@{\texttt{mokamint-miners}}} allows one to interact with the miners of a Mokamint node;
-\item \texttt{mokamint-application}\index{mokamint-application@{\texttt{mokamint-application}}} allows one to interact with the application of a Mokamint node, including Hotmoka.
-\end{itemize}
-%
-While \texttt{mokamint-application} implements very generic operations, valid for all applications running on top of
-Mokamint, \texttt{moka} implements operations specific to Hotmoka only.
-
-Let us start by using some of these utilities with the Mokamint-based main network \texttt{\serverMokamintMainChainId{}}
-of Hotmoka. Fig.~\ref{fig:endpoints} reports the endpoints of a node of that network: Hotmoka node, Mokamint node and a remote miner
-of that node.
-
-The first command let us see which are the peers known by a node:
-%
-\index{mokamint-node@{\texttt{mokamint-node}}!{peers ls}@{\texttt{peers ls}}}
-\inputCommand{docker_mokamintnode_peers_ls}
-%
-Note that the command above is talking to Mokamint, not to Hotmoka: it is Mokamint
-that takes care of networking. Moreover, the command is run inside a docker container, so
-that you do not need to install anything in your machine. Later we will see how to
-run it, directly, in your machine. In any case, the output will be something like:
-%
-\inputOutput{docker_mokamintnode_peers_ls}
-%
-These are the peers connected to node \serverMokamintMainPublic{} of the main network.
-You can, in turn, replace that URI with that of one of such peer, to see its peers.
-
-Let us check which miners are connected to \serverMokamintMainPublic{}:
-%
-\index{mokamint-node@{\texttt{mokamint-node}}!{miners ls}@{\texttt{miners ls}}}
-\inputCommand{docker_mokamintnode_miners_ls}
-%
-The output tells us that there are two miners: a local and a remote one:
-%
-\inputOutput{docker_mokamintnode_miners_ls}
-%
-The local miner is working in the same machine of the Mokamint node, connected directly to it.
-The remote miner, instead, is just a plug, listening to port $8025$: any external miner
-can connect to that port and help peer \serverMokamintMainPublic{} to create new blocks.
-Whenever this help actually leads to the creation of a new block, the reward for that block
-will be split between the helper and the node at \serverMokamintMainPublic{}. We will show
-soon how to start our own miner that helps an existing Mokamint node.
-%
 \section{The state of a Hotmoka node}\label{hotmoka_state}
 
 Every Hotmoka node has its own persistent state, that contains code and

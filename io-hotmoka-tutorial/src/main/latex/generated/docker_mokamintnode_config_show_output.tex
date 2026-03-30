@@ -1,0 +1,42 @@
+\begin{shellbox}\begin{ttlst}
+# This is a TOML config file for Mokamint nodes.
+# For more information about TOML, see https://github.com/toml-lang/toml
+# For more information about Mokamint, see https://www.mokamint.io
+
+## Consensus parameters
+
+# the chain identifier of the blockchain
+chain_id = "maresia"
+
+# the hashing algorithm used for the deadlines and hence for the plot files of the miners
+hashing_for_deadlines = "shabal256"
+
+# the hashing algorithm used for the computation of the new generation and scoop number from the previous block
+hashing_for_generations = "sha256"
+
+# the hashing algorithm used for the blocks of the blockchain
+hashing_for_blocks = "sha256"
+
+# the hashing algorithm used for the requests of the blockchain
+hashing_for_requests = "sha256"
+
+# the signature algorithm that nodes use to sign the blocks
+signature_for_blocks = "ed25519"
+
+# the signature algorithm that miners use to sign the deadlines
+signature_for_deadlines = "ed25519"
+
+# time, in milliseconds, aimed between the creation of a block and the creation of a next block
+target_block_creation_time = 20000
+
+# the maximal size, in bytes, of a block's requests table
+max_block_size = 1000000
+
+# the maximal size, in bytes, of a request
+max_request_size = 500000
+
+# the rapidity of changes of the acceleration for the block creation time
+# between 0 (no change) and 100,000 (maximally fast change)
+oblivion = 20000
+
+\end{ttlst}\end{shellbox}

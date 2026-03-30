@@ -41,7 +41,8 @@ layer generic, so that it can be plugged on top of it. Hotmoka is one such appli
 but others may exist as well. Mokamint implements a consensus algorithm based on proof of space,
 derived from that of Burstcoin/Signum~\cite{Spoto25}. In such algorithm, the creation of a new
 block required to identification of a data structure, called \emph{nonce}, from a set of
-nonces precomputed on disk, in order to minimize the waiting time for the creation of the next block.
+nonces precomputed on disk and held inside a big file called \emph{plot},
+in order to minimize the waiting time for the creation of the next block.
 The more nonces are precomputed on disk, the higher the likelihood of winning the competition for
 the creation of the next blocks. Nonces could in principle be recomputed on the fly at each
 block creation, but their computation is so complex that it becomes impossible to perform it
@@ -51,6 +52,61 @@ is different: SSD instead of CPU. Consequently, proof of space has a minimal ene
 run a cheap hardware as well. In particular, you can mine for Mokamint-based blockchains with a desktop machine
 or even with a mobile phone or tablet (see the Mokaminter Android app~\cite{mokaminter_google_play}).
 This becomes possible for Hotmoka as well, if run on top of Mokamint, as shown in this section.
+
+\begin{figure}[t]
+  \begin{center}
+    \begin{tikzpicture}
+      \draw [fill=verylightviolet,thick] (-0.5,-1.5) rectangle +(4,3);
+      \draw (1.5,1.1) node {Mokamint};
+      \draw (1.5,0.6) node {{\scriptsize (networking and consensus)}};
+      \draw[-, thick] (1.5,-1.5) -- (1.5,-2.7);
+      \draw (1.5,-2.7) node[scale=0.7] {\db};
+      \draw (1.5,-3.6) node {database of blocks};
+      \draw[<->, thick] (3.5,-1) -- (5.5,-1);
+      \draw (7.8,-1) node {other blockchain peers};
+      \draw (4.5,-1.2) node {{\scriptsize whispering}};
+
+      \draw [fill=verylightyellow,thick] (0.5,-0.7) rectangle +(2,0.5);
+      \draw (1.5,-0.45) node {mempool};
+      \draw[->, thick] (-1.5,-0.45) -- (0.5,-0.45);
+      \draw (-3.5,-0.45) node {transaction requests};
+
+      \draw [fill=verylightred,thick] (7,0.35) rectangle +(2,0.8);
+      \draw (8.0,0.75) node {miner(s)};
+
+      \draw [fill=verylightgreen,thick] (0.3,3) rectangle +(2.4,0.8);
+      \draw (1.5,3.4) node {Hotmoka};
+      \draw[-, thick] (0.3,3.4) -- (-1,3.4);
+      \draw (-1,3.4) node[scale=0.7] {\db};
+      \draw (-1,2.5) node {database of states};
+
+      \draw[->, thick] (3.5,1.0) -- (7,1.0);
+      \draw (5.25,1.2) node {{\small challenges}};
+
+      \draw[<-, thick] (3.5,0.5) -- (7,0.5);
+      \draw (5.25,0.25) node {{\small answers}};
+
+      \draw[->, thick] (1.2,1.5) -- (1.2,3);
+      \draw[->, thick] (1.8,3) -- (1.8,1.5);
+      \draw (1.5,2.25) node {{\scriptsize API}};
+    \end{tikzpicture}
+  \end{center}
+  \caption{The architecture of a Hotmoka node based on the Mokamint proof of space engine.
+    Mokamint peer, miner(s) and Hotmoka application are separate software
+    components, possibly running in distinct machines connected through a network.}\label{fig:architecture}
+\end{figure}
+
+Fig.~\ref{fig:architecture} shows the architecture of a Hotmoka node running on top of Mokamint.
+As you can see, Mokamint is taking care of networking and consensus and keeps the actual blockchain
+inside its own database. It takes part in mining new blocks through one or more miners.
+Miners are not necessarily \emph{local}\index{miner!local}, that is, providing themselves support for mining. They can also
+be \emph{remote} miners\index{miner!remote}, that can be imagined as plugs to which external miners can connect to help
+the Mokamint node create new node, in exchange of a part of the earned coins.
+Moreover, each Mokamint node is a peer connected to other Mokamint peers, from which it can receive blocks through
+whispering. Users can send transaction requests to a Mokamint node: initially, they will be stored
+in a temporary area called mempool, from where they get eventually selected for inclusion in a block.
+Hotmoka is a separate component that runs transactions inside its database of states. This database
+is where Java objects, including accounts, are stored.
 
 \begin{figure}[th]
   \begin{center}
@@ -123,7 +179,7 @@ of Hotmoka nodes based on Mokamint, that are two peers of the same blockchain. T
 communicate between each other, in order to exchange blocks and synchronize their copy of the blockchain.
 Each Mokamint instantiation runs an instance of Hotmoka, that specifies the semantics of the transactions
 that can be executed on the blockchain. Each peer exports the node interface (Fig.~\ref{fig:node_hierarchy}),
-respectively, in this example, at port 80 and 8001. Remote clients, such as moka or Mokito, can connect to such
+respectively, in this example, at port 80 and 8001. Remote clients, such as \texttt{moka} or Mokito, can connect to such
 ports and run transactions on the nodes, that will be automatically executed in all peers.
 Fig.~\ref{fig:hotmoka_mokamint_network} shows that each peer runs a local miner\index{miner!local}, that is, a software
 tool that finds nonces on disk in order to create the next blocks. It is well possible to have peers
@@ -137,6 +193,104 @@ to provide mining power to them by just plugging remote miners, without running 
 contribute to the creation of new blocks,
 the prize for this creation will be shared between the peer and the remote miners.
 
+\subsection{Interacting with a Hotmoka node based on Mokamint}\label{subsec:interacting_mokamint}
+
+The software components of Fig.~\ref{fig:architecture} are normally exposed through some IP ports, so that
+remote users can interact with them. Interaction with Hotmoka is possible through the \texttt{moka}\index{moka@{\texttt{moka}}} command-line utility.
+Interaction with Mokamint's peer and miner is possible through a few utilities of Mokamint itself:
+%
+\begin{itemize}
+\item \texttt{moka} allows interaction with any Hotmoka node, independently from the underlying engine (Mokamint or Tendermint);
+\item \texttt{mokamint-node}\index{mokamint-node@{\texttt{mokamint-node}}} allows one to interact with the Mokamint node;
+\item \texttt{mokamint-miner}\index{mokamint-miner@{\texttt{mokamint-miner}}} allows one to interact with the miners of a Mokamint node;
+\item \texttt{mokamint-application}\index{mokamint-application@{\texttt{mokamint-application}}} allows one to interact with the application of a Mokamint node, including Hotmoka.
+\end{itemize}
+%
+While \texttt{mokamint-application} implements very generic operations, valid for all applications running on top of
+Mokamint, \texttt{moka} implements operations specific to Hotmoka only.
+
+Let us start by using some of these utilities with the Mokamint-based main network \texttt{\serverMokamintMainChainId{}}
+of Hotmoka. Fig.~\ref{fig:endpoints} reports the endpoints of a node of that network: Hotmoka node, Mokamint node and a remote miner
+of that node.
+
+First of all, you need to enter the docker container, where all needed utilities are already installed:
+%
+\inputCommand{docker_mokamintnode_enter_container}
+%
+You should see the prompt of docker now, something like \texttt{hotmoka@d8bf8010d847:~\$}.
+The following commands must be executed inside that running container.
+
+The first command lets us see which are the peers known by a node:
+%
+\index{mokamint-node@{\texttt{mokamint-node}}!{peers ls}@{\texttt{peers ls}}}
+\inputCommand{mokamintnode_peers_ls}
+%
+Note that the command above is talking to Mokamint, not to Hotmoka: it is Mokamint
+that takes care of networking. Moreover, the command is run inside a docker container, so
+that you do not need to install anything in your machine. Later we will see how to
+run it, directly, in your machine. In any case, the output will be something like:
+%
+\inputOutput{mokamintnode_peers_ls}
+%
+These are the peers connected to node \serverMokamintMainPublic{} of the main network.
+You can try to replace the URI in the command with that of one of such peers,
+to see its peers.
+
+Let us check which miners are connected to \serverMokamintMainPublic{}:
+%
+\index{mokamint-node@{\texttt{mokamint-node}}!{miners ls}@{\texttt{miners ls}}}
+\inputCommand{mokamintnode_miners_ls}
+%
+The output tells us that there are two miners: a local and a remote one:
+%
+\inputOutput{mokamintnode_miners_ls}
+%
+The local miner is working in the same machine of the Mokamint node, connected directly to it.
+The remote miner, instead, is just a plug, listening to port $8025$: any external miner
+can connect to that port and help peer \serverMokamintMainPublic{} to create new blocks.
+Whenever this help actually leads to the creation of a new block, the reward for that block
+will be split between the helper and the node at \serverMokamintMainPublic{}. We will show
+soon how to start our own miner that helps an existing Mokamint node.
+
+Let us query the configuration of the Mokamint node now:
+%
+\index{mokamint-node@{\texttt{mokamint-node}}!{config show}@{\texttt{config show}}}
+\inputCommand{mokamintnode_config_show}
+%
+The output reports all consensus parameters of Mokamint. They are the same for all nodes
+belonging to the same network \texttt{\serverMokamintMainChainId{}}:
+%
+\inputOutput{mokamintnode_config_show}
+%
+Among the data reported above, note the expected chain id of the main network
+(\texttt{\serverMokamintMainChainId{}}) and the average time between two successive blocks
+($20000$ milliseconds, \ie{}, $20$ seconds). This is an average because Mokamint
+has probabilistic finality.
+
+We can list the last five blocks of the blockchain:
+%
+\index{mokamint-node@{\texttt{mokamint-node}}!{chain ls}@{\texttt{chain ls}}}
+\inputCommand{mokamintnode_chain_ls}
+%
+The output, for each of the last five blocks, reports block's hash and time of creation.
+Moreover, each block is associated with two public keys, for the Mokamint node and for the miner
+that created the block and shared the reward for its creation:
+%
+\inputOutput{mokamintnode_chain_ls}
+%
+It is also possible to have a detailed description of a block such as, for instance, the head of the
+blockchain:
+%
+\index{mokamint-node@{\texttt{mokamint-node}}!{chain show}@{\texttt{chain show}}}
+\inputCommand{mokamintnode_chain_show_head}
+%
+Among the technical information contained in the block, it is possible to recognize
+the \emph{value} of the deadline, which is inversely proportional to the mining power
+of the blockchain as a whole, the state of the \emph{application} (in this network: of Hotmoka)
+reached at the end of this block and the user requests included and executed in the block, if any:
+%
+\inputOutput{mokamintnode_chain_show_head}
+
 \subsection{Start a remote miner for an existing node}\label{subsec:mining_hotmoka_mokamint}
 
 The simplest scenario is that of a user who wants to provide mining power to an existing node of a blockchain
@@ -148,8 +302,8 @@ to the creation of new blocks, and earn crypto for this, by running a remote min
 for an existing Hotmoka node based on Mokamint (Fig.~\ref{fig:hotmoka_mokamint_network}),
 which can be done in two ways. The simplest is to run the
 Mokaminter Android app~\cite{mokaminter_google_play} on a mobile phone or tablet. This should be so
-simple that we do not really describe it here: just install the app and try starting mining. The other possibility
-is to mine on a local machine, and we describe it here. In both cases, the miner is identified by a key pair,
+simple that we do not really describe it here: just install the app and try to start mining. The other possibility
+is to mine on a local machine, and this is what we describe it here. In both cases, the miner is identified by a key pair,
 that is where the crypto earned for mining gets sent. The key is created automatically by Mokaminter,
 while it must be created manually when mining on a local machine.
 
@@ -184,6 +338,8 @@ You can create the mining configuration now:
 \inputCommand{docker_config_miner}
 %
 You can replace 5000 with any other positive number of nonces in order to increase or decrease the size of the plot file.
+Similarly, you can replace \texttt{\serverMokamintMining{}} with
+\texttt{\serverMokamintMainMining{}} if you want to mine for the mainnet of Hotmoka instead of the testnet.
 
 After a mining configuration has been created, you can start mining:
 %
@@ -215,6 +371,68 @@ When the balance will finally be non-zero, you can bind the public key to the ac
 %
 that requires you to have \texttt{moka} installed in your machine (Sec.~\ref{subsubsec:moka_local})
 and to be run in the directory where you have saved the key pair file \texttt{miner.pem}.
+Note that the above command will fail if your miner has not yet created any block. Therefore,
+you must probably wait for some time before running \texttt{moka keys bind}. When successful,
+the \texttt{miner.pem} will be renamed into the address of the account inside the state of
+Hotmoka, something like \texttt{\gameteShort{}.pem}.
+
+\subsection{Key pairs and accounts}\label{subsec:keypairs_and_accounts}
+
+The way Hotmoka deals with keys and accounts is different from that of other blockchains:
+%
+\begin{itemize}
+\item a key pair is the private key/public key pair that can be used to identify a miner, or
+	a node, or to control an account. It is uniquely identified by a \texttt{.pem} file and
+	its associated password (if any). Equivalently, it is uniquely identified by $12$ words and
+	(maybe) a password. This means that you can \emph{move} a key pair by simply copying its
+	\texttt{.pem} around across machines, or you can export the \texttt{.pem} file into its
+	$12$ words (\texttt{moka keys export file.pem}\index{moka@{\texttt{moka}}!keys export@{\texttt{keys export}}})
+	and import it elsewhere from those $12$ words
+	(\texttt{moka keys import <12 space-separated words here> --name file.pem}\index{moka@{\texttt{moka}}!keys import@{\texttt{keys import}}});
+\item an account is an actual Java object in the state
+	of Hotmoka: it has a public key and can be controlled with a key pair matching that public key.
+	It follows that more Java account objects can be controlled with the same key pair,
+	if they all use the same public key: they will have distinct identities and will keep
+	different crypto amounts, but they can be controlled with the same key pair.
+	An account is needed only inside Hotmoka, it is never
+	used by Mokamint or Tendermint. Namely, you need an account if you want to send crypto across
+	accounts or, in general, if you want to run a Hotmoka transaction (install a smart contract
+	and run its methods).
+\end{itemize}
+%
+The natural question, now, is how we can identify an account: we need its key pair
+(a \texttt{.pem} file) \emph{and} the address where the account object is allocated in the state
+of Hotmoka (something like \texttt{\gameteShort{}}). Hotmoka's solution is
+to identify an account with a \texttt{.pem} file whose name is exactly the address of the
+account, for instance: \texttt{\gameteShort{}.pem}.
+
+It turns out that key pairs, if used to identify a miner, a node or the gamete of the network
+(Sec.~\ref{subsec:start_hotmoka_mokamint}), automatically have a corresponding account
+that can be used to manipulate the earned crypto. In order to find out which is that account,
+we can use the \texttt{moka keys bind}\index{moka@{\texttt{moka}}!keys bind@{\texttt{keys bind}}} comand, as seen above:
+%
+\inputCommand{moka_keys_bind_miner}
+%
+(replace the URI above with \texttt{\serverMokamintMain{}} if you are mining for the mainnet of Hotmoka).
+This will rename \texttt{miner.pem} into something like \texttt{\gameteShort{}.pem}, that you can
+use to take control of the crypto earned for mining, send it to other users or spend it
+to install and run smart contracts. If you want to be able to control the account on another machine,
+you can just copy this \texttt{\gameteShort{}.pem} file to the other machine,
+or you can export the account into $36$ words (\texttt{moka accounts export \gameteShort{}})
+and import it in the other machine (\texttt{moka accounts import <36 space-separated words here>}).
+
+Information about balance and public key of an account is public and can be accessed
+without holding its controlling \texttt{.pem} file\index{moka@{\texttt{moka}}!accounts show@{\texttt{accounts show}}}:
+%
+\inputCommand{moka_accounts_show}
+\inputOutput{moka_accounts_show}
+%
+Of course, you need the \texttt{\gameteShort{}.pem} file in your local machine if you want to use
+the crypto of that account (and you must know its password, if any). For instance, if you want to move $1000$
+coins from account \texttt{\gameteShort{}} to account \texttt{\manifestShort{}}, you can write
+\texttt{moka accounts send \gameteShort{} 1000 \manifestShort{} --uri \serverMokamint{} --password-of-payer}\index{moka@{\texttt{moka}}!accounts send@{\texttt{accounts send}}}.
+Note that you must be able to control the sender for that (you need \texttt{\gameteShort{}.pem}),
+but you do not need control of the receiver (you don't need \texttt{\manifestShort{}.pem}).
 
 \subsection{Start a node of an existing blockchain}\label{subsec:join_hotmoka_mokamint}
 
