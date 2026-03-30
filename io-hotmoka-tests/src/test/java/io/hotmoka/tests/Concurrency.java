@@ -21,7 +21,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.math.BigInteger;
 import java.util.Random;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
@@ -29,7 +28,6 @@ import java.util.logging.Logger;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -57,15 +55,6 @@ class Concurrency extends HotmokaTest {
 	 */
 	private static int NUMBER_OF_THREADS = 100;
 
-	@BeforeAll
-	static void beforeAll() {
-		String cheapTests = System.getProperty("cheapTests");
-		if ("true".equals(cheapTests)) {
-			LOGGER.info("Running in cheap mode since cheapTests = true");
-			NUMBER_OF_THREADS = 4;
-		}
-	}
-
 	@BeforeEach
 	void beforeEach() throws Exception {
 		// generate NUMBER_OF_THREADS externally-owned accounts with a balance of a hundred thousand each
@@ -73,7 +62,7 @@ class Concurrency extends HotmokaTest {
 	}
 
 	@Test @DisplayName("More threads generate transactions concurrently")
-	void concurrently() throws InterruptedException, ExecutionException {
+	void concurrently() throws Exception {
 		var remaining = new AtomicInteger(NUMBER_OF_THREADS);
 
 		// we need a lock despite using an AtomicInteger, just to guarantee that

@@ -144,10 +144,10 @@ public class UpdateForNewNode {
 
 	/**
 	 * Edit the {@code parameters.tex} file by rerunning the experiments of the Hotmoka tutorial.
-	 * It allows one to specify the name of the directory where the files will be created and six further arguments,
+	 * It allows one to specify the name of the directory where the files will be created and eight further arguments,
 	 * that are the URI of the remote nodes (for Mokamint and for Tendermint). The first defaults to
-	 * {@code src/main/latex/generated} and the five default to {@code ws://panarea.hotmoka.io:8001/8025/8030},
-	 * {@code ws://panarea.hotmoka.io:8002/26656} and {@code ws://lipari.hotmoka.io:8001/8025/8030}.
+	 * {@code src/main/latex/generated} and the eight default to {@code ws://panarea.hotmoka.io:8001/8025/8030},
+	 * {@code ws://panarea.hotmoka.io:8002/26656} and to {@code ws://lipari.hotmoka.io:8001/8025/8030}.
 	 * 
 	 * @param args the arguments
 	 * @throws Exception if the editing of the file fails for some reason

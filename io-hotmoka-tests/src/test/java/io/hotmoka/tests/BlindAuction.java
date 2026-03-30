@@ -35,6 +35,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.DisabledIfSystemProperty;
 
 import io.hotmoka.node.ConstructorSignatures;
 import io.hotmoka.node.MethodSignatures;
@@ -124,6 +125,7 @@ class BlindAuction extends HotmokaTest {
 	}
 
 	@Test @DisplayName("three players put bids before end of bidding time")
+	@DisabledIfSystemProperty(named = "onlyTimeIndependentTests", matches = "true")
 	void bids() throws Exception {
 		ConstructorFuture auction = postConstructorCallTransaction
 			(privateKey(0), account(0), _500_000, BigInteger.ONE, jar(), CONSTRUCTOR_BLIND_AUCTION, StorageValues.intOf(BIDDING_TIME), StorageValues.intOf(REVEAL_TIME));
@@ -143,6 +145,7 @@ class BlindAuction extends HotmokaTest {
 	}
 
 	@Test @DisplayName("three players put bids but bidding time expires")
+	@DisabledIfSystemProperty(named = "onlyTimeIndependentTests", matches = "true")
 	void biddingTimeExpires() throws Exception {
 		ConstructorFuture auction = postConstructorCallTransaction
 			(privateKey(0), account(0), _500_000, BigInteger.ONE, jar(), CONSTRUCTOR_BLIND_AUCTION, StorageValues.intOf(4000), StorageValues.intOf(REVEAL_TIME));
@@ -203,6 +206,7 @@ class BlindAuction extends HotmokaTest {
 	}
 
 	@Test @DisplayName("three players put bids before end of bidding time then reveal")
+	@DisabledIfSystemProperty(named = "onlyTimeIndependentTests", matches = "true")
 	void bidsThenReveal() throws Exception {
 		final long start = System.currentTimeMillis();
 		ConstructorFuture auction = postConstructorCallTransaction

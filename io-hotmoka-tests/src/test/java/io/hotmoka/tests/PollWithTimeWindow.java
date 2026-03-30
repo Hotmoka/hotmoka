@@ -31,6 +31,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.DisabledIfSystemProperty;
 
 import io.hotmoka.helpers.UnexpectedValueException;
 import io.hotmoka.node.ConstructorSignatures;
@@ -105,6 +106,7 @@ class PollWithTimeWindow extends HotmokaTest {
 
 	@Test
 	@DisplayName("new PollWithTimeWindow() where time window is valid and all the 4 participants (having the same voting power) vote with their maximum voting power")
+	@DisabledIfSystemProperty(named = "onlyTimeIndependentTests", matches = "true")
 	void successfulPollWithValidWindowWhereAllStakeHoldersVote() throws Exception {
 		StorageReference simpleSharedEntity = addSimpleSharedEntity(ONE, ONE, ONE, ONE);
 		StorageReference action = addAction();
@@ -132,6 +134,7 @@ class PollWithTimeWindow extends HotmokaTest {
 	
 	@Test
 	@DisplayName("new PollWithTimeWindow() with close attempts before the window expired")
+	@DisabledIfSystemProperty(named = "onlyTimeIndependentTests", matches = "true")
 	void pollWithCloseAttemptsBeforeWindowExpired() throws Exception {
 		StorageReference simpleSharedEntity = addSimpleSharedEntity(ONE, ONE, ONE, ONE);
 		StorageReference action = addAction();
@@ -174,6 +177,7 @@ class PollWithTimeWindow extends HotmokaTest {
 	
 	@Test
 	@DisplayName("new PollWithTimeWindow() where time window is valid and all the 4 participants (having the same voting power) vote before and after start time with their maximum voting power")
+	@DisabledIfSystemProperty(named = "onlyTimeIndependentTests", matches = "true")
 	void successfulPollWithValidWindowWhereAllStakeHoldersVoteBeforeAndAfterStartTime() throws Exception {
 		StorageReference simpleSharedEntity = addSimpleSharedEntity(ONE, ONE, ONE, ONE);
 		StorageReference action = addAction();
@@ -209,6 +213,7 @@ class PollWithTimeWindow extends HotmokaTest {
 	
 	@Test
 	@DisplayName("new PollWithTimeWindow() where a participant votes when the time window is expired")
+	@DisabledIfSystemProperty(named = "onlyTimeIndependentTests", matches = "true")
 	void voteWithExpiredTimeWindow() throws Exception {
 		StorageReference simpleSharedEntity = addSimpleSharedEntity(ONE, ONE, ONE, ONE);
 		StorageReference action = addAction();
@@ -235,6 +240,7 @@ class PollWithTimeWindow extends HotmokaTest {
 	
 	@Test
 	@DisplayName("new PollWithTimeWindow() where one of the participants, holding a huge amount of voting power (more than 50% of the total) does not vote and the time window expired")
+	@DisabledIfSystemProperty(named = "onlyTimeIndependentTests", matches = "true")
 	void weightVoteWithExpiredTimeWindow() throws Exception {
 		StorageReference simpleSharedEntity = addSimpleSharedEntity(BigInteger.valueOf(10), ONE, ONE, ONE);
 		StorageReference action = addAction();

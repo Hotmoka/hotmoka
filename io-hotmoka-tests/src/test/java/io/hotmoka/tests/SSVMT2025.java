@@ -62,12 +62,6 @@ class SSVMT2025 extends HotmokaTest {
 	@BeforeAll
 	static void beforeAll() throws Exception {
 		customThreadPool = new ForkJoinPool(NUMBER_OF_ACCOUNTS);
-		String cheapTests = System.getProperty("cheapTests");
-		if ("true".equals(cheapTests)) {
-			System.out.println("Running in cheap mode since cheapTests = true");
-			NUMBER_OF_ACCOUNTS = 4;
-		}
-
 		setJar("wtsc2021.jar");
 		transactions.getAndIncrement();
 	}

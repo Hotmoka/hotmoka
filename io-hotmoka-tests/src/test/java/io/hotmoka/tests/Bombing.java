@@ -29,7 +29,6 @@ import java.util.logging.Logger;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -46,15 +45,6 @@ public class Bombing extends HotmokaTest {
 	private final static int NUMBER_OF_TRANSFERS = 1000;
 	private static int NUMBER_OF_ACCOUNTS = 500;
 	private final static Logger LOGGER = Logger.getLogger(Bombing.class.getName());
-
-	@BeforeAll
-	static void beforeAll() {
-		String cheapTests = System.getProperty("cheapTests");
-		if ("true".equals(cheapTests)) {
-			System.out.println("Running in cheap mode since cheapTests = true");
-			NUMBER_OF_ACCOUNTS = 4;
-		}
-	}
 
 	@BeforeEach
 	void beforeEach() throws Exception {

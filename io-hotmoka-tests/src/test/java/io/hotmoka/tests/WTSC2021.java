@@ -39,7 +39,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -81,15 +80,6 @@ class WTSC2021 extends HotmokaTest {
     private StorageReference token;
 	private final AtomicInteger numberOfTransactions = new AtomicInteger();
 	private ExecutorService customThreadPool;
-
-	@BeforeAll
-	static void beforeAll() {
-		String cheapTests = System.getProperty("cheapTests");
-		if ("true".equals(cheapTests)) {
-			System.out.println("Running in cheap mode since cheapTests = true");
-			NUMBER_OF_INVESTORS = 4;
-		}
-	}
 
 	@Test @DisplayName("performance test")
 	void performanceTest() {

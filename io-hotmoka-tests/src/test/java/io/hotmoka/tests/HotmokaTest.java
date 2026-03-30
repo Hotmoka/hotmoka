@@ -16,17 +16,26 @@ limitations under the License.
 
 package io.hotmoka.tests;
 
-/*
- * A superclass of all tests.
- * Check at line 156 to select the node implementation to test.
+/**
+ * A superclass of all tests. It understands the following environment variables:
+ * {@code -DnodeType=[mokamint,tendermint,disk,mokamint-remote,tendermint-remote,disk-remote]}:
+ * the kind of node to test.
+ * {@code -DonlyTimeIndependentTests}: runs only tests that do not depend on timings.
+ * {@code -DtargetBlockCreationTime=num}: the number of seconds between two consecutive blocks.
+ * {@code -DnumberOfNodes=num}: the number of nodes of the network to test.
+ * The last two are not meaningful for disk nodes.
  */
 
+import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.io.File;
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.math.BigInteger;
 import java.net.URI;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -159,25 +168,21 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 
 	    		Node wrapped;
 	    		
-	    		String requestedNodeType = System.getProperty("nodeType");
-	    		if ("tendermint".equals(requestedNodeType))
-	    			node = wrapped = mkTendermintNode();
-	    		else if ("tendermint-remote".equals(requestedNodeType))
-	    			node = mkRemoteNode(wrapped = mkTendermintNode());
-	    		else if ("mokamint".equals(requestedNodeType) || "mokamint1".equals(requestedNodeType))
-	    			node = wrapped = mkMokamintNetwork(1);
-	    		else if ("mokamint-remote".equals(requestedNodeType) || "mokamint1-remote".equals(requestedNodeType))
-	    			node = wrapped = mkRemoteNode(mkMokamintNetwork(1));
-	    		else if ("mokamint4".equals(requestedNodeType))
-	    			node = wrapped = mkMokamintNetwork(4);
-	    		else if ("mokamint4-remote".equals(requestedNodeType))
-	    			node = wrapped = mkRemoteNode(mkMokamintNetwork(4));
-	    		else if ("disk".equals(requestedNodeType))
-	    			node = wrapped = mkDiskNode();
-	    		else if ("disk-remote".equals(requestedNodeType))
-	    			node = mkRemoteNode(wrapped = mkDiskNode());
-	    		else
-	    			node = mkRemoteNode(wrapped = mkDiskNode()); // default
+	    		switch (getNodeType()) {
+	    		case "tendermint":
+	    			node = wrapped = mkTendermintNetwork(); break;
+	    		case "tendermint-remote":
+	    			node = mkRemoteNode(wrapped = mkTendermintNetwork()); break;
+	    		case "mokamint":
+	    			node = wrapped = mkMokamintNetwork(); break;
+	    		case "mokamint-remote":
+	    			node = wrapped = mkRemoteNode(mkMokamintNetwork()); break;
+	    		case "disk":
+	    		default:
+	    			node = wrapped = mkDiskNode(); break;
+	    		case "disk-remote":
+	    			node = mkRemoteNode(wrapped = mkDiskNode()); break;
+	    		}
 
 	    		initializeNodeIfNeeded(wrapped);
 
@@ -347,13 +352,20 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 		}
 	}
 
-	private static Node mkTendermintNode() throws Exception {
+	private static Node mkTendermintNetwork() throws Exception {
 		consensus = fillConsensusConfig(TendermintConsensusConfigBuilders.defaults()).build();
 		delayBeforeIndexUpdate = 0L; // the index is updated immediately with the Tendermint node
 
+		// we copy the configuration directory in the temp directory,
+		// where we can edit it by replacing the block creation rate
+		Path tempConfig = Files.createTempDirectory("temp_tendermint_config");
+		copyFolder(Paths.get("tendermint_config"), tempConfig);
+		Path tempConfigToml = tempConfig.resolve("config").resolve("config.toml");
+		replaceLine(tempConfigToml, "timeout_commit", "timeout_commit = \"" + getTargetBlockCreationTime() + "s\"");
+
 		var config = TendermintNodeConfigBuilders.defaults()
 				.setDir(Files.createTempDirectory("hotmoka-tendermint-chain-"))
-				.setTendermintConfigurationToClone(Paths.get("tendermint_config"))
+				.setTendermintConfigurationToClone(tempConfig)
 				.setMaxGasPerViewTransaction(_1_000_000_000)
 				.setIndexSize(getIndexSize())
 				.build();
@@ -386,7 +398,7 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 		var mokamintConfig = LocalNodeConfigBuilders.defaults()
 				// we use the same chain id for the Hotmoka node and for the underlying Mokamint engine, although this is not necessary
 				.setChainId(consensus.getChainId())
-				.setTargetBlockCreationTime(2000)
+				.setTargetBlockCreationTime(getTargetBlockCreationTime())
 				.setMaxHistoryChangeTime(300000L) // 5 minutes
 				.setDir(hotmokaChainPath.resolve("mokamint")).build();
 		var nodeKeys = mokamintConfig.getSignatureForBlocks().getKeyPair();
@@ -420,13 +432,8 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 		return node;
 	}
 
-	private static Node mkMokamintNetwork(int howManyNodes) throws Exception {
-		if (howManyNodes < 1)
-			throw new IllegalArgumentException("A network needs at least one node");
-
-		// if the block creation time is too small, the nodes might lose synchronization
-		// because the time for whispering is higher than the time for mining new blocks
-		final var TARGET_BLOCK_CREATION_TIME = 4_000;
+	private static Node mkMokamintNetwork() throws Exception {
+		final int howManyNodes = getNumberOfNodes();
 		final var PLOT_LENGTH = 500L;
 		final var MAX_HISTORY_CHANGE = 15L * 60 * 1000; // 15 minutes, so that it is possible to see the effects of garbage-collection during the tests
 
@@ -450,7 +457,7 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 			var mokamintConfig = LocalNodeConfigBuilders.defaults()
 					// we use the same chain id for the Hotmoka node and for the underlying Mokamint engine, although this is not necessary
 					.setChainId(consensus.getChainId())
-					.setTargetBlockCreationTime(TARGET_BLOCK_CREATION_TIME)
+					.setTargetBlockCreationTime(getTargetBlockCreationTime())
 					.setMaxHistoryChangeTime(MAX_HISTORY_CHANGE)
 					.setDir(hotmokaChainPath.resolve("mokamint")).build();
 
@@ -546,6 +553,55 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 	@SuppressWarnings("unused")
 	private static Node mkRemoteNode(String uri) throws FailedDeploymentException, InterruptedException {
 		return RemoteNodes.of(URI.create(uri), 100_000);
+	}
+
+	private static String getNodeType() {
+		return System.getProperty("nodeType", "disk");
+	}
+
+	private static int getTargetBlockCreationTime() {
+		// if the block creation time is too small, the nodes might lose synchronization
+		// because the time for whispering is higher than the time for mining new blocks
+		int targetBlockCreationTime = Integer.parseInt(System.getProperty("targetBlockCreationTime", "4"));
+		if (targetBlockCreationTime < 1)
+			throw new IllegalArgumentException("The block creation time must be positive");
+		else
+			return targetBlockCreationTime;
+	}
+
+	private static int getNumberOfNodes() {
+		int numberOfNodes = Integer.parseInt(System.getProperty("numberOfNodes", "1"));
+		if (numberOfNodes < 1)
+			throw new IllegalArgumentException("At least one node must exist in a network");
+		else
+			return numberOfNodes;
+	}
+
+	private static void replaceLine(Path path, String prefix, String replacement) throws IOException {
+		List<String> fileContent = Files.readAllLines(path, StandardCharsets.UTF_8);
+	
+		var fileContentReplaced = new ArrayList<String>();
+		for (String s: fileContent)
+			fileContentReplaced.add(s.startsWith(prefix) ? replacement : s);
+	
+		Path tempFile = File.createTempFile("replacement", ".tmp").toPath();
+		Files.write(tempFile, fileContentReplaced, StandardCharsets.UTF_8);
+		Files.copy(tempFile, path, REPLACE_EXISTING);
+	}
+
+	private static void copyFolder(Path src, Path dest) throws IOException {
+	    try (Stream<Path> stream = Files.walk(src)) {
+	        stream.forEach(source -> copy(source, dest.resolve(src.relativize(source))));
+	    }
+	}
+
+	private static void copy(Path source, Path dest) {
+	    try {
+	        Files.copy(source, dest, REPLACE_EXISTING);
+	    }
+	    catch (IOException e) {
+	        throw new UncheckedIOException(e.getMessage(), e);
+	    }
 	}
 
 	private static <B extends ConsensusConfigBuilder<?,B>> B fillConsensusConfig(ConsensusConfigBuilder<?,B> builder) throws InvalidKeyException, NoSuchAlgorithmException {
