@@ -33,6 +33,40 @@ life of users who just want to install nodes with a standard procedure that shou
 most typical use cases. For less standard use cases, such docker images can be partially configured
 or Hotmoka nodes can be installed with Java code, as it will be shown later in Ch.~\ref{ch:hotmoka_nodes}.
 
+\section{Tokenomics}\label{sec:tokenomics}
+
+The way coins are minted and transaction fees are computed is the same in all implementations
+of Hotmoka, independently from the underlying consensus algorithm. In particular,
+there is an amount of coins $\mathit{minted}_h$ that gets minted for the creation of the
+block at height $h$. This minted coins, plus the
+$\mathit{fee}$ resulting from the execution of the transaction requests inside the block,
+go to the \emph{creators} of the block. Who are these creators depends from the
+consensus engine. For instance, for proof of space based on Mokamint, the creators are
+a peer and a miner and $\mathit{minted}_h+\mathit{fee}$ gets split, equally, between the two.
+For proof of stake based on Tendermint, there is a single validator peer that creates
+the lock and gets all $\mathit{minted}_h+\mathit{fee}$ coins. Note that $\mathit{minted}_h$
+are minted coins, while $\mathit{fee}$ are coins taken from who required to execute the
+transactions, therefore, they are not minted coins.
+
+The computation of $\mathit{minted}$ follows a decreasing hyperbolic curve. Namely, there
+are consensus parameters, decided at the moment of launch of the blockchain, that determine
+the amount of coins minted at each block at height $h$:
+%
+\begin{itemize}
+\item $\mathit{initial\_supply}$ is the amount of coins that exist at the beginning of the
+execution of the blockchain. Initially, they are all inside an account called gamete, typically
+controlled by the person who launched the blockchain; this amount can well be zero;
+\item $H$ is the \emph{height at final supply}, that is, the block height when all coins
+will have been minted: only blocks at height $0\le h<H$ will mint coins for their creation,
+subsequent blocks will only distribute the $\mathit{fee}$;
+\item $\mathit{final\_supply}$ is the amount of coins that will exist, in total, at height $H$;
+it must be $\mathit{final\_supply}\ge\emph{initial\_supply}$.
+\end{itemize}
+
+\[
+  \frac{6(\mathit{final\_supply}-\mathit{initial\_supply})(h^2-2hH+H^2)}{(H+1)(2H+1)H}.
+\]
+
 \section{Hotmoka blockchains based on Mokamint (proof of space)}\label{sec:hotmoka_mokamint}
 
 Hotmoka can run on top of a generic engine for proof of space consensus, called Mokamint~\cite{mokamint_github}.
