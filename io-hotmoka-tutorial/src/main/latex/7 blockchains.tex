@@ -33,39 +33,73 @@ life of users who just want to install nodes with a standard procedure that shou
 most typical use cases. For less standard use cases, such docker images can be partially configured
 or Hotmoka nodes can be installed with Java code, as it will be shown later in Ch.~\ref{ch:hotmoka_nodes}.
 
-\section{Tokenomics}\label{sec:tokenomics}
+\section{Tokenomics}\label{sec:tokenomics}\index{tokenomics}
 
 The way coins are minted and transaction fees are computed is the same in all implementations
 of Hotmoka, independently from the underlying consensus algorithm. In particular,
 there is an amount of coins $\mathit{minted}_h$ that gets minted for the creation of the
-block at height $h$. This minted coins, plus the
-$\mathit{fee}$ resulting from the execution of the transaction requests inside the block,
-go to the \emph{creators} of the block. Who are these creators depends from the
+block $b_h$ at height $h$. This minted coins, plus the
+$\mathit{fee}_h$ resulting from the execution of the transaction requests inside $b_h$,
+go to the \emph{creators} of $b_h$. Who are these creators depends from the
 consensus engine. For instance, for proof of space based on Mokamint, the creators are
-a peer and a miner and $\mathit{minted}_h+\mathit{fee}$ gets split, equally, between the two.
-For proof of stake based on Tendermint, there is a single validator peer that creates
-the lock and gets all $\mathit{minted}_h+\mathit{fee}$ coins. Note that $\mathit{minted}_h$
-are minted coins, while $\mathit{fee}$ are coins taken from who required to execute the
-transactions, therefore, they are not minted coins.
+a peer and a miner and $\mathit{minted}_h+\mathit{fee}_h$ gets split, equally, between the two.
+For proof of stake based on Tendermint, instead, there is a single validator peer that creates
+$b_h$ and gets all $\mathit{minted}_h+\mathit{fee}_h$ coins. Note that $\mathit{minted}_h$
+are minted coins, while $\mathit{fee}_h$ are coins paid by who required to execute the
+transactions: they are not minted.
 
-The computation of $\mathit{minted}$ follows a decreasing hyperbolic curve. Namely, there
-are consensus parameters, decided at the moment of launch of the blockchain, that determine
-the amount of coins minted at each block at height $h$:
+The computation of $\mathit{minted}_h$ follows a decreasing hyperbolic curve. Namely, there
+are consensus parameters, decided at the time of blockchain launch, that determine
+$\mathit{minted}_h$:
 %
 \begin{itemize}
-\item $\mathit{initial\_supply}$ is the amount of coins that exist at the beginning of the
-execution of the blockchain. Initially, they are all inside an account called gamete, typically
+\item $\mathit{initial\_supply}$\index{initial supply} is the amount of coins that already exist at launch time.
+Initially, they are all inside an account called gamete, typically
 controlled by the person who launched the blockchain; this amount can well be zero;
 \item $H$ is the \emph{height at final supply}, that is, the block height when all coins
-will have been minted: only blocks at height $0\le h<H$ will mint coins for their creation,
-subsequent blocks will only distribute the $\mathit{fee}$;
-\item $\mathit{final\_supply}$ is the amount of coins that will exist, in total, at height $H$;
+will have been minted: coins will only be minted for blocks $b_h$ at height $0\le h<H$:
+subsequent blocks will only distribute $\mathit{fee}_h$;
+\item $\mathit{final\_supply}$\index{final supply} is the amount of coins that will exist, in total, at height $H$;
 it must be $\mathit{final\_supply}\ge\emph{initial\_supply}$.
 \end{itemize}
+%
+For instance, for the main network \texttt{\serverMokamintMainChainId{}} of Hotmoka (Fig.~\ref{fig:endpoints}),
+the above parameters are $\mathit{initial\_supply}=0$, $\mathit{final\_supply}=10^{30}$
+and $H=42048000$, as it is possible to verify with the command
+\texttt{moka nodes manifest show --uri \serverMokamintMain{}}.
 
+The hyperbolic curve that dictates how many coins get minted at block $0\le h<H$ is the following:
 \[
-  \frac{6(\mathit{final\_supply}-\mathit{initial\_supply})(h^2-2hH+H^2)}{(H+1)(2H+1)H}.
+  \mathit{minted}_h=\frac{6(\mathit{final\_supply}-\mathit{initial\_supply})(h^2-2hH+H^2)}{(H+1)(2H+1)H}.
 \]
+For instance, Fig.~\ref{fig:maresia_minting} reports how many coins \texttt{\serverMokamintMainChainId{}}
+will mint at different block heights.
+%
+\begin{figure}[th]
+\begin{center}
+\begin{tabular}{|c|c|c|}
+\hline
+$h$ & when (days after launch) & $\mathit{minted}_h$ \\\hline\hline
+0 & $0$ & 71347029418270905255751\\\hline
+4320 & $1$ & 71332369822860396367870\\\hline
+129600 & $30$ & 70907896753038047445079\\\hline
+1576800 & $365$ & 66096333972020030822086\\\hline
+3153600 & $2\times 365$ & 61046302046008043309452 \\\hline
+4730400 & $3\times 365$ & 56196933640234942717850 \\\hline
+6307200 & $4\times 365$ & 51548228754700729047280 \\\hline
+7884000 & $5\times 365$ & 47100187389405402297742 \\\hline
+9460800 & $6\times 365$ & 42852809544348962469235 \\\hline
+11037600 & $7\times 365$ & 38806095219531409561761 \\\hline
+40996800 & $26\times 365$ & 44591893386419315784 \\\hline
+$\ge 42048000$ & $\ge(26\times 365 + 244)$ & 0 \\\hline
+\end{tabular}
+\end{center}
+\caption{The amount of coins $\mathit{minted}_h$ that the \texttt{\serverMokamintMainChainId{}}
+main network of Hotmoka will mint at different block heights $h$.
+For the days after launch when a block will be minted, consider that \texttt{\serverMokamintMainChainId{}} is
+programmed to create a block every $20$ seconds, on average.}
+\label{fig:maresia_minting}
+\end{figure}
 
 \section{Hotmoka blockchains based on Mokamint (proof of space)}\label{sec:hotmoka_mokamint}
 
@@ -391,6 +425,12 @@ You normally do not recreate the mining configuration when you restart a miner: 
 Nevertheless, you can recreate the configuration if, for instance, you want to change the size of the plot file.
 For that, stop your miner (if running) and just rerun the docker command for \texttt{config-miner}.
 Once the mining configuration has been recreated, you can restart your miner with \texttt{mine}.
+
+\begin{commentbox}
+If you reconfigure the miner by rerunning \texttt{config-miner} (for instance, to make its plot larger), it is
+convenient to reuse the same \texttt{miner.pem}, to avoid having many keys around and
+to consolidate all your earnings on the same key.
+\end{commentbox}
 
 Your miner will earn coins for the mining activity. You can check the current balance of the public key
 that identifies your miner, as follows:
