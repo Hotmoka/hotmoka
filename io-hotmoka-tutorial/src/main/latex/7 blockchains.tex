@@ -429,7 +429,7 @@ Once the mining configuration has been recreated, you can restart your miner wit
 \begin{commentbox}
 If you reconfigure the miner by rerunning \texttt{config-miner} (for instance, to make its plot larger), it is
 convenient to reuse the same \texttt{miner.pem}, to avoid having many keys around and
-to consolidate all your earnings on the same key.
+consolidate all your earnings on the same key.
 \end{commentbox}
 
 Your miner will earn coins for the mining activity. You can check the current balance of the public key
@@ -567,8 +567,8 @@ across successive invocations of docker:
 %
 Note that the script above will create another key pair (and ask you about the relative password),
 that will be kept \emph{inside} the container. This key pair identifies the node
-and will be used to sign the blocks that the node will create. It must remain inside the container,
-although you may want to extract a copy from the container to your local host.
+and will be used to sign the blocks that the node will create. Because of this, that key
+must remain inside the container.
 
 \subsubsection{Run the node (\texttt{go})}\label{subsubsec:mokamint_go}
 
@@ -620,6 +620,35 @@ Remember that you can always check the logs of a running docker container, for i
 \begin{shellcommandbox}\begin{ttlst}
 docker logs -f hotmoka
 \end{ttlst}\end{shellcommandbox}
+%
+You can also copy the key pair of the node outside the container, to keep it in a safe place:
+%
+\begin{shellcommandbox}\begin{ttlst}
+docker cp hotmoka:/home/hotmoka/hotmoka_mokamint/node.pem .
+\end{ttlst}\end{shellcommandbox}
+%
+We suggest that you always keep a copy of \texttt{node.pem} and \texttt{miner.pem} in a safe
+place and write down their passwords, if any.
+
+Finally, you can pause, unpause and stop the node with the usual Docker commands
+\texttt{docker pause hotmoka}, \texttt{docker unpause hotmoka} and
+\texttt{docker stop hotmoka}. After a stop, you can execute the \texttt{go} script
+again if you want to resume the node.
+
+\begin{commentbox}
+If you want to reconfigure the node, for instance because you want to resize its plot file,
+you can stop the node (\texttt{docker stop hotmoka}), rerun the \texttt{config-clone} script
+and then the \texttt{go} script. Note however that, by default, \texttt{config-clone} will
+create a \emph{new} \texttt{node.pem} key to identify the node and will
+erase the directory where the blockchain is kept. Therefore, you will end up with two
+node keys (the old one and the new one), while it would be normally easier to recycle the old key
+and consolidate all earnings in that same key. Moreover, the chain directory will have to be
+downloaded again, from scratch, with a long synchronization, when \texttt{go} will be invoked.
+Because of this, we suggest that, when rerunning the \texttt{config-clone} script, you set
+the environment variables \texttt{-e KEEP\_NODE\_PEM=true} and \texttt{-e KEEP\_CHAIN=true}
+in the docker invocation.
+
+\end{commentbox}
 
 \subsection{Start the first node of a new blockchain}\label{subsec:start_hotmoka_mokamint}
 

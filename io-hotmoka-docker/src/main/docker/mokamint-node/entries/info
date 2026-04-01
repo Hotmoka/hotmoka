@@ -39,6 +39,8 @@ echo -e "* ${RED}config-clone:${NC} create the configuration directory of a new 
 echo -e "    ${BLUE}MOKAMINT_PUBLIC_SERVICE_URI:${NC} the URI of an already existing node of the blockchain"
 echo -e "    ${BLUE}PLOT_SIZE:${NC} the number of nonces of the plot that the node will use for mining"
 echo -e "    ${BLUE}PUBLIC_KEY_MINER_BASE58:${NC} the Base58-encoded public key that will identify the miner in the blockchain"
+echo -e "    ${BLUE}KEEP_CHAIN$:${NC} keep the chain directory; otherwise, the blockchain will be synchronized from scratch"
+echo -e "    ${BLUE}KEEP_LOCAL_CONFIG$:${NC} keep the local node configuration that already exists in the configuration directory"
 echo -e "    ${BLUE}KEEP_NODE_PEM:${NC} keep the node.pem file that already exists in the configuration directory"
 echo
 echo "  For instance:"

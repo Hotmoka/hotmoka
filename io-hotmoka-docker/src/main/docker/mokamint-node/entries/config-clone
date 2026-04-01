@@ -20,28 +20,40 @@ NC='\033[0m' # No Color
 
 MOKAMINT_PUBLIC_SERVICE_URI=${MOKAMINT_PUBLIC_SERVICE_URI:-ws://lipari.hotmoka.io:8030}
 PLOT_SIZE=${PLOT_SIZE:-1000}
+KEEP_NODE_PEM=${KEEP_NODE_PEM:-false}
+KEEP_CHAIN=${KEEP_CHAIN:-false}
+KEEP_LOCAL_CONFIG=${KEEP_LOCAL_CONFIG:-false}
 
 echo -e "${BOLD_GREEN}Going to create the configuration directory of a Hotmoka node using the Mokamint proof of space consensus engine, with the following parameters:${NC}"
 echo
 echo -e " ${BLUE}MOKAMINT_PUBLIC_SERVICE_URI${NC}=${RED}$MOKAMINT_PUBLIC_SERVICE_URI${NC}"
 echo -e "     ${BLUE}PUBLIC_KEY_MINER_BASE58${NC}=${RED}\"$PUBLIC_KEY_MINER_BASE58\"${NC}"
 echo -e "                   ${BLUE}PLOT_SIZE${NC}=${RED}$PLOT_SIZE${NC}"
+echo -e "                  ${BLUE}KEEP_CHAIN${NC}=${RED}$KEEP_CHAIN${NC}"
+echo -e "           ${BLUE}KEEP_LOCAL_CONFIG${NC}=${RED}$KEEP_LOCAL_CONFIG${NC}"
 echo -e "               ${BLUE}KEEP_NODE_PEM${NC}=${RED}$KEEP_NODE_PEM${NC}"
 echo
 
-echo -n "Cleaning the directory hotmoka_mokamint... "
-if [ "$KEEP_NODE_PEM" = true ] ; then
+if [ $KEEP_NODE_PEM = "true" ] && [ $KEEP_LOCAL_CONFIG = "true" ] ; then
+	echo -n "Cleaning the directory hotmoka_mokamint but keeping node.pem and local_config.toml... "
+	find hotmoka_mokamint ! \( -name 'node.pem' -o -name 'local_config.toml' \) -type f -exec rm -f {} +
+elif [ $KEEP_NODE_PEM = "true" ] ; then
 	echo -n "Cleaning the directory hotmoka_mokamint but keeping node.pem... "
 	find hotmoka_mokamint ! -name 'node.pem' -type f -exec rm -f {} +
+elif [ $KEEP_LOCAL_CONFIG = "true" ] ; then
+	echo -n "Cleaning the directory hotmoka_mokamint but keeping local_config.toml... "
+	find hotmoka_mokamint ! -name 'local_config.toml' -type f -exec rm -f {} +
 else
 	echo -n "Cleaning the directory hotmoka_mokamint... "
 	rm -rf hotmoka_mokamint/*
 fi
 echo -e "${RED}done${NC}"
 
-echo -n "Cleaning the directory chain... "
-rm -rf chain/*
-echo -e "${RED}done${NC}"
+if [ $KEEP_CHAIN = "false" ] ; then
+	echo -n "Cleaning the directory chain... "
+	rm -rf chain/*
+	echo -e "${RED}done${NC}"
+fi
 
 echo -n "Cloning the Mokamint configuration file from ${MOKAMINT_PUBLIC_SERVICE_URI}... "
 # we need the chain id of the Mokamint network in order to create the plot later
@@ -56,14 +68,21 @@ SIGNATURE_FOR_BLOCKS=$(echo ${CONFIG} | python3 -c "import sys, json; print(json
 SIGNATURE_FOR_DEADLINES=$(echo ${CONFIG} | python3 -c "import sys, json; print(json.load(sys.stdin)['signatureForDeadlines'])")
 echo -e "${RED}done${NC}"
 
-echo -n "Creating the local Hotmoka node configuration file... "
-touch hotmoka_mokamint/local_config.toml
-echo -e "${RED}done${NC}"
+if [ $KEEP_LOCAL_CONFIG = "false" ] ; then
+	echo -n "Creating the local Hotmoka node configuration file... "
+	touch hotmoka_mokamint/local_config.toml
+	echo -e "${RED}done${NC}"
+fi
 
-echo -n "Creating the node.pem key pair for signing the blocks: "
-moka keys create --output-dir=hotmoka_mokamint --name=node.pem --password --signature ${SIGNATURE_FOR_BLOCKS} --json --redirection node_key_creation.json
-PUBLIC_KEY_NODE_BASE58=$(cat node_key_creation.json | python3 -c "import sys, json; print(json.load(sys.stdin)['publicKeyBase58'])")
-rm node_key_creation.json
+if [ $KEEP_NODE_PEM = "true" ] ; then
+	echo -n "Extracting the public key from the node.pem key pair for signing the blocks: "
+	moka keys show hotmoka_mokamint/node.pem --password --signature ${SIGNATURE_FOR_BLOCKS} --json --redirection node_key_description.json
+else
+	echo -n "Creating the node.pem key pair for signing the blocks: "
+	moka keys create --output-dir=hotmoka_mokamint --name=node.pem --password --signature ${SIGNATURE_FOR_BLOCKS} --json --redirection node_key_description.json
+fi
+PUBLIC_KEY_NODE_BASE58=$(cat node_key_description.json | python3 -c "import sys, json; print(json.load(sys.stdin)['publicKeyBase58'])")
+rm node_key_description.json
 chmod og-rwx hotmoka_mokamint/node.pem
 echo -e "${RED}done:${NC} the public key is ${BOLD_GREEN}${PUBLIC_KEY_NODE_BASE58}${NC} (${SIGNATURE_FOR_BLOCKS}, base58)"
 
