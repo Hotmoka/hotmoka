@@ -26,10 +26,17 @@ echo
 echo -e " ${BLUE}MOKAMINT_PUBLIC_SERVICE_URI${NC}=${RED}$MOKAMINT_PUBLIC_SERVICE_URI${NC}"
 echo -e "     ${BLUE}PUBLIC_KEY_MINER_BASE58${NC}=${RED}\"$PUBLIC_KEY_MINER_BASE58\"${NC}"
 echo -e "                   ${BLUE}PLOT_SIZE${NC}=${RED}$PLOT_SIZE${NC}"
+echo -e "               ${BLUE}KEEP_NODE_PEM${NC}=${RED}$KEEP_NODE_PEM${NC}"
 echo
 
 echo -n "Cleaning the directory hotmoka_mokamint... "
-rm -rf hotmoka_mokamint/*
+if [ "$KEEP_NODE_PEM" = true ] ; then
+	echo -n "Cleaning the directory hotmoka_mokamint but keeping node.pem... "
+	find hotmoka_mokamint ! -name 'node.pem' -type f -exec rm -f {} +
+else
+	echo -n "Cleaning the directory hotmoka_mokamint... "
+	rm -rf hotmoka_mokamint/*
+fi
 echo -e "${RED}done${NC}"
 
 echo -n "Cleaning the directory chain... "
