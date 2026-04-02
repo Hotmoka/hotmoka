@@ -562,7 +562,7 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 	private static int getTargetBlockCreationTime() {
 		// if the block creation time is too small, the nodes might lose synchronization
 		// because the time for whispering is higher than the time for mining new blocks
-		int targetBlockCreationTime = Integer.parseInt(System.getProperty("targetBlockCreationTime", "4"));
+		int targetBlockCreationTime = Integer.parseInt(System.getProperty("targetBlockCreationTime", "2"));
 		if (targetBlockCreationTime < 1)
 			throw new IllegalArgumentException("The block creation time must be positive");
 		else

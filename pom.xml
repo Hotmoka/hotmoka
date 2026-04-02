@@ -35,6 +35,7 @@ Note: submodules whose artifact must be deployed on Maven Central must activate 
     <io.hotmoka.exceptions.version>1.6.0</io.hotmoka.exceptions.version>
     <io.hotmoka.testing.version>1.4.1</io.hotmoka.testing.version>
     <io.hotmoka.xodus.version>1.4.9</io.hotmoka.xodus.version>
+    <io.hotmoka.patricia.version>1.12.2</io.hotmoka.patricia.version>
     <io.hotmoka.closeables.version>1.5.0</io.hotmoka.closeables.version>
     <it.univr.bcel.version>1.2.1</it.univr.bcel.version>
     <bcel.version>6.7.0</bcel.version>
@@ -110,8 +111,6 @@ Note: submodules whose artifact must be deployed on Maven Central must activate 
     <module>io-hotmoka-node-service</module>
     <module>io-hotmoka-node-remote-api</module>
     <module>io-hotmoka-node-remote</module>
-    <module>io-hotmoka-patricia-api</module>
-    <module>io-hotmoka-patricia</module>
     <module>io-hotmoka-moka-api</module>
     <module>io-hotmoka-moka</module>
     <module>io-hotmoka-node-disk-api</module>
