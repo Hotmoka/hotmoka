@@ -21,7 +21,7 @@ package io.hotmoka.tests;
  * {@code -DnodeType=[mokamint,tendermint,disk,mokamint-remote,tendermint-remote,disk-remote]}:
  * the kind of node to test.
  * {@code -DonlyTimeIndependentTests}: runs only tests that do not depend on timings.
- * {@code -DtargetBlockCreationTime=num}: the number of seconds between two consecutive blocks.
+ * {@code -DtargetBlockCreationTime=num}: the number of milliseconds between two consecutive blocks.
  * {@code -DnumberOfNodes=num}: the number of nodes of the network to test.
  * The last two are not meaningful for disk nodes.
  */
@@ -361,7 +361,7 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 		Path tempConfig = Files.createTempDirectory("temp_tendermint_config");
 		copyFolder(Paths.get("tendermint_config"), tempConfig);
 		Path tempConfigToml = tempConfig.resolve("config").resolve("config.toml");
-		replaceLine(tempConfigToml, "timeout_commit", "timeout_commit = \"" + getTargetBlockCreationTime() + "s\"");
+		replaceLine(tempConfigToml, "timeout_commit", "timeout_commit = \"" + (getTargetBlockCreationTime() / 1000) + "s\"");
 
 		var config = TendermintNodeConfigBuilders.defaults()
 				.setDir(Files.createTempDirectory("hotmoka-tendermint-chain-"))
@@ -562,7 +562,7 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 	private static int getTargetBlockCreationTime() {
 		// if the block creation time is too small, the nodes might lose synchronization
 		// because the time for whispering is higher than the time for mining new blocks
-		int targetBlockCreationTime = Integer.parseInt(System.getProperty("targetBlockCreationTime", "2"));
+		int targetBlockCreationTime = Integer.parseInt(System.getProperty("targetBlockCreationTime", "4000"));
 		if (targetBlockCreationTime < 1)
 			throw new IllegalArgumentException("The block creation time must be positive");
 		else
