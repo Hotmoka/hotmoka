@@ -504,9 +504,11 @@ without holding its controlling \texttt{.pem} file\index{moka@{\texttt{moka}}!ac
 Of course, you need the \texttt{\gameteShort{}.pem} file in your local machine if you want to use
 the crypto of that account (and you must know its password, if any). For instance, if you want to move $1000$
 coins from account \texttt{\gameteShort{}} to account \texttt{\manifestShort{}}, you can write
-\texttt{moka accounts send \gameteShort{} 1000 \manifestShort{} --uri \serverMokamint{} --password-of-payer}\index{moka@{\texttt{moka}}!accounts send@{\texttt{accounts send}}}.
-Note that you must be able to control the sender for that (you need \texttt{\gameteShort{}.pem}),
-but you do not need control of the receiver (you don't need \texttt{\manifestShort{}.pem}).
+%
+\inputCommand{moka_accounts_send_from_gamete}\index{moka@{\texttt{moka}}!accounts send@{\texttt{accounts send}}}
+%
+That requires that you can control the sender (you need \texttt{\gameteShort{}.pem}),
+but not that you control the receiver (you do not need \texttt{\manifestShort{}.pem}).
 
 \subsection{Start a node of an existing blockchain}\label{subsec:join_hotmoka_mokamint}
 
@@ -721,6 +723,53 @@ until the script terminates.
 Once the node has been configured and initialized, you can run it.
 Follow for this the instructions reported in Sec.~\ref{subsec:join_hotmoka_mokamint}
 for the \texttt{go} script.
+
+\subsection{Migrate a node}\label{subsec:migrate_a_node}
+
+What identifies a node is its key pair, used to sign the blocks that it creates.
+If you ran either \texttt{config-clone} or \texttt{config-new}, these scripts will
+have created a \texttt{node.pem} key pair file inside the configuration directory of the docker
+container, to identify the node. It might happen that you want to
+\emph{migrate} that node, \ie{}, you might want to move it into another machine, for instance
+because it has a larger disk space or a better internet connection. In order to keep the
+identity of the node, you need to recycle the same \texttt{node.pem} that was used in
+the previous machine. But running \texttt{config-clone} in the new machine will created
+a \emph{new} \texttt{node.pem} and you will end up with two key pairs, that of the old
+node and that of the new node. This is typically problematic, since you will have some coins collected
+while mining with the old key pair and other coins collected while mining with the new key pair.
+Instead, you normally want to keep the old \texttt{node.pem} and consolidate all earnings
+into that same key pair.
+
+Assume then that you have copied the key pair \texttt{node.pem} of the old node in your working directory of the new machine.
+Remember that you can extract it from the old node, running in the old machine, with
+%
+\begin{shellcommandbox}\begin{ttlst}
+docker cp hotmoka:/home/hotmoka/hotmoka_mokamint/node.pem .
+\end{ttlst}\end{shellcommandbox}
+%
+In the new machine, create the container, but do not start it yet:
+%
+\inputCommand{docker_mokamint_create_config_clone}
+%
+Note that we have given a name to the container (\texttt{hotmoka}) and that we asked to keep the existing
+\texttt{node.pem} key pair. Moreover, we are always using the same public key for the local miner of the new node as well,
+so that we also consolidate all earnings for the local miner. After creating the container in the new machine, let us
+inject the desired \texttt{node.pem} inside it:
+%
+\begin{shellcommandbox}\begin{ttlst}
+docker cp node.pem hotmoka:/home/hotmoka/hotmoka_mokamint/
+\end{ttlst}\end{shellcommandbox}
+%
+We can start the container \texttt{hotmoka} now: it will use the injected \texttt{node.pem}, instead
+of creating a new one, since we used \texttt{-e KEEP\_NODE\_PEM=true} when we created that container above:
+%
+\begin{shellcommandbox}\begin{ttlst}
+docker start --attach -i hotmoka
+\end{ttlst}\end{shellcommandbox}
+%
+This will start the container and create the configuration. When it will complete, you can run the migrated node, in the new machine,
+with the \texttt{go} script. It will perform an initial synchronization and then start mining,
+with the same identity as the old node.
 
 \section{Hotmoka blockchains based on Tendermint (proof of stake)}\label{sec:hotmoka_tendermint}
 
@@ -1058,7 +1107,7 @@ The docker \texttt{config-clone} and \texttt{config-new} scripts magically ensur
 correctly, this file contains the same key
 as \texttt{validator.pem}, although in a different format.
 
-\subsection{Become a validator}\label{subsec:become_validator}
+\subsection{How to become a validator}\label{subsec:become_validator}
 
 The configuration of a Hotmoka Tendermint node, created thorugh the \texttt{config-clone}
 or \texttt{config-new} commands,

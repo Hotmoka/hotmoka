@@ -134,8 +134,6 @@ public class UpdateForNewNode {
 	private static URI mokamintServer;
 	private static URI mokamintServerMining;
 	private static URI mokamintServerPublic;
-	private static URI mokamintMainServer;
-	private static URI mokamintMainServerMining;
 	private static URI mokamintMainServerPublic;
 	private static URI tendermintServer;
 	private static URI tendermintServerWhisper;
@@ -159,18 +157,18 @@ public class UpdateForNewNode {
 		mokamintServerPublic = new URI(args.length > 3 ? args[3] : "ws://panarea.hotmoka.io:8030");
 		tendermintServer = new URI(args.length > 4 ? args[4] : "ws://panarea.hotmoka.io:8002");
 		tendermintServerWhisper = new URI(args.length > 5 ? args[5] : "ws://panarea.hotmoka.io:26656");
-		mokamintMainServer = new URI(args.length > 6 ? args[6] : "ws://lipari.hotmoka.io:8001");
-		mokamintMainServerMining = new URI(args.length > 7 ? args[7] : "ws://lipari.hotmoka.io:8025");
+		//mokamintMainServer = new URI(args.length > 6 ? args[6] : "ws://lipari.hotmoka.io:8001");
+		//mokamintMainServerMining = new URI(args.length > 7 ? args[7] : "ws://lipari.hotmoka.io:8025");
 		mokamintMainServerPublic = new URI(args.length > 8 ? args[8] : "ws://lipari.hotmoka.io:8030");
 		Path tempDir = Files.createTempDirectory("tmp");
 		System.out.println("Saving temporary files inside the directory " + tempDir);
 
 		// you can comment out some of the following lines if you only want to regenerate a subset of the experiments
-		//new ExperimentsWithoutServer(outputDir, tempDir);
-		//new ExperimentsWithMokamintMainnet(outputDir, tempDir);
-		//new ExperimentsQuantumWithMokamintServer(outputDir, tempDir);
+		new ExperimentsWithoutServer(outputDir, tempDir);
+		new ExperimentsWithMokamintMainnet(outputDir, tempDir);
+		new ExperimentsQuantumWithMokamintServer(outputDir, tempDir);
 		new ExperimentsWithMokamintServer(outputDir, tempDir);
-		//new ExperimentsWithTendermintServer(outputDir, tempDir);
+		new ExperimentsWithTendermintServer(outputDir, tempDir);
 	}
 
 	/**
@@ -327,6 +325,8 @@ public class UpdateForNewNode {
 
 			createCommandFile("docker_mokamint_config_clone", "docker run -it --rm -e PUBLIC_KEY_MINER_BASE58=" + minerPublicKeyBase58 + " -e MOKAMINT_PUBLIC_SERVICE_URI=" + mokamintServerPublic + " -e PLOT_SIZE=4000 -v chain:/home/hotmoka/chain -v hotmoka_mokamint:/home/hotmoka/hotmoka_mokamint hotmoka/mokamint-node:" + HOTMOKA_VERSION + " config-clone");
 
+			createCommandFile("docker_mokamint_create_config_clone", "docker create -it --rm --name hotmoka -e KEEP_NODE_PEM=true -e PUBLIC_KEY_MINER_BASE58=" + minerPublicKeyBase58 + " -e MOKAMINT_PUBLIC_SERVICE_URI=" + mokamintServerPublic + " -e PLOT_SIZE=4000 -v chain:/home/hotmoka/chain -v hotmoka_mokamint:/home/hotmoka/hotmoka_mokamint hotmoka/mokamint-node:" + HOTMOKA_VERSION + " config-clone");
+			
 			createCommandFile("docker_mokamint_go", "docker run -it --log-driver local --rm --name hotmoka -p 8001:8001 -p 8025:8025 -p 8030:8030 -p 127.0.0.1:8031:8031 -v chain:/home/hotmoka/chain -v hotmoka_mokamint:/home/hotmoka/hotmoka_mokamint hotmoka/mokamint-node:" + HOTMOKA_VERSION + " go");
 
 			var output5 = KeysCreateOutputs.from(Moka.keysCreate("--name gamete.pem --output-dir=" + tempDir + " --password=moon --json"));
@@ -398,6 +398,8 @@ public class UpdateForNewNode {
 			StorageReference gamete = output3.getResult().get().asReference(value -> new IllegalStateException("The gamete should be a storage reference"));
 			report("gamete", gamete);
 			reportShort("gamete", gamete);
+
+			createCommandFile("moka_accounts_send_from_gamete", "moka accounts send " + gamete + " 1000 " + manifest + " --uri " + mokamintServer + " --password-of-payer");
 
 			createCommandFile("moka_accounts_show", "moka accounts show " + gamete + " --uri " + mokamintServer);
 			createOutputFile("moka_accounts_show", Moka.accountsShow(gamete + " --uri=" + mokamintServer  + " --timeout=" + TIMEOUT));

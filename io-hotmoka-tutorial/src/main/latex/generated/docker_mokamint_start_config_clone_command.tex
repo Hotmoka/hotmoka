@@ -1,0 +1,3 @@
+\begin{shellcommandbox}\begin{ttlst}
+docker start -it --rm --name hotmoka -e KEEP_NODE_PEM=true -e PUBLIC_KEY_MINER_BASE58=3MsAXNrBnycVtr1h7ZtnW5mSyNUi2in7fxfSTPe28evd -e MOKAMINT_PUBLIC_SERVICE_URI=ws://panarea.hotmoka.io:8030 -e PLOT_SIZE=4000 -v chain:/home/hotmoka/chain -v hotmoka_mokamint:/home/hotmoka/hotmoka_mokamint hotmoka/mokamint-node:1.12.2 config-clone
+\end{ttlst}\end{shellcommandbox}
