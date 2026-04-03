@@ -641,12 +641,12 @@ again if you want to resume the node.
 If you want to reconfigure the node, for instance because you want to resize its plot file,
 you can stop the node (\texttt{docker stop hotmoka}), rerun the \texttt{config-clone} script
 and then the \texttt{go} script. Note however that, by default, \texttt{config-clone} will
-create a \emph{new} \texttt{node.pem} key to identify the node and will
+create a \emph{new} \texttt{node.pem} key pair to identify the node and will
 erase the directory where the blockchain is kept. Therefore, you will end up with two
-node keys (the old one and the new one), while it would be normally easier to recycle the old key
-and consolidate all earnings in that same key. Moreover, the chain directory will have to be
+node key pairs (the old one and the new one), while it would be normally easier to recycle the old key
+pair and consolidate all earnings in that same key pair. Moreover, the chain directory will have to be
 downloaded again, from scratch, with a long synchronization, when \texttt{go} will be invoked.
-Because of this, we suggest that, when rerunning the \texttt{config-clone} script, you set
+To avoid all these problems, we suggest that, when rerunning the \texttt{config-clone} script, you set
 the environment variables \texttt{-e KEEP\_NODE\_PEM=true} and \texttt{-e KEEP\_CHAIN=true}
 in the docker invocation.
 
