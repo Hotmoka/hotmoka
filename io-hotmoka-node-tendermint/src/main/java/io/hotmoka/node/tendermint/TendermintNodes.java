@@ -28,9 +28,7 @@ public abstract class TendermintNodes {
 	private TendermintNodes() {}
 
 	/**
-	 * Starts a Tendermint node that uses an already existing store. The consensus
-	 * parameters are recovered from the manifest in the store, hence the store must
-	 * be that of an already initialized blockchain. It spawns the Tendermint process
+	 * Starts a Tendermint node, with a brand new store. It spawns the Tendermint process
 	 * and connects it to an ABCI application for handling its transactions.  It erases
 	 * the directory holding a previously created blockchain, if any.
 	 * 
@@ -43,7 +41,7 @@ public abstract class TendermintNodes {
 	}
 
 	/**
-	 * Starts a Tendermint node that uses an already existing store. The consensus
+	 * Starts a Tendermint node that uses an already existing store, if any. In that case, the consensus
 	 * parameters are recovered from the manifest in the store, hence the store must
 	 * be that of an already initialized blockchain. It spawns the Tendermint process
 	 * and connects it to an ABCI application for handling its transactions.  It does not

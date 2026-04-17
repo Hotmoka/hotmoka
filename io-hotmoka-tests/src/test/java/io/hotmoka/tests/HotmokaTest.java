@@ -352,29 +352,6 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 		}
 	}
 
-	private static Node mkTendermintNetwork() throws Exception {
-		consensus = fillConsensusConfig(TendermintConsensusConfigBuilders.defaults()).build();
-		delayBeforeIndexUpdate = 0L; // the index is updated immediately with the Tendermint node
-
-		// we copy the configuration directory in the temp directory,
-		// where we can edit it by replacing the block creation rate
-		Path tempConfig = Files.createTempDirectory("temp_tendermint_config");
-		copyFolder(Paths.get("tendermint_config"), tempConfig);
-		Path tempConfigToml = tempConfig.resolve("config").resolve("config.toml");
-		replaceLine(tempConfigToml, "timeout_commit", "timeout_commit = \"" + (getTargetBlockCreationTime() / 1000) + "s\"");
-
-		var config = TendermintNodeConfigBuilders.defaults()
-				.setDir(Files.createTempDirectory("hotmoka-tendermint-chain-"))
-				.setTendermintConfigurationToClone(tempConfig)
-				.setMaxGasPerViewTransaction(_1_000_000_000)
-				.setIndexSize(getIndexSize())
-				.build();
-
-		Node node = TendermintNodes.init(config);
-		nodes.add(node);
-		return node;
-	}
-
 	/**
 	 * This scenario assumes that there is an external, non-initialized node, published for instance like that:
 	 * 
@@ -430,6 +407,60 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 
 		nodes.add(node);
 		return node;
+	}
+
+	private static Node mkTendermintNetwork() throws Exception {
+		final int howManyNodes = getNumberOfNodes();
+		consensus = fillConsensusConfig(TendermintConsensusConfigBuilders.defaults()).build();
+		delayBeforeIndexUpdate = 0L; // the index is updated immediately with the Tendermint node
+		Node firstNode = null;
+		String firstNodeAsPersistentPeer = null;
+	
+		for (int nodeNum = 1; nodeNum <= howManyNodes; nodeNum++) {
+			var tendermintP2P_URI = URI.create("tcp://0.0.0.0:" + (26656 + 3 * (nodeNum - 1)));
+			var tendermintP2PExternal_URI = URI.create("tcp://127.0.0.1:" + tendermintP2P_URI.getPort());
+			var tendermintRPC_URI = URI.create("tcp://127.0.0.1:" + (26657 + 3 * (nodeNum - 1)));
+			var tendermintAPP_URI = URI.create("tcp://127.0.0.1:" + (26658 + 3 * (nodeNum - 1)));
+
+			// we copy the configuration directory in the temp directory, where we can edit it
+			Path tempConfig = Files.createTempDirectory("temp_tendermint_config-" + nodeNum + "-");
+			copyFolder(Paths.get("tendermint_config"), tempConfig);
+			Path tempConfigToml = tempConfig.resolve("config").resolve("config.toml");
+			replaceLine(tempConfigToml, "timeout_commit", Optional.of("consensus"), "timeout_commit = \"" + (getTargetBlockCreationTime() / 1000) + "s\"");
+			replaceLine(tempConfigToml, "laddr", Optional.of("rpc"), "laddr = \"" + tendermintRPC_URI + "\"");
+			replaceLine(tempConfigToml, "laddr", Optional.of("p2p"), "laddr = \"" + tendermintP2P_URI + "\"");
+			replaceLine(tempConfigToml, "proxy_app", Optional.empty(), "proxy_app = \"" + tendermintAPP_URI + "\"");
+			if (nodeNum > 1)
+				replaceLine(tempConfigToml, "persistent_peers", Optional.of("p2p"), "persistent_peers = \"" + firstNodeAsPersistentPeer + "\"");
+
+			System.out.println(tempConfigToml);
+	
+			var config = TendermintNodeConfigBuilders.defaults()
+					.setDir(Files.createTempDirectory("hotmoka-tendermint-chain-" + nodeNum + "-"))
+					.setTendermintConfigurationToClone(tempConfig)
+					.setMaxGasPerViewTransaction(_1_000_000_000)
+					.setIndexSize(getIndexSize())
+					.build();
+
+			Node node = TendermintNodes.init(config);
+			System.out.println(node.getInfo().getID());
+			
+			System.out.println(tendermintP2PExternal_URI + ": p2p of the underlying Tendermint node " + nodeNum);
+			System.out.println(tendermintRPC_URI + ": rpc of the underlying Tendermint node " + nodeNum);
+			System.out.println(tendermintAPP_URI + ": abci of the underlying Tendermint node " + nodeNum);
+
+			if (nodeNum == 1) {
+				firstNode = node;
+				firstNodeAsPersistentPeer = node.getInfo().getID() + "@127.0.0.1:" + tendermintP2P_URI.getPort();
+				System.out.print("Initializing Hotmoka node " + nodeNum + "...");
+				initializeNodeIfNeeded(node);
+				System.out.println(" done");
+			}
+
+			nodes.add(node);
+		}
+	
+		return firstNode;
 	}
 
 	private static Node mkMokamintNetwork() throws Exception {
@@ -513,8 +544,9 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 			if (nodeNum == 1) {
 				firstNode = node;
 				firstPublicUri = publicURI;
-				System.out.println("Initializing Hotmoka node " + nodeNum);
+				System.out.println("Initializing Hotmoka node " + nodeNum + "...");
 				initializeNodeIfNeeded(node);
+				System.out.println(" done");
 			}
 			else if (firstNode.getMokamintEngine().get().add(Peers.of(publicURI)).isPresent())
 				System.out.println("Added " + publicURI + " as a peer of " + firstPublicUri);
@@ -522,7 +554,7 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 				throw new LocalNodeException("Could not add " + publicURI + " as a peer of " + firstPublicUri);
 		}
 
-		return nodes.get(0);
+		return firstNode;
 	}
 
 	private static Node mkDiskNode() throws Exception {
@@ -577,12 +609,18 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 			return numberOfNodes;
 	}
 
-	private static void replaceLine(Path path, String prefix, String replacement) throws IOException {
+	private static void replaceLine(Path path, String prefix, Optional<String> section, String replacement) throws IOException {
+		prefix += " "; // to avoid a key that is a prefix of another key
+		boolean inSection = section.isEmpty();
+
 		List<String> fileContent = Files.readAllLines(path, StandardCharsets.UTF_8);
 	
 		var fileContentReplaced = new ArrayList<String>();
-		for (String s: fileContent)
-			fileContentReplaced.add(s.startsWith(prefix) ? replacement : s);
+		for (String s: fileContent) {
+			fileContentReplaced.add(inSection && s.startsWith(prefix) ? replacement : s);
+			if (section.isPresent() && s.startsWith("["))
+				inSection = s.substring(1).equals(section.get() + "]");
+		}
 	
 		Path tempFile = File.createTempFile("replacement", ".tmp").toPath();
 		Files.write(tempFile, fileContentReplaced, StandardCharsets.UTF_8);
