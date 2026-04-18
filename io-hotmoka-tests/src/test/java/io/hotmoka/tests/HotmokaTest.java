@@ -51,6 +51,7 @@ import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.TimeoutException;
+import java.util.function.Function;
 import java.util.stream.Stream;
 
 import org.jboss.shrinkwrap.resolver.api.maven.Maven;
@@ -58,8 +59,14 @@ import org.junit.jupiter.api.extension.BeforeAllCallback;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.extension.ExtensionContext;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+
 import io.hotmoka.crypto.Base58;
+import io.hotmoka.crypto.Base64;
 import io.hotmoka.crypto.Entropies;
+import io.hotmoka.crypto.HashingAlgorithms;
+import io.hotmoka.crypto.Hex;
 import io.hotmoka.crypto.SignatureAlgorithms;
 import io.hotmoka.crypto.api.SignatureAlgorithm;
 import io.hotmoka.crypto.api.Signer;
@@ -409,22 +416,94 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 		return node;
 	}
 
+	@SuppressWarnings("unused")
+	private static class TypedKey {
+		private final String type;
+		private final String value;
+
+		private TypedKey(String type, String value) {
+			this.type = type;
+			this.value = value;
+		}
+	}
+
+	@SuppressWarnings("unused")
+	private static class PrivKeyJSON {
+		private final TypedKey priv_key;
+		
+		private PrivKeyJSON(KeyPair keys) throws Exception {
+			byte[] publicKeyBytes = signature.encodingOf(keys.getPublic());
+			byte[] privateKeyBytes = signature.encodingOf(keys.getPrivate());
+			var concatenated = new byte[privateKeyBytes.length + publicKeyBytes.length];
+			System.arraycopy(privateKeyBytes, 0, concatenated, 0, privateKeyBytes.length);
+			System.arraycopy(publicKeyBytes, 0, concatenated, privateKeyBytes.length, publicKeyBytes.length);
+			String concatenatedBase64 = Base64.toBase64String(concatenated);
+			this.priv_key = new TypedKey("tendermint/PrivKeyEd25519", concatenatedBase64);
+		}
+	}
+
+	/**
+	 * The JSON description of a Tendermint validator key.
+	 */
+	@SuppressWarnings("unused")
+	private static class TendermintPrivValidatorJSON {
+		private final TypedKey pub_key;
+		private final String address;
+		private final TypedKey priv_key;
+
+		/**
+		 * Builds the JSON description of a Tendermint validator key.
+		 * 
+		 * @param keys the key pair of the validator, with empty password
+		 */
+		private TendermintPrivValidatorJSON(KeyPair keys) throws Exception {
+			byte[] publicKeyBytes = signature.encodingOf(keys.getPublic());
+			byte[] privateKeyBytes = signature.encodingOf(keys.getPrivate());
+			var concatenated = new byte[privateKeyBytes.length + publicKeyBytes.length];
+			System.arraycopy(privateKeyBytes, 0, concatenated, 0, privateKeyBytes.length);
+			System.arraycopy(publicKeyBytes, 0, concatenated, privateKeyBytes.length, publicKeyBytes.length);
+			String concatenatedBase64 = Base64.toBase64String(concatenated);
+			String publicKeyBase64 = Base64.toBase64String(publicKeyBytes);
+			byte[] sha256HashedKey = HashingAlgorithms.sha256().getHasher(Function.identity()).hash(publicKeyBytes);
+			String tendermintAddress = Hex.toHexString(sha256HashedKey, 0, 20).toUpperCase();
+
+			this.pub_key = new TypedKey("tendermint/PubKeyEd25519", publicKeyBase64);
+			this.address = tendermintAddress;
+			this.priv_key = new TypedKey("tendermint/PrivKeyEd25519", concatenatedBase64);
+		}
+	}
+
 	private static Node mkTendermintNetwork() throws Exception {
 		final int howManyNodes = getNumberOfNodes();
 		consensus = fillConsensusConfig(TendermintConsensusConfigBuilders.defaults()).build();
 		delayBeforeIndexUpdate = 0L; // the index is updated immediately with the Tendermint node
 		Node firstNode = null;
 		String firstNodeAsPersistentPeer = null;
-	
-		for (int nodeNum = 1; nodeNum <= howManyNodes; nodeNum++) {
-			var tendermintP2P_URI = URI.create("tcp://0.0.0.0:" + (26656 + 3 * (nodeNum - 1)));
-			var tendermintP2PExternal_URI = URI.create("tcp://127.0.0.1:" + tendermintP2P_URI.getPort());
-			var tendermintRPC_URI = URI.create("tcp://127.0.0.1:" + (26657 + 3 * (nodeNum - 1)));
-			var tendermintAPP_URI = URI.create("tcp://127.0.0.1:" + (26658 + 3 * (nodeNum - 1)));
+		var ed25519 = SignatureAlgorithms.ed25519();
+		Gson gson = new GsonBuilder().disableHtmlEscaping().create();
 
-			// we copy the configuration directory in the temp directory, where we can edit it
-			Path tempConfig = Files.createTempDirectory("temp_tendermint_config-" + nodeNum + "-");
+		for (int nodeNum = 1; nodeNum <= howManyNodes; nodeNum++) {
+			var tendermintP2P_URI = URI.create("tcp://0.0.0.0:" + (26656 + 4 * (nodeNum - 1)));
+			var tendermintP2PExternal_URI = URI.create("tcp://127.0.0.1:" + tendermintP2P_URI.getPort());
+			var tendermintRPC_URI = URI.create("tcp://127.0.0.1:" + (26657 + 4 * (nodeNum - 1)));
+			var tendermintAPP_URI = URI.create("tcp://127.0.0.1:" + (26658 + 4 * (nodeNum - 1)));
+			final var nodeURI = URI.create("ws://127.0.0.1:" + (26659 + 4 * (nodeNum - 1)));
+			var nodeKeyPair = ed25519.getKeyPair();
+			var privKeyJSON = new PrivKeyJSON(nodeKeyPair);
+			var privValidatorKeyJSON = new TendermintPrivValidatorJSON(nodeKeyPair);
+
+			Path chainDir = Files.createTempDirectory("hotmoka-tendermint-chain-" + nodeNum + "-");
+			// we copy the configuration directory in a temp directory, where we can edit it
+			Path tempConfig = Files.createTempDirectory("tendermint_config-" + nodeNum + "-");
 			copyFolder(Paths.get("tendermint_config"), tempConfig);
+
+			if (nodeNum > 1) {
+				Path tempConfigNodeKeyJson = tempConfig.resolve("config").resolve("node_key.json");
+				Files.writeString(tempConfigNodeKeyJson, gson.toJson(privKeyJSON) + "\n");
+				Path tempConfigPrivValidatorKeyJson = tempConfig.resolve("config").resolve("priv_validator_key.json");
+				Files.writeString(tempConfigPrivValidatorKeyJson, gson.toJson(privValidatorKeyJSON) + "\n");
+			}
+
 			Path tempConfigToml = tempConfig.resolve("config").resolve("config.toml");
 			replaceLine(tempConfigToml, "timeout_commit", Optional.of("consensus"), "timeout_commit = \"" + (getTargetBlockCreationTime() / 1000) + "s\"");
 			replaceLine(tempConfigToml, "laddr", Optional.of("rpc"), "laddr = \"" + tendermintRPC_URI + "\"");
@@ -433,21 +512,23 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 			if (nodeNum > 1)
 				replaceLine(tempConfigToml, "persistent_peers", Optional.of("p2p"), "persistent_peers = \"" + firstNodeAsPersistentPeer + "\"");
 
-			System.out.println(tempConfigToml);
+			System.out.println("Node " + nodeNum + ": " + tempConfig);
+			System.out.println("Node " + nodeNum + ": " + chainDir);
 	
 			var config = TendermintNodeConfigBuilders.defaults()
-					.setDir(Files.createTempDirectory("hotmoka-tendermint-chain-" + nodeNum + "-"))
+					.setDir(chainDir)
 					.setTendermintConfigurationToClone(tempConfig)
 					.setMaxGasPerViewTransaction(_1_000_000_000)
 					.setIndexSize(getIndexSize())
 					.build();
 
 			Node node = TendermintNodes.init(config);
-			System.out.println(node.getInfo().getID());
+			NodeServices.of(node, nodeURI.getPort());
 			
-			System.out.println(tendermintP2PExternal_URI + ": p2p of the underlying Tendermint node " + nodeNum);
-			System.out.println(tendermintRPC_URI + ": rpc of the underlying Tendermint node " + nodeNum);
-			System.out.println(tendermintAPP_URI + ": abci of the underlying Tendermint node " + nodeNum);
+			System.out.println(tendermintP2PExternal_URI + ": Tendermint node " + nodeNum + " (p2p)");
+			System.out.println(tendermintRPC_URI + ": Tendermint node " + nodeNum + " (rpc)");
+			System.out.println(tendermintAPP_URI + ": Tendermint node " + nodeNum + " (abci)");
+			System.out.println(nodeURI + ": Hotmoka node " + nodeNum);
 
 			if (nodeNum == 1) {
 				firstNode = node;
@@ -531,15 +612,18 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 
 			// we open a web service to the underlying Mokamint engine; this is not necessary,
 			// but it allows developers to interact with the node during the execution of the tests
-			final var publicURI = URI.create("ws://localhost:" + (8027 + nodeNum * 3));
-			final var restrictedURI = URI.create("ws://localhost:" + (8028 + nodeNum * 3));
-			final var applicationURI = URI.create("ws://localhost:" + (8029 + nodeNum * 3));
-			PublicNodeServices.open(engine, 8027 + nodeNum * 3, 1800000, 1000, Optional.of(publicURI));
-			RestrictedNodeServices.open(engine, 8028 + nodeNum * 3);
-			ApplicationServices.open(engine.getApplication(), 8029 + nodeNum * 3);
-			System.out.println(publicURI + ": underlying Mokamint node " + nodeNum + " (public)");
-			System.out.println(restrictedURI + ": underlying Mokamint node " + nodeNum + " (restricted)");
-			System.out.println(applicationURI + ": Mokamint application of Mokamint node " + nodeNum);
+			final var publicURI = URI.create("ws://localhost:" + (8027 + nodeNum * 4));
+			final var restrictedURI = URI.create("ws://localhost:" + (8028 + nodeNum * 4));
+			final var applicationURI = URI.create("ws://localhost:" + (8029 + nodeNum * 4));
+			final var nodeURI = URI.create("ws://localhost:" + (8030 + nodeNum * 4));
+			PublicNodeServices.open(engine, publicURI.getPort(), 1800000, 1000, Optional.of(publicURI));
+			RestrictedNodeServices.open(engine, restrictedURI.getPort());
+			ApplicationServices.open(engine.getApplication(), applicationURI.getPort());
+			NodeServices.of(node, nodeURI.getPort());
+			System.out.println(publicURI + ": Mokamint node " + nodeNum + " (public)");
+			System.out.println(restrictedURI + ": Mokamint node " + nodeNum + " (restricted)");
+			System.out.println(applicationURI + ": Mokamint node " + nodeNum + " (application)");
+			System.out.println(nodeURI + ": Hotmoka node " + nodeNum);
 
 			if (nodeNum == 1) {
 				firstNode = node;
