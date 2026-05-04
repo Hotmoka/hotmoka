@@ -216,30 +216,17 @@ public class RemoteNodeImpl extends AbstractRemote implements RemoteNode {
 
     	this.logPrefix = "node remote(" + uri + "): ";
 
-    	addSession(GET_INFO_ENDPOINT, uri, GetInfoEndpoint::new);
-    	addSession(GET_CONFIG_ENDPOINT, uri, GetConfigEndpoint::new);
-    	addSession(GET_TAKAMAKA_CODE_ENDPOINT, uri, GetTakamakaCodeEndpoint::new);
-    	addSession(GET_MANIFEST_ENDPOINT, uri, GetManifestEndpoint::new);
-    	addSession(GET_CLASS_TAG_ENDPOINT, uri, GetClassTagEndpoint::new);
-    	addSession(GET_STATE_ENDPOINT, uri, GetStateEndpoint::new);
-    	addSession(GET_INDEX_ENDPOINT, uri, GetIndexEndpoint::new);
-    	addSession(GET_REQUEST_ENDPOINT, uri, GetRequestEndpoint::new);
-    	addSession(GET_RESPONSE_ENDPOINT, uri, GetResponseEndpoint::new);
-    	addSession(GET_POLLED_RESPONSE_ENDPOINT, uri, GetPolledResponseEndpoint::new);
-    	addSession(ADD_GAMETE_CREATION_TRANSACTION_ENDPOINT, uri, AddGameteCreationTransactionEndpoint::new);
-    	addSession(ADD_JAR_STORE_INITIAL_TRANSACTION_ENDPOINT, uri, AddJarStoreInitialTransactionEndpoint::new);
-    	addSession(ADD_INITIALIZATION_TRANSACTION_ENDPOINT, uri, AddInitializationTransactionEndpoint::new);
-    	addSession(ADD_JAR_STORE_TRANSACTION_ENDPOINT, uri, AddJarStoreTransactionEndpoint::new);
-    	addSession(ADD_CONSTRUCTOR_CALL_TRANSACTION_ENDPOINT, uri, AddConstructorCallTransactionEndpoint::new);
-    	addSession(ADD_INSTANCE_METHOD_CALL_TRANSACTION_ENDPOINT, uri, AddInstanceMethodCallTransactionEndpoint::new);
-    	addSession(ADD_STATIC_METHOD_CALL_TRANSACTION_ENDPOINT, uri, AddStaticMethodCallTransactionEndpoint::new);
-    	addSession(POST_JAR_STORE_TRANSACTION_ENDPOINT, uri, PostJarStoreTransactionEndpoint::new);
-    	addSession(POST_CONSTRUCTOR_CALL_TRANSACTION_ENDPOINT, uri, PostConstructorCallTransactionEndpoint::new);
-    	addSession(POST_INSTANCE_METHOD_CALL_TRANSACTION_ENDPOINT, uri, PostInstanceMethodCallTransactionEndpoint::new);
-    	addSession(POST_STATIC_METHOD_CALL_TRANSACTION_ENDPOINT, uri, PostStaticMethodCallTransactionEndpoint::new);
-    	addSession(RUN_INSTANCE_METHOD_CALL_TRANSACTION_ENDPOINT, uri, RunInstanceMethodCallTransactionEndpoint::new);
-    	addSession(RUN_STATIC_METHOD_CALL_TRANSACTION_ENDPOINT, uri, RunStaticMethodCallTransactionEndpoint::new);
-    	addSession(EVENTS_ENDPOINT, uri, EventsEndpoint::new);
+    	addSessions(uri, GetInfoEndpoint::new, GetConfigEndpoint::new, GetTakamakaCodeEndpoint::new,
+    			GetManifestEndpoint::new, GetClassTagEndpoint::new, GetStateEndpoint::new,
+    			GetIndexEndpoint::new, GetRequestEndpoint::new, GetResponseEndpoint::new,
+    			GetPolledResponseEndpoint::new, AddGameteCreationTransactionEndpoint::new,
+    			AddJarStoreInitialTransactionEndpoint::new, AddInitializationTransactionEndpoint::new,
+    			AddJarStoreTransactionEndpoint::new, AddConstructorCallTransactionEndpoint::new,
+    			AddInstanceMethodCallTransactionEndpoint::new, AddStaticMethodCallTransactionEndpoint::new,
+    			PostJarStoreTransactionEndpoint::new, PostConstructorCallTransactionEndpoint::new,
+    			PostInstanceMethodCallTransactionEndpoint::new, PostStaticMethodCallTransactionEndpoint::new,
+    			RunInstanceMethodCallTransactionEndpoint::new, RunStaticMethodCallTransactionEndpoint::new,
+    			EventsEndpoint::new);
 
     	LOGGER.info(logPrefix + "connected");
     }
@@ -333,6 +320,11 @@ public class RemoteNodeImpl extends AbstractRemote implements RemoteNode {
 		protected Session deployAt(URI uri) throws FailedDeploymentException, InterruptedException {
 			return deployAt(uri, GetInfoResultMessages.Decoder.class, GetInfoMessages.Encoder.class);		
 		}
+
+		@Override
+		public String segment() {
+			return GET_INFO_ENDPOINT;
+		};
 	}
 
 	@Override
@@ -365,6 +357,11 @@ public class RemoteNodeImpl extends AbstractRemote implements RemoteNode {
 		protected Session deployAt(URI uri) throws FailedDeploymentException, InterruptedException {
 			return deployAt(uri, GetConfigResultMessages.Decoder.class, GetConfigMessages.Encoder.class);		
 		}
+
+		@Override
+		public String segment() {
+			return GET_CONFIG_ENDPOINT;
+		};
 	}
 
 	@Override
@@ -397,6 +394,11 @@ public class RemoteNodeImpl extends AbstractRemote implements RemoteNode {
 		protected Session deployAt(URI uri) throws FailedDeploymentException, InterruptedException {
 			return deployAt(uri, GetTakamakaCodeResultMessages.Decoder.class, ExceptionMessages.Decoder.class, GetTakamakaCodeMessages.Encoder.class);		
 		}
+
+		@Override
+		public String segment() {
+			return GET_TAKAMAKA_CODE_ENDPOINT;
+		};
 	}
 
 	@Override
@@ -429,6 +431,11 @@ public class RemoteNodeImpl extends AbstractRemote implements RemoteNode {
 		protected Session deployAt(URI uri) throws FailedDeploymentException, InterruptedException {
 			return deployAt(uri, GetManifestResultMessages.Decoder.class, ExceptionMessages.Decoder.class, GetManifestMessages.Encoder.class);		
 		}
+
+		@Override
+		public String segment() {
+			return GET_MANIFEST_ENDPOINT;
+		};
 	}
 
 	@Override
@@ -462,6 +469,11 @@ public class RemoteNodeImpl extends AbstractRemote implements RemoteNode {
 		protected Session deployAt(URI uri) throws FailedDeploymentException, InterruptedException {
 			return deployAt(uri, GetClassTagResultMessages.Decoder.class, ExceptionMessages.Decoder.class, GetClassTagMessages.Encoder.class);		
 		}
+
+		@Override
+		public String segment() {
+			return GET_CLASS_TAG_ENDPOINT;
+		};
 	}
 
 	@Override
@@ -495,6 +507,11 @@ public class RemoteNodeImpl extends AbstractRemote implements RemoteNode {
 		protected Session deployAt(URI uri) throws FailedDeploymentException, InterruptedException {
 			return deployAt(uri, GetStateResultMessages.Decoder.class, ExceptionMessages.Decoder.class, GetStateMessages.Encoder.class);		
 		}
+
+		@Override
+		public String segment() {
+			return GET_STATE_ENDPOINT;
+		};
 	}
 
 	@Override
@@ -528,6 +545,11 @@ public class RemoteNodeImpl extends AbstractRemote implements RemoteNode {
 		protected Session deployAt(URI uri) throws FailedDeploymentException, InterruptedException {
 			return deployAt(uri, GetIndexResultMessages.Decoder.class, ExceptionMessages.Decoder.class, GetIndexMessages.Encoder.class);		
 		}
+
+		@Override
+		public String segment() {
+			return GET_INDEX_ENDPOINT;
+		};
 	}
 
 	@Override
@@ -561,6 +583,11 @@ public class RemoteNodeImpl extends AbstractRemote implements RemoteNode {
 		protected Session deployAt(URI uri) throws FailedDeploymentException, InterruptedException {
 			return deployAt(uri, GetRequestResultMessages.Decoder.class, ExceptionMessages.Decoder.class, GetRequestMessages.Encoder.class);		
 		}
+
+		@Override
+		public String segment() {
+			return GET_REQUEST_ENDPOINT;
+		};
 	}
 
 	@Override
@@ -594,6 +621,11 @@ public class RemoteNodeImpl extends AbstractRemote implements RemoteNode {
 		protected Session deployAt(URI uri) throws FailedDeploymentException, InterruptedException {
 			return deployAt(uri, GetResponseResultMessages.Decoder.class, ExceptionMessages.Decoder.class, GetResponseMessages.Encoder.class);		
 		}
+
+		@Override
+		public String segment() {
+			return GET_RESPONSE_ENDPOINT;
+		};
 	}
 
 	@Override
@@ -627,6 +659,11 @@ public class RemoteNodeImpl extends AbstractRemote implements RemoteNode {
 		protected Session deployAt(URI uri) throws FailedDeploymentException, InterruptedException {
 			return deployAt(uri, GetPolledResponseResultMessages.Decoder.class, ExceptionMessages.Decoder.class, GetPolledResponseMessages.Encoder.class);		
 		}
+
+		@Override
+		public String segment() {
+			return GET_POLLED_RESPONSE_ENDPOINT;
+		};
 	}
 
 	@Override
@@ -660,6 +697,11 @@ public class RemoteNodeImpl extends AbstractRemote implements RemoteNode {
 		protected Session deployAt(URI uri) throws FailedDeploymentException, InterruptedException {
 			return deployAt(uri, RunInstanceMethodCallTransactionResultMessages.Decoder.class, ExceptionMessages.Decoder.class, RunInstanceMethodCallTransactionMessages.Encoder.class);
 		}
+
+		@Override
+		public String segment() {
+			return RUN_INSTANCE_METHOD_CALL_TRANSACTION_ENDPOINT;
+		};
 	}
 
 	@Override
@@ -693,6 +735,11 @@ public class RemoteNodeImpl extends AbstractRemote implements RemoteNode {
 		protected Session deployAt(URI uri) throws FailedDeploymentException, InterruptedException {
 			return deployAt(uri, RunStaticMethodCallTransactionResultMessages.Decoder.class, ExceptionMessages.Decoder.class, RunStaticMethodCallTransactionMessages.Encoder.class);
 		}
+
+		@Override
+		public String segment() {
+			return RUN_STATIC_METHOD_CALL_TRANSACTION_ENDPOINT;
+		};
 	}
 
 	@Override
@@ -726,6 +773,11 @@ public class RemoteNodeImpl extends AbstractRemote implements RemoteNode {
 		protected Session deployAt(URI uri) throws FailedDeploymentException, InterruptedException {
 			return deployAt(uri, AddInstanceMethodCallTransactionResultMessages.Decoder.class, ExceptionMessages.Decoder.class, AddInstanceMethodCallTransactionMessages.Encoder.class);
 		}
+
+		@Override
+		public String segment() {
+			return ADD_INSTANCE_METHOD_CALL_TRANSACTION_ENDPOINT;
+		};
 	}
 
 	@Override
@@ -759,6 +811,11 @@ public class RemoteNodeImpl extends AbstractRemote implements RemoteNode {
 		protected Session deployAt(URI uri) throws FailedDeploymentException, InterruptedException {
 			return deployAt(uri, AddStaticMethodCallTransactionResultMessages.Decoder.class, ExceptionMessages.Decoder.class, AddStaticMethodCallTransactionMessages.Encoder.class);
 		}
+
+		@Override
+		public String segment() {
+			return ADD_STATIC_METHOD_CALL_TRANSACTION_ENDPOINT;
+		};
 	}
 
 	@Override
@@ -792,6 +849,11 @@ public class RemoteNodeImpl extends AbstractRemote implements RemoteNode {
 		protected Session deployAt(URI uri) throws FailedDeploymentException, InterruptedException {
 			return deployAt(uri, AddConstructorCallTransactionResultMessages.Decoder.class, ExceptionMessages.Decoder.class, AddConstructorCallTransactionMessages.Encoder.class);
 		}
+
+		@Override
+		public String segment() {
+			return ADD_CONSTRUCTOR_CALL_TRANSACTION_ENDPOINT;
+		};
 	}
 
 	@Override
@@ -825,6 +887,11 @@ public class RemoteNodeImpl extends AbstractRemote implements RemoteNode {
 		protected Session deployAt(URI uri) throws FailedDeploymentException, InterruptedException {
 			return deployAt(uri, AddJarStoreTransactionResultMessages.Decoder.class, ExceptionMessages.Decoder.class, AddJarStoreTransactionMessages.Encoder.class);
 		}
+
+		@Override
+		public String segment() {
+			return ADD_JAR_STORE_TRANSACTION_ENDPOINT;
+		};
 	}
 
 	@Override
@@ -858,6 +925,11 @@ public class RemoteNodeImpl extends AbstractRemote implements RemoteNode {
 		protected Session deployAt(URI uri) throws FailedDeploymentException, InterruptedException {
 			return deployAt(uri, AddGameteCreationTransactionResultMessages.Decoder.class, ExceptionMessages.Decoder.class, AddGameteCreationTransactionMessages.Encoder.class);
 		}
+
+		@Override
+		public String segment() {
+			return ADD_GAMETE_CREATION_TRANSACTION_ENDPOINT;
+		};
 	}
 
 	@Override
@@ -891,6 +963,11 @@ public class RemoteNodeImpl extends AbstractRemote implements RemoteNode {
 		protected Session deployAt(URI uri) throws FailedDeploymentException, InterruptedException {
 			return deployAt(uri, AddJarStoreInitialTransactionResultMessages.Decoder.class, ExceptionMessages.Decoder.class, AddJarStoreInitialTransactionMessages.Encoder.class);
 		}
+
+		@Override
+		public String segment() {
+			return ADD_JAR_STORE_INITIAL_TRANSACTION_ENDPOINT;
+		};
 	}
 
 	@Override
@@ -924,6 +1001,11 @@ public class RemoteNodeImpl extends AbstractRemote implements RemoteNode {
 		protected Session deployAt(URI uri) throws FailedDeploymentException, InterruptedException {
 			return deployAt(uri, AddInitializationTransactionResultMessages.Decoder.class, ExceptionMessages.Decoder.class, AddInitializationTransactionMessages.Encoder.class);
 		}
+
+		@Override
+		public String segment() {
+			return ADD_INITIALIZATION_TRANSACTION_ENDPOINT;
+		};
 	}
 
 	@Override
@@ -957,6 +1039,11 @@ public class RemoteNodeImpl extends AbstractRemote implements RemoteNode {
 		protected Session deployAt(URI uri) throws FailedDeploymentException, InterruptedException {
 			return deployAt(uri, PostConstructorCallTransactionResultMessages.Decoder.class, ExceptionMessages.Decoder.class, PostConstructorCallTransactionMessages.Encoder.class);
 		}
+
+		@Override
+		public String segment() {
+			return POST_CONSTRUCTOR_CALL_TRANSACTION_ENDPOINT;
+		};
 	}
 
 	@Override
@@ -990,6 +1077,11 @@ public class RemoteNodeImpl extends AbstractRemote implements RemoteNode {
 		protected Session deployAt(URI uri) throws FailedDeploymentException, InterruptedException {
 			return deployAt(uri, PostInstanceMethodCallTransactionResultMessages.Decoder.class, ExceptionMessages.Decoder.class, PostInstanceMethodCallTransactionMessages.Encoder.class);
 		}
+
+		@Override
+		public String segment() {
+			return POST_INSTANCE_METHOD_CALL_TRANSACTION_ENDPOINT;
+		};
 	}
 
 	@Override
@@ -1023,6 +1115,11 @@ public class RemoteNodeImpl extends AbstractRemote implements RemoteNode {
 		protected Session deployAt(URI uri) throws FailedDeploymentException, InterruptedException {
 			return deployAt(uri, PostStaticMethodCallTransactionResultMessages.Decoder.class, ExceptionMessages.Decoder.class, PostStaticMethodCallTransactionMessages.Encoder.class);
 		}
+
+		@Override
+		public String segment() {
+			return POST_STATIC_METHOD_CALL_TRANSACTION_ENDPOINT;
+		};
 	}
 
 	@Override
@@ -1056,6 +1153,11 @@ public class RemoteNodeImpl extends AbstractRemote implements RemoteNode {
 		protected Session deployAt(URI uri) throws FailedDeploymentException, InterruptedException {
 			return deployAt(uri, PostJarStoreTransactionResultMessages.Decoder.class, ExceptionMessages.Decoder.class, PostJarStoreTransactionMessages.Encoder.class);
 		}
+
+		@Override
+		public String segment() {
+			return POST_JAR_STORE_TRANSACTION_ENDPOINT;
+		};
 	}
 
 	private class EventsEndpoint extends Endpoint {
@@ -1069,6 +1171,11 @@ public class RemoteNodeImpl extends AbstractRemote implements RemoteNode {
 		protected Session deployAt(URI uri) throws FailedDeploymentException, InterruptedException {
 			return deployAt(uri, EventMessages.Decoder.class);
 		}
+
+		@Override
+		public String segment() {
+			return EVENTS_ENDPOINT;
+		};
 	}
 
 	@Override
