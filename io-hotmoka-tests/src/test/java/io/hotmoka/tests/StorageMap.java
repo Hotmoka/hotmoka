@@ -244,12 +244,16 @@ class StorageMap extends HotmokaTest {
 		var random = new Random();
 		int i = 0;
 		do {
+			var value = StorageValues.bigIntegerOf(random.nextLong());
+			System.out.println("mapping " + accounts[i] + " to " + value);
 			addInstanceVoidMethodCallTransaction
-				(key, account0, _500_000, BigInteger.ONE, classpath, STORAGE_MAP_PUT, map, accounts[i], StorageValues.bigIntegerOf(random.nextLong()));
+				(key, account0, _500_000, BigInteger.ONE, classpath, STORAGE_MAP_PUT, map, accounts[i], value);
 		}
 		while (++i < 10);
 
-		addInstanceVoidMethodCallTransaction(key, account0, _500_000, BigInteger.ONE, classpath, STORAGE_MAP_REMOVE, map, accounts[random.nextInt(10)]);
+		var removed = accounts[random.nextInt(10)];
+		System.out.println("removing " + removed);
+		addInstanceVoidMethodCallTransaction(key, account0, _500_000, BigInteger.ONE, classpath, STORAGE_MAP_REMOVE, map, removed);
 
 		int size = runInstanceNonVoidMethodCallTransaction(account0, _500_000, classpath, STORAGE_MAP_SIZE, map).asReturnedInt(STORAGE_MAP_SIZE, UnexpectedValueException::new);
 
