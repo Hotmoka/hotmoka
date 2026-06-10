@@ -155,7 +155,7 @@ public class NodeServiceImpl extends AbstractRPCWebSocketServer implements NodeS
 	 * @throws FailedDeploymentException if the service cannot be deployed
 	 */
     public NodeServiceImpl(Node node, int port) throws FailedDeploymentException {
-    	super(1000, 1000);
+    	super(1000, Runtime.getRuntime().availableProcessors() * 2);
 
     	this.node = node;
     	this.logPrefix = "node service(ws://localhost:" + port + "): ";
