@@ -34,9 +34,9 @@ RUN echo "#!/bin/bash" > moka \
 
 # add /home/hotmoka to the classpath in order to find the logging properties file that prints logs on the screen:
 # that will replace the logging properties file embedded in the jars
-RUN echo java -Djava.util.logging.config.file=logging.properties --module-path /modules/explicit_or_automatic --class-path \"/home/hotmoka/:/modules/unnamed/*\" --add-modules org.glassfish.tyrus.container.grizzly.server,org.glassfish.tyrus.container.grizzly.client --module io.hotmoka.moka/io.hotmoka.moka.Moka \"\$@\" >> moka-print-logs \
+RUN echo java -Xmx4g -Djava.util.logging.config.file=logging.properties --module-path /modules/explicit_or_automatic --class-path \"/home/hotmoka/:/modules/unnamed/*\" --add-modules org.glassfish.tyrus.container.grizzly.server,org.glassfish.tyrus.container.grizzly.client --module io.hotmoka.moka/io.hotmoka.moka.Moka \"\$@\" >> moka-print-logs \
   && chmod a+x moka-print-logs \
-  && echo java --module-path /modules/explicit_or_automatic --class-path \"/modules/unnamed/*\" --add-modules org.glassfish.tyrus.container.grizzly.server,org.glassfish.tyrus.container.grizzly.client --module io.hotmoka.moka/io.hotmoka.moka.Moka \"\$@\" >> moka \
+  && echo java -Xmx4g --module-path /modules/explicit_or_automatic --class-path \"/modules/unnamed/*\" --add-modules org.glassfish.tyrus.container.grizzly.server,org.glassfish.tyrus.container.grizzly.client --module io.hotmoka.moka/io.hotmoka.moka.Moka \"\$@\" >> moka \
   && chmod a+x moka
   
 # install the control scripts
