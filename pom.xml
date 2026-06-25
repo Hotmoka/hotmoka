@@ -28,14 +28,14 @@ Note: submodules whose artifact must be deployed on Maven Central must activate 
     <hotmoka.version>1.12.4</hotmoka.version>
     <io.takamaka.code.version>1.8.1</io.takamaka.code.version>
     <io.hotmoka.annotations.version>1.4.1</io.hotmoka.annotations.version>
-    <io.hotmoka.cli.version>1.5.6</io.hotmoka.cli.version>
-    <io.hotmoka.crypto.version>1.5.5</io.hotmoka.crypto.version>
-    <io.hotmoka.websockets.version>1.8.0</io.hotmoka.websockets.version>
+    <io.hotmoka.cli.version>1.5.7</io.hotmoka.cli.version>
+    <io.hotmoka.crypto.version>1.5.6</io.hotmoka.crypto.version>
+    <io.hotmoka.websockets.version>1.8.1</io.hotmoka.websockets.version>
     <io.hotmoka.marshalling.version>1.4.8</io.hotmoka.marshalling.version>
     <io.hotmoka.exceptions.version>1.6.0</io.hotmoka.exceptions.version>
     <io.hotmoka.testing.version>1.4.1</io.hotmoka.testing.version>
     <io.hotmoka.xodus.version>1.4.9</io.hotmoka.xodus.version>
-    <io.hotmoka.patricia.version>1.12.3</io.hotmoka.patricia.version>
+    <io.hotmoka.patricia.version>1.12.4</io.hotmoka.patricia.version>
     <io.hotmoka.closeables.version>1.5.0</io.hotmoka.closeables.version>
     <it.univr.bcel.version>1.2.1</it.univr.bcel.version>
     <bcel.version>6.7.0</bcel.version>
@@ -130,19 +130,19 @@ Note: submodules whose artifact must be deployed on Maven Central must activate 
     <dependency>
       <groupId>org.junit.jupiter</groupId>
       <artifactId>junit-jupiter-engine</artifactId>
-      <version>5.9.2</version>
+      <version>6.1.0</version>
       <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>org.junit.jupiter</groupId>
       <artifactId>junit-jupiter</artifactId>
-      <version>5.9.2</version>
+      <version>6.1.0</version>
       <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>org.mockito</groupId>
       <artifactId>mockito-core</artifactId>
-      <version>5.3.0</version>
+      <version>5.23.0</version>
       <scope>test</scope>
     </dependency>
     <dependency>

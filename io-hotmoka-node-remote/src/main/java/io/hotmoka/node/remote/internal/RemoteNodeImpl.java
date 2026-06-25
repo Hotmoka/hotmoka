@@ -213,7 +213,7 @@ public class RemoteNodeImpl extends AbstractRemote implements RemoteNode {
 	 * @throws InterruptedException if the deployment of the remote has been interrupted
      */
     public RemoteNodeImpl(URI uri, int timeout) throws FailedDeploymentException, InterruptedException {
-    	super(timeout);
+    	super(timeout, true);
 
     	this.logPrefix = "node remote(" + uri + "): ";
 
