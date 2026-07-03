@@ -18,12 +18,12 @@ package io.hotmoka.tests;
 
 /**
  * A superclass of all tests. It understands the following environment variables:
- * {@code -DnodeType=[mokamint,tendermint,disk,mokamint-remote,tendermint-remote,disk-remote]}:
+ * {@code -DnodeType=[mokamint,tendermint,stubbed,mokamint-remote,tendermint-remote,stubbed-remote]}:
  * the kind of node to test.
  * {@code -DonlyTimeIndependentTests}: runs only tests that do not depend on timings.
  * {@code -DtargetBlockCreationTime=num}: the number of milliseconds between two consecutive blocks.
  * {@code -DnumberOfNodes=num}: the number of nodes of the network to test.
- * The last two are not meaningful for disk nodes.
+ * The last two are not meaningful for stubbed nodes.
  */
 
 import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
@@ -150,7 +150,7 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 	protected static final BigInteger _1_000_000_000 = BigInteger.valueOf(1_000_000_000);
 	protected static final BigInteger _10_000_000_000 = BigInteger.valueOf(10_000_000_000L);
 
-	static class NodeHandler implements BeforeAllCallback, ExtensionContext.Store.CloseableResource {
+	static class NodeHandler implements BeforeAllCallback, AutoCloseable {
 
 	    private static boolean started = false;
 
@@ -185,11 +185,11 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 	    			node = wrapped = mkMokamintNetwork(); break;
 	    		case "mokamint-remote":
 	    			node = wrapped = mkRemoteNode(mkMokamintNetwork()); break;
-	    		case "disk":
+	    		case "stubbed":
 	    		default:
-	    			node = wrapped = mkDiskNode(); break;
-	    		case "disk-remote":
-	    			node = mkRemoteNode(wrapped = mkDiskNode()); break;
+	    			node = wrapped = mkStubbedNode(); break;
+	    		case "stubbed-remote":
+	    			node = mkRemoteNode(wrapped = mkStubbedNode()); break;
 	    		}
 
 	    		initializeNodeIfNeeded(wrapped);
@@ -738,12 +738,12 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 		return firstNode;
 	}
 
-	private static Node mkDiskNode() throws Exception {
+	private static Node mkStubbedNode() throws Exception {
 		consensus = fillConsensusConfig(ConsensusConfigBuilders.defaults()).build();
-		delayBeforeIndexUpdate = 0L; // the index is updated immediately with the disk node
+		delayBeforeIndexUpdate = 0L; // the index is updated immediately with the stubbed node
 
 		var config = DiskNodeConfigBuilders.defaults()
-				.setDir(Files.createTempDirectory("hotmoka-disk-chain-"))
+				.setDir(Files.createTempDirectory("hotmoka-stubbed-chain-"))
 				.setMaxGasPerViewTransaction(_1_000_000_000)
 				.setMaxPollingAttempts(100) // we fix these two so that we know the timeout in case of problems
 				.setPollingDelay(10)
@@ -769,7 +769,7 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 	}
 
 	private static String getNodeType() {
-		return System.getProperty("nodeType", "disk");
+		return System.getProperty("nodeType", "stubbed");
 	}
 
 	private static int getTargetBlockCreationTime() {

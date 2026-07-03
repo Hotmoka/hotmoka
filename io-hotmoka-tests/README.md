@@ -48,7 +48,7 @@ You can run the tests against a local blockchain with proof of stake consensus, 
 consisting of a single validator node that creates a block every four seconds (4000 milliseconds):
 
 ```console
-$ mvn test -DnodeType=tendermint -DnumberOfNodes=1 -DtargetBlockCreationTime=4000
+$ mvn clean test -DnodeType=tendermint -DnumberOfNodes=1 -DtargetBlockCreationTime=4000
 ```
 
 (This will take a long time: stop it with CTRL+C whenever you want).
@@ -58,14 +58,14 @@ local blockchain, with a reduced the block creation rate
 of three seconds and spawning four nodes, as follows:
 
 ```console
-$ mvn test -DnodeType=tendermint -DnumberOfNodes=4 -DtargetBlockCreationTime=3000
+$ mvn clean test -DnodeType=tendermint -DnumberOfNodes=4 -DtargetBlockCreationTime=3000
 ```
 
 You can run the same tests against a proof of space local blockchain consisting of a single
 Mokamint node and creating a block every four seconds, on average:
 
 ```console
-$ mvn test -DnodeType=mokamint -DnumberOfNodes=1 -DtargetBlockCreationTime=4000
+$ mvn clean test -DnodeType=mokamint -DnumberOfNodes=1 -DtargetBlockCreationTime=4000
 ```
 
 You can run the same tests against a stubbed implementation that does not actually run a peer
@@ -73,14 +73,14 @@ and a block database but just executes the smart contracts with Hotmoka.
 This is not a real blockchain but allows to run the tests much faster:
 
 ```console
-$ mvn -DnodeType=disk
+$ mvn clean -DnodeType=stubbed
 ```
 
 You can run the same tests against a remote stubbed peer, connected through the internet in localhost rather
 than called directly as a Java object:
 
 ```console
-$ mvn -DnodeType=disk-remote
+$ mvn clean test -DnodeType=stubbed-remote
 ```
 
 You can do the same with `tendermint-remote` and `mokamint-remote`.
