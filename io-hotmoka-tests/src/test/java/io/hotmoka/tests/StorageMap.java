@@ -251,11 +251,13 @@ class StorageMap extends HotmokaTest {
 		}
 		while (++i < 10);
 
+		int size = runInstanceNonVoidMethodCallTransaction(account0, _500_000, classpath, STORAGE_MAP_SIZE, map).asReturnedInt(STORAGE_MAP_SIZE, UnexpectedValueException::new);
+		System.out.println("size for now is " + size);
 		var removed = accounts[random.nextInt(10)];
 		System.out.println("removing " + removed);
 		addInstanceVoidMethodCallTransaction(key, account0, _500_000, BigInteger.ONE, classpath, STORAGE_MAP_REMOVE, map, removed);
 
-		int size = runInstanceNonVoidMethodCallTransaction(account0, _500_000, classpath, STORAGE_MAP_SIZE, map).asReturnedInt(STORAGE_MAP_SIZE, UnexpectedValueException::new);
+		size = runInstanceNonVoidMethodCallTransaction(account0, _500_000, classpath, STORAGE_MAP_SIZE, map).asReturnedInt(STORAGE_MAP_SIZE, UnexpectedValueException::new);
 
 		assertEquals(9, size); // TODO: this has failed a couple of times with size == 8...
 	}
