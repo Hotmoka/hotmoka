@@ -1,4 +1,4 @@
-<p align="center"><img width="320" src="io-hotmoka-tutorial/src/main/resources/pics/hotmoka_logo.png" alt="Hotmoka logo"></p>
+<p align="center"><img width="320" src="../io-hotmoka-tutorial/src/main/resources/pics/hotmoka_logo.png" alt="Hotmoka logo"></p>
 
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](http://www.apache.org/licenses/LICENSE-2.0.html)
 
@@ -73,14 +73,14 @@ and a block database but just executes the smart contracts with Hotmoka.
 This is not a real blockchain but allows to run the tests much faster:
 
 ```console
-mvn -DnodeType=disk
+$ mvn -DnodeType=disk
 ```
 
 You can run the same tests against a remote stubbed peer, connected through the internet in localhost rather
 than called directly as a Java object:
 
 ```console
-mvn -DnodeType=disk-remote
+$ mvn -DnodeType=disk-remote
 ```
 
 You can do the same with `tendermint-remote` and `mokamint-remote`.
@@ -93,6 +93,6 @@ have probabilistic finality and history changes, that confuse JUnit.
 
 &nbsp;
 
-<p align="center"><img width="100" src="../pics/CC_license.png" alt="This documentation is licensed under a Creative Commons Attribution 4.0 International License"></p><p align="center">This document is licensed under a Creative Commons Attribution 4.0 International License.</p>
+<p align="center"><img width="100" src="../io-hotmoka-tutorial/src/main/resources/pics/CC_license.png" alt="This documentation is licensed under a Creative Commons Attribution 4.0 International License"></p><p align="center">This document is licensed under a Creative Commons Attribution 4.0 International License.</p>
 
 <p align="center">Copyright 2026 by Fausto Spoto (fausto.spoto@hotmoka.io).</p>
