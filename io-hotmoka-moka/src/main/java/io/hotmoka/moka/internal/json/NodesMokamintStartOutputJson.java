@@ -37,10 +37,20 @@ public abstract class NodesMokamintStartOutputJson extends NodeStartOutputJson i
 		this.uriMokamintRestricted = output.getURIMokamintRestricted();
 	}
 
+	/**
+	 * Yields the URI of the public part of the published Mokamint node service.
+	 * 
+	 * @return the URI of the public part of the published Mokamint node service
+	 */
 	public URI getURIMokamintPublic() {
 		return uriMokamintPublic;
 	}
 
+	/**
+	 * Yields the URI of the restricted part of the published Mokamint node service.
+	 * 
+	 * @return the URI of the restricted part of the published Mokamint node service
+	 */
 	public URI getURIMokamintRestricted() {
 		return uriMokamintRestricted;
 	}

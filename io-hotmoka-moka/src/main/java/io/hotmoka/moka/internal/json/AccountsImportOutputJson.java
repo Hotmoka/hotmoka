@@ -34,10 +34,20 @@ public abstract class AccountsImportOutputJson implements JsonRepresentation<Acc
 		this.account = new StorageValues.Json(output.getAccount());
 	}
 
+	/**
+	 * Yields the path where the file of the imported account has been saved.
+	 * 
+	 * @return the path where the file of the imported account has been saved
+	 */
 	public String getFile() {
 		return file;
 	}
 
+	/**
+	 * Yields the reference of the account that has been imported.
+	 * 
+	 * @return the reference of the account that has been imported
+	 */
 	public StorageValues.Json getAccount() {
 		return account;
 	}

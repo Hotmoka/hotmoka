@@ -32,6 +32,11 @@ public abstract class NodesManifestAddressOutputJson implements JsonRepresentati
 		this.manifest = new StorageValues.Json(output.getManifest());
 	}
 
+	/**
+	 * Yields the reference to the manifest.
+	 * 
+	 * @return the reference to the manifest
+	 */
 	public StorageValues.Json getManifest() {
 		return manifest;
 	}

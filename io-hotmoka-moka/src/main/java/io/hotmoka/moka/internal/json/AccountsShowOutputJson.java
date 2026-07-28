@@ -43,22 +43,47 @@ public abstract class AccountsShowOutputJson implements JsonRepresentation<Accou
 		this.publicKeyBase64 = output.getPublicKeyBase64();
 	}
 
+	/**
+	 * Yields the reference of the account that is being shown.
+	 * 
+	 * @return the reference of the account that is being shown
+	 */
 	public StorageValues.Json getAccount() {
 		return account;
 	}
 
+	/**
+	 * Yields the balance of the account.
+	 * 
+	 * @return the balance of the account
+	 */
 	public BigInteger getBalance() {
 		return balance;
 	}
 
+	/**
+	 * Yields the signature algorithm used by the account.
+	 * 
+	 * @return the signature algorithm used by the account
+	 */
 	public String getSignature() {
 		return signature;
 	}
 
+	/**
+	 * Yields the base58-encoded public key of the account.
+	 * 
+	 * @return the base58-encoded public key of the account
+	 */
 	public String getPublicKeyBase58() {
 		return publicKeyBase58;
 	}
 
+	/**
+	 * Yields the base64-encoded public key of the account.
+	 * 
+	 * @return the base64-encoded public key of the account
+	 */
 	public String getPublicKeyBase64() {
 		return publicKeyBase64;
 	}

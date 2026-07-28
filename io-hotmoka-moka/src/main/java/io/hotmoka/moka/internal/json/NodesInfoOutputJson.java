@@ -32,6 +32,11 @@ public abstract class NodesInfoOutputJson implements JsonRepresentation<NodesInf
 		this.info = new NodeInfos.Json(output.getInfo());
 	}
 
+	/**
+	 * Yields the node information in this output.
+	 * 
+	 * @return the node information in this output
+	 */
 	public final NodeInfos.Json getInfo() {
 		return info;
 	}

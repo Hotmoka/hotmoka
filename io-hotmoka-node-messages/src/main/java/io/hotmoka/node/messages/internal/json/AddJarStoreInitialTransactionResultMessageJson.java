@@ -34,6 +34,11 @@ public abstract class AddJarStoreInitialTransactionResultMessageJson extends Abs
 		this.result = new TransactionReferences.Json(message.get());
 	}
 
+	/**
+	 * Yields the result of the jar store operation.
+	 * 
+	 * @return the result of the jar store operation (the reference to the installed jar)
+	 */
 	public final TransactionReferences.Json getResult() {
 		return result;
 	}

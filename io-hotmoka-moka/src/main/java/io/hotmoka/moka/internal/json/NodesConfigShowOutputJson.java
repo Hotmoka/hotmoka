@@ -34,6 +34,11 @@ public abstract class NodesConfigShowOutputJson implements JsonRepresentation<No
 		this.config = new ConsensusConfigBuilders.Json(output.getConfig());
 	}
 
+	/**
+	 * Yields the node configuration in this output.
+	 * 
+	 * @return the node configuration in this output
+	 */
 	public final ConsensusConfigBuilders.Json getConfig() {
 		return config;
 	}

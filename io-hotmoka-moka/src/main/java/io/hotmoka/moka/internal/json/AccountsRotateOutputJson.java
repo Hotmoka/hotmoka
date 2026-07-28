@@ -38,10 +38,24 @@ public class AccountsRotateOutputJson extends GasCostOutputJson implements JsonR
 		this.file = output.getFile().map(Object::toString).orElse(null);
 	}
 
+	/**
+	 * Yields the reference to the account whose keys have been rotated.
+	 * 
+	 * @return the reference to the account whose keys have been rotated; this is missing if the transaction
+	 *         has just been posted rather than added, or if the transaction failed
+	 */
 	public Optional<StorageValues.Json> getAccount() {
 		return Optional.ofNullable(account);
 	}
 
+	/**
+	 * Yields the path of the new key pair file for the account whose keys have been rotated.
+	 * 
+	 * @return the path of the new key pair file for the account whose keys have been rotated; this is
+	 *         missing if the transaction has just been posted
+	 *         rather than added, or if the transaction failed, or if the new key has
+	 *         been specified as an explicit public key rather than as a key pair
+	 */
 	public Optional<String> getFile() {
 		return Optional.ofNullable(file);
 	}

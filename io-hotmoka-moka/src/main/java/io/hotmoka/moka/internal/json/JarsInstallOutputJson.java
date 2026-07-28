@@ -36,6 +36,12 @@ public class JarsInstallOutputJson extends GasCostOutputJson implements JsonRepr
 		this.jar = output.getJar().map(TransactionReferences.Json::new).orElse(null);
 	}
 
+	/**
+	 * Yields the reference of the installed jar, if any.
+	 * 
+	 * @return the reference of the installed jar; this is missing if the transaction has just been posted
+	 *         rather than added, or if the transaction failed
+	 */
 	public Optional<TransactionReferences.Json> getJar() {
 		return Optional.ofNullable(jar);
 	}

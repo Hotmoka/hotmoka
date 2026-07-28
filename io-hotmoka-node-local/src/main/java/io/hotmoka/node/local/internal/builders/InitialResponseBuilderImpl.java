@@ -74,11 +74,7 @@ public abstract class InitialResponseBuilderImpl<Request extends InitialTransact
 				throw new TransactionRejectedException("Cannot run an initial transaction request in an already initialized node");
 		}
 
-		/**
-		 * Checks if the request should be rejected, even before trying to execute it.
-		 * 
-		 * @throws TransactionRejectedException if the request should be rejected
-		 */
+		@Override
 		protected final void checkConsistency() throws TransactionRejectedException {
 			super.checkConsistency();
 

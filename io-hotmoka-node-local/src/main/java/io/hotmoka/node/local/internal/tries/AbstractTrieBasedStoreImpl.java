@@ -111,6 +111,17 @@ public abstract class AbstractTrieBasedStoreImpl<N extends AbstractTrieBasedLoca
     	this.rootOfTransactions = toClone.rootOfTransactions;
     }
 
+    /**
+     * Adds some transactions to this store, resulting in another store.
+     * 
+     * @param cache the cache that can be used for the stores
+     * @param addedTransactions the transactions to add to this store, in order
+     * @param addedHistories the histories to add to this store
+     * @param addedManifest the manifest to add to this store, if any
+     * @param addedTakamakaCode the Takamaka code reference to add to this store, if any
+     * @param txn the database transaction where the store can be created
+     * @return the identifier of the resulting store
+     */
     protected final StateId addDelta(StoreCache cache, LinkedHashMap<TransactionReference, io.hotmoka.node.api.transactions.Transaction> addedTransactions,
     		Map<StorageReference, TransactionReference[]> addedHistories,
     		Optional<StorageReference> addedManifest,
@@ -131,6 +142,7 @@ public abstract class AbstractTrieBasedStoreImpl<N extends AbstractTrieBasedLoca
 	 * Yields a clone of this store, but for its cache, that is initialized with information extracted from this store.
 	 * 
 	 * @return the resulting store
+	 * @throws InterruptedException if the operation gets interrupted before completion
 	 */
 	protected final S withReloadedCache() throws InterruptedException {
 		StoreCache newCache = getCache();

@@ -35,10 +35,24 @@ public abstract class AccountCreationOutputJson extends GasCostOutputJson {
 		this.file = output.getFile().map(Object::toString).orElse(null);
 	}
 
+	/**
+	 * Yields the reference of the created account.
+	 * 
+	 * @return the reference of the created account; this is missing if the transaction has just been posted
+	 *         rather than added, or if the transaction failed
+	 */
 	public Optional<StorageValues.Json> getAccount() {
 		return Optional.ofNullable(account);
 	}
 
+	/**
+	 * Yields the path of the key pair file generated for the created account.
+	 * 
+	 * @return the path of the key pair file generated for the created account; this is
+	 *         missing if the transaction has just been posted
+	 *         rather than added, or if the transaction failed, or if the account has
+	 *         been created with an explicit public key rather than a key pair
+	 */
 	public Optional<String> getFile() {
 		return Optional.ofNullable(file);
 	}

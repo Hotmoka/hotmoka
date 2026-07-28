@@ -37,6 +37,12 @@ public abstract class NodesTendermintValidatorsSellOutputJson extends GasCostOut
 		this.offer = output.getOffer().map(StorageValues.Json::new).orElse(null);
 	}
 
+	/**
+	 * Yields the sale offer that has been placed.
+	 * 
+	 * @return the sale offer that has been placed;  this is missing if the transaction has just been posted
+	 *         rather than added, or if it has failed
+	 */
 	public Optional<StorageValues.Json> getOffer() {
 		return Optional.ofNullable(offer);
 	}

@@ -32,6 +32,11 @@ public abstract class NodesTendermintValidatorsKeyOutputJson implements JsonRepr
 		this.file = output.getFile().toString();
 	}
 
+	/**
+	 * Yields the path of the Tendermint validator key file that has been generated.
+	 * 
+	 * @return the path of the Tendermint validator key file that has been generated
+	 */
 	public String getFile() {
 		return file;
 	}

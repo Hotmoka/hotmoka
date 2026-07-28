@@ -34,6 +34,11 @@ public abstract class GetRequestMessageJson extends AbstractRpcMessageJsonRepres
 		this.reference = new TransactionReferences.Json(message.getReference());
 	}
 
+	/**
+	 * Yields the reference to the transaction whose request is required.
+	 * 
+	 * @return the reference
+	 */
 	public final TransactionReferences.Json getReference() {
 		return reference;
 	}

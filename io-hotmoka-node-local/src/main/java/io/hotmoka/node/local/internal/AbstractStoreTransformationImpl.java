@@ -129,11 +129,9 @@ public abstract class AbstractStoreTransformationImpl<N extends AbstractLocalNod
 	private final long now;
 
 	/**
-	 * Enough gas for a simple get method such as the coinbase transactions.
+	 * Enough gas for a simple method such as the coinbase transactions.
 	 */
 	protected final static BigInteger _500_000 = BigInteger.valueOf(500_000L);
-
-	protected final static BigInteger _100_000_000 = BigInteger.valueOf(100_000_000L);
 
 	/**
 	 * Creates a transformation whose transactions that starts from the given store.
@@ -365,6 +363,7 @@ public abstract class AbstractStoreTransformationImpl<N extends AbstractLocalNod
 	 * Computes how many coins have been minted during the last reward:
 	 * it is the price of the gas distributed minus the same price without inflation.
 	 * 
+	 * @param manifest the manifest of the node
 	 * @param validators the validators object of the node
 	 * @return the number of minted coins
 	 * @throws InterruptedException if the current thread is interrupted during the operation

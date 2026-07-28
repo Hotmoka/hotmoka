@@ -130,6 +130,7 @@ public abstract class NonInitialResponseBuilderImpl<Request extends NonInitialTr
 			this.gasCostModel = consensus.getGasCostModel();
 		}
 
+		@Override
 		protected void checkConsistency() throws TransactionRejectedException {
 			super.checkConsistency();
 
@@ -143,6 +144,9 @@ public abstract class NonInitialResponseBuilderImpl<Request extends NonInitialTr
 			callerCanPayForAllPromisedGas();
 		}
 
+		/**
+		 * Shared initial execution of all non-initial transactions.
+		 */
 		protected final void init() {
 			this.deserializedCaller = deserializer.deserialize(request.getCaller());
 			BigInteger initialBalance = classLoader.getBalanceOf(deserializedCaller);

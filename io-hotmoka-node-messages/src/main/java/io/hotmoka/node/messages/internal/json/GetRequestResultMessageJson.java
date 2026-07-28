@@ -34,6 +34,11 @@ public abstract class GetRequestResultMessageJson extends AbstractRpcMessageJson
 		this.result = new TransactionRequests.Json(message.get());
 	}
 
+	/**
+	 * Yields the requested transaction request.
+	 * 
+	 * @return the requested transaction request
+	 */
 	public final TransactionRequests.Json getResult() {
 		return result;
 	}

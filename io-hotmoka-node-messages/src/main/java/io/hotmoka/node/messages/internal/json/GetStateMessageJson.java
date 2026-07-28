@@ -34,6 +34,11 @@ public abstract class GetStateMessageJson extends AbstractRpcMessageJsonRepresen
 		this.reference = new StorageValues.Json(message.getReference());
 	}
 
+	/**
+	 * Yields the reference to the object whose state is required.
+	 * 
+	 * @return the reference
+	 */
 	public final StorageValues.Json getReference() {
 		return reference;
 	}

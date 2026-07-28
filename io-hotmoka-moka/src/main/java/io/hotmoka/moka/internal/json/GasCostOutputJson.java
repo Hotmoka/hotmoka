@@ -35,14 +35,31 @@ public abstract class GasCostOutputJson {
 		this.errorMessage = output.getErrorMessage().orElse(null);
 	}
 
+	/**
+	 * Yields the transaction whose cost is reported.
+	 * 
+	 * @return the transaction whose cost is reported
+	 */
 	public TransactionReferences.Json getTransaction() {
 		return transaction;
 	}
 
+	/**
+	 * Yields the reported gas costs.
+	 * 
+	 * @return the reported gas costs, if any. This is missing if the transaction has just been posted
+	 *         rather than added, or if it has failed
+	 */
 	public Optional<GasCostJson> getGasCost() {
 		return Optional.ofNullable(gasCost);
 	}
 
+	/**
+	 * Yields the error message of the transaction.
+	 * 
+	 * @return the error message of the transaction; this is missing if the transaction has just been posted
+	 *         rather than added, or if it was successful 
+	 */
 	public Optional<String> getErrorMessage() {
 		return Optional.ofNullable(errorMessage);
 	}

@@ -34,6 +34,11 @@ public abstract class GetTakamakaCodeResultMessageJson extends AbstractRpcMessag
 		this.result = new TransactionReferences.Json(message.get());
 	}
 
+	/**
+	 * Yields the resulting Takamaka code reference.
+	 * 
+	 * @return the resulting Takamaka code reference
+	 */
 	public final TransactionReferences.Json getResult() {
 		return result;
 	}

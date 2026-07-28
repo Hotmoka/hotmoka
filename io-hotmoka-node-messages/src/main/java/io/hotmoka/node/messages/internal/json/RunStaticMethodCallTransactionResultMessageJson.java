@@ -36,6 +36,11 @@ public abstract class RunStaticMethodCallTransactionResultMessageJson extends Ab
 		this.result = message.get().map(StorageValues.Json::new).orElse(null);
 	}
 
+	/**
+	 * Yields the result of the method code.
+	 * 
+	 * @return the result of the method code, if any. This is missing if the method returns {@code void}
+	 */
 	public final Optional<StorageValues.Json> getResult() {
 		return Optional.ofNullable(result);
 	}

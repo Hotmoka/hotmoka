@@ -30,6 +30,11 @@ public abstract class NodeStartOutputJson {
 		this.uri = output.getURI();
 	}
 
+	/**
+	 * Yields the URI of the published node service.
+	 * 
+	 * @return the URI of the published node service
+	 */
 	public URI getURI() {
 		return uri;
 	}

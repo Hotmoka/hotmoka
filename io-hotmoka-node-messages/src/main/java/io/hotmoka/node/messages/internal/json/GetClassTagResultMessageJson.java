@@ -34,6 +34,11 @@ public abstract class GetClassTagResultMessageJson extends AbstractRpcMessageJso
 		this.result = new Updates.Json(message.get());
 	}
 
+	/**
+	 * Yields the resulting class tag.
+	 * 
+	 * @return the resulting class tag
+	 */
 	public final Updates.Json getResult() {
 		return result;
 	}

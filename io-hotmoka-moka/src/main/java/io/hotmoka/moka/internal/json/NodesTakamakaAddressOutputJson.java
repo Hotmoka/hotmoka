@@ -32,6 +32,11 @@ public abstract class NodesTakamakaAddressOutputJson implements JsonRepresentati
 		this.takamakaCode = new TransactionReferences.Json(output.getTakamakaCode());
 	}
 
+	/**
+	 * Yields the reference to the jar that contains the basic Takamaka classes.
+	 * 
+	 * @return the reference to the jar that contains the basic Takamaka classes
+	 */
 	public TransactionReferences.Json getTakamakaCode() {
 		return takamakaCode;
 	}

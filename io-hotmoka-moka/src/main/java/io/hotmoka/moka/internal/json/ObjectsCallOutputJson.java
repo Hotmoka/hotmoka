@@ -36,6 +36,11 @@ public class ObjectsCallOutputJson extends GasCostOutputJson implements JsonRepr
 		this.result = output.getResult().map(StorageValues.Json::new).orElse(null);
 	}
 
+	/**
+	 * Yields the result of the call.
+	 * 
+	 * @return the result of the call, if any. This is missing if the called method returns {@code void}
+	 */
 	public Optional<StorageValues.Json> getResult() {
 		return Optional.ofNullable(result);
 	}

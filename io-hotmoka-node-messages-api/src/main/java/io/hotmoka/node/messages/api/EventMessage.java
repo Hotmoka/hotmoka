@@ -30,7 +30,6 @@ public interface EventMessage {
 	 * 
 	 * @return the reference of the creator of the event
 	 */
-
 	StorageReference getCreator();
 
 	/**

@@ -34,6 +34,11 @@ public abstract class GetClassTagMessageJson extends AbstractRpcMessageJsonRepre
 		this.reference = new StorageValues.Json(message.getReference());
 	}
 
+	/**
+	 * Yields the reference to the object whose class tag is required.
+	 * 
+	 * @return the reference
+	 */
 	public final StorageValues.Json getReference() {
 		return reference;
 	}

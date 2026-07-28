@@ -34,6 +34,11 @@ public abstract class AddGameteCreationTransactionResultMessageJson extends Abst
 		this.result = new StorageValues.Json(message.get());
 	}
 
+	/**
+	 * Yields the result of the gamete creation.
+	 * 
+	 * @return the result of the gamete creation (the created gamete)
+	 */
 	public final StorageValues.Json getResult() {
 		return result;
 	}

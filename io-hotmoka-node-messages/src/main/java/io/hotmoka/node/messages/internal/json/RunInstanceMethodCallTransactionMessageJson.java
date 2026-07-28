@@ -34,6 +34,11 @@ public abstract class RunInstanceMethodCallTransactionMessageJson extends Abstra
 		this.request = new TransactionRequests.Json(message.getRequest());
 	}
 
+	/**
+	 * Yields the request of the required transaction.
+	 * 
+	 * @return the request of the required transaction
+	 */
 	public final TransactionRequests.Json getRequest() {
 		return request;
 	}

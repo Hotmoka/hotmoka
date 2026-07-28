@@ -139,6 +139,13 @@ public abstract class AbstractResponseBuilder<Request extends TransactionRequest
 			this.updatesExtractor = new UpdatesExtractor(classLoader, environment, request);
 		}
 
+		/**
+		 * Performs the creation of the response.
+		 * 
+		 * @return the creation of the response
+		 * @throws TransactionRejectedException if the transaction has been rejected
+		 * @throws InterruptedException if the creation of the response gets interrupted
+		 */
 		protected final ResponseCreation<Response> create() throws TransactionRejectedException, InterruptedException {
 			try {
 				Response response = environment.submit(new TakamakaCallable(this::body)).get();
@@ -185,6 +192,11 @@ public abstract class AbstractResponseBuilder<Request extends TransactionRequest
 		 */
 		protected abstract Response body() throws TransactionRejectedException;
 
+		/**
+		 * Checks if the request should be rejected, even before trying to execute it.
+		 * 
+		 * @throws TransactionRejectedException if the request should be rejected
+		 */
 		protected void checkConsistency() throws TransactionRejectedException {
 			long maxRequestSize = consensus.getMaxRequestSize();
 

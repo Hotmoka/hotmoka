@@ -38,6 +38,11 @@ public abstract class GetIndexResultMessageJson extends AbstractRpcMessageJsonRe
 			.toArray(TransactionReferences.Json[]::new);
 	}
 
+	/**
+	 * Yields the resulting sequence of the transactions that affected the required object.
+	 * 
+	 * @return the resulting sequence of the transactions that affected the required object
+	 */
 	public final Stream<TransactionReferences.Json> getResult() {
 		return result == null ? Stream.empty() : Stream.of(result);
 	}

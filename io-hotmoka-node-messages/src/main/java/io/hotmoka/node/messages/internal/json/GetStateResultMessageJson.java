@@ -38,6 +38,11 @@ public abstract class GetStateResultMessageJson extends AbstractRpcMessageJsonRe
 			.toArray(Updates.Json[]::new);
 	}
 
+	/**
+	 * Yields the state of the requested object.
+	 * 
+	 * @return the state of the requested object
+	 */
 	public final Stream<Updates.Json> getResult() {
 		return result == null ? Stream.empty() : Stream.of(result);
 	}

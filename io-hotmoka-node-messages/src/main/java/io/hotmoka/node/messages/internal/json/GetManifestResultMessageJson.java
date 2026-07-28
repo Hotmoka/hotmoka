@@ -34,6 +34,11 @@ public abstract class GetManifestResultMessageJson extends AbstractRpcMessageJso
 		this.result = new StorageValues.Json(message.get());
 	}
 
+	/**
+	 * Yields the resulting manifest.
+	 * 
+	 * @return the resulting manifest
+	 */
 	public final StorageValues.Json getResult() {
 		return result;
 	}

@@ -34,10 +34,20 @@ public abstract class EventMessageJson implements JsonRepresentation<EventMessag
 		this.event = new StorageValues.Json(message.getEvent());
 	}
 
+	/**
+	 * Yields the reference of the creator of the event.
+	 * 
+	 * @return the reference of the creator of the event
+	 */
 	public final StorageValues.Json getCreator() {
 		return creator;
 	}
 
+	/**
+	 * Yields the reference of the event object.
+	 * 
+	 * @return the reference of the event object
+	 */
 	public final StorageValues.Json getEvent() {
 		return event;
 	}

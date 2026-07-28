@@ -36,6 +36,13 @@ public abstract class AccountsSendOutputJson extends GasCostOutputJson implement
 		this.destinationInAccountsLedger = output.getDestinationInAccountsLedger().map(StorageValues.Json::new).orElse(null);
 	}
 
+	/**
+	 * Yields the account, from the accounts ledger, that has received the sent coins.
+	 * 
+	 * @return the account, from the accounts ledger, that has received the sent coins; this is missing if
+	 *         the transaction has just been posted rather than added, or if the payment was not into a key
+	 *         but was into a specific account
+	 */
 	public Optional<StorageValues.Json> getDestinationInAccountsLedger() {
 		return Optional.ofNullable(destinationInAccountsLedger);
 	}

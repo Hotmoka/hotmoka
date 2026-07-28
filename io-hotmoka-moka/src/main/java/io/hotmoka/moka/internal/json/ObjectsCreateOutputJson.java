@@ -36,6 +36,12 @@ public class ObjectsCreateOutputJson extends GasCostOutputJson implements JsonRe
 		this.object = output.getObject().map(StorageValues.Json::new).orElse(null);
 	}
 
+	/**
+	 * Yields the reference of the created object.
+	 * 
+	 * @return the reference of the created object; this is missing if the transaction has just been posted
+	 *         rather than added, or if the transaction failed
+	 */
 	public Optional<StorageValues.Json> getObject() {
 		return Optional.ofNullable(object);
 	}

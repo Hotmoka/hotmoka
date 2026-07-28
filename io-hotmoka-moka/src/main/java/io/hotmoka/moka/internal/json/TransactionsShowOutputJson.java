@@ -35,10 +35,20 @@ public abstract class TransactionsShowOutputJson implements JsonRepresentation<T
 		this.response = new TransactionResponses.Json(output.getResponse());
 	}
 
+	/**
+	 * Yields the request of the transaction.
+	 * 
+	 * @return the request of the transaction
+	 */
 	public TransactionRequests.Json getRequest() {
 		return request;
 	}
 
+	/**
+	 * Yields the response of the transaction.
+	 * 
+	 * @return the response of the transaction
+	 */
 	public TransactionResponses.Json getResponse() {
 		return response;
 	}

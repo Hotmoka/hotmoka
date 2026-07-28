@@ -104,6 +104,7 @@ public abstract class ExecutionEnvironment {
 	 * The node's store is not expanded, since the execution of the method has no side-effects.
 	 * 
 	 * @param request the transaction request
+	 * @param reference the reference of {@code request}
 	 * @return the result of the call, if the method was successfully executed, without exception; this is empty
 	 *         if and only if the method is declared to return {@code void}
 	 * @throws TransactionRejectedException if the transaction could not be executed
@@ -122,6 +123,7 @@ public abstract class ExecutionEnvironment {
 	 * The node's store is not expanded, since the execution of the method has no side-effects.
 	 * 
 	 * @param request the transaction request
+	 * @param reference the reference of {@code request}
 	 * @return the result of the call, if the method was successfully executed, without exception; this is empty
 	 *         if and only if the method is declared to return {@code void}
 	 * @throws TransactionRejectedException if the transaction could not be executed
@@ -410,6 +412,7 @@ public abstract class ExecutionEnvironment {
 	 * 
 	 * @param manifest the reference to the manifest; this is assumed to actually refer to a manifest
 	 * @return the gas price, as reported in the gas station of {@code manifest}
+	 * @throws InterruptedException if the operation gets interrupted before completion
 	 */
 	protected final BigInteger extractGasPrice(StorageReference manifest) throws InterruptedException {
 		StorageReference gasStation = extractGasStation(manifest);
@@ -432,6 +435,7 @@ public abstract class ExecutionEnvironment {
 	 * @param manifest the reference to the manifest; this is assumed to actually refer to a manifest
 	 * @param validators the validators of {@code manifest}
 	 * @return the gas price, as reported in the gas station of {@code manifest}
+	 * @throws InterruptedException if the operation gets interrupted before completion
 	 */
 	protected final BigInteger extractHeight(StorageReference manifest, StorageReference validators) throws InterruptedException {
 		TransactionReference takamakaCode = getTakamakaCode().orElseThrow(() -> new LocalNodeException("The manifest is set but the Takamaka code reference is not set"));
@@ -451,6 +455,7 @@ public abstract class ExecutionEnvironment {
 	 * Yields a class loader for the given class path, using a cache to avoid regeneration, if possible.
 	 * 
 	 * @param classpath the class path that must be used by the class loader
+	 * @param consensus the consensus parameters of the node
 	 * @return the class loader
 	 * @throws ClassLoaderCreationException if the class loader cannot be created
 	 */
@@ -712,6 +717,10 @@ public abstract class ExecutionEnvironment {
 	 * 
 	 * @param request the request of the transaction to run
 	 * @return the result of the method call, if the method is not {@code void}
+	 * @throws TransactionRejectedException if the {@code request} has been rejected
+	 * @throws TransactionException if the execution of the {@code request} threw an exception
+	 * @throws CodeExecutionException if the method threw an exception
+	 * @throws InterruptedException if the execution has been interrupted
 	 */
 	protected final Optional<StorageValue> runInstanceMethodCallTransaction(InstanceMethodCallTransactionRequest request) throws TransactionRejectedException, TransactionException, CodeExecutionException, InterruptedException {
 		return runInstanceMethodCallTransaction(request, TransactionReferences.of(getHasher().hash(request)));

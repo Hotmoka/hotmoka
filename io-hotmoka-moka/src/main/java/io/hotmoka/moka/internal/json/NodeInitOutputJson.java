@@ -33,10 +33,20 @@ public abstract class NodeInitOutputJson {
 		this.gamete = new StorageValues.Json(output.getGamete());
 	}
 
+	/**
+	 * Yields the reference to the gamete of the initialized node.
+	 * 
+	 * @return the reference to the gamete of the initialized node
+	 */
 	public StorageValues.Json getGamete() {
 		return gamete;
 	}
 
+	/**
+	 * Yields the URI of the published node service.
+	 * 
+	 * @return the URI of the published node service
+	 */
 	public URI getURI() {
 		return uri;
 	}

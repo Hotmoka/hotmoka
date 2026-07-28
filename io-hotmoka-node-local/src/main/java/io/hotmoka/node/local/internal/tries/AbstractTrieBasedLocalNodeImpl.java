@@ -152,18 +152,42 @@ public abstract class AbstractTrieBasedLocalNodeImpl<N extends AbstractTrieBased
 		}
 	}
 
+	/**
+	 * Adds into the index database the fact that the given {@code transaction} has generated
+	 * the given {@code response}.
+	 * 
+	 * @param transaction the transaction
+	 * @param response the response
+	 * @param txn the database transaction where the write operation occurs
+	 */
 	protected void addToIndex(TransactionReference transaction, TransactionResponse response, Transaction txn) {
 		index.add(transaction, response, txn);
 	}
 
+	/**
+	 * Removes from the index database the responses for the given {@code transaction}.
+	 * 
+	 * @param transaction the transaction
+	 * @param txn the database transaction where the delete operation occurs
+	 */
 	protected void removeFromIndex(TransactionReference transaction, Transaction txn) {
 		index.remove(transaction, txn);
 	}
 
+	/**
+	 * Yields the database store of this node.
+	 * 
+	 * @return the database store of this node
+	 */
 	protected final io.hotmoka.xodus.env.Store getStoreOfNode() {
 		return storeOfNode;
 	}
 
+	/**
+	 * Yields the database environment of this node.
+	 * 
+	 * @return the database environment of this node
+	 */
 	protected Environment getEnvironment() {
 		return env;
 	}
@@ -197,6 +221,14 @@ public abstract class AbstractTrieBasedLocalNodeImpl<N extends AbstractTrieBased
 		}
 	}
 
+	/**
+	 * Yields the store of the current head of this node.
+	 * 
+	 * @return the store of the current head of this node
+	 * @throws ClosedNodeException if this node is already closed
+	 * @throws InterruptedException if the operation gets interrupted before completion
+	 * @throws TimeoutException if the operation timed out
+	 */
 	protected abstract S getStoreOfHead() throws ClosedNodeException, InterruptedException, TimeoutException;
 
 	/**
@@ -204,7 +236,7 @@ public abstract class AbstractTrieBasedLocalNodeImpl<N extends AbstractTrieBased
 	 * It can be used, for instance, to take note that that store cannot be garbage-collected from that moment.
 	 * 
 	 * @param stateId the state identifier of the store to enter
-	 * @param the cache to use for the store; if missing, it gets extracted from the store itself (which might be expensive)
+	 * @param cache the cache to use for the store; if missing, it gets extracted from the store itself (which might be expensive)
 	 * @return the entered store
 	 * @throws UnknownStateIdException if the required state identifier does not exist
 	 *                                 (for instance also if it has been garbage-collected already)
@@ -261,6 +293,8 @@ public abstract class AbstractTrieBasedLocalNodeImpl<N extends AbstractTrieBased
 	 * @param stateId the state identifier
 	 * @param cache the cache to use for the store; if missing, it will get extracted from the store
 	 * @return the resulting store
+	 * @throws UnknownStateIdException if the store with the given identifier is unknown
+	 * @throws InterruptedException if the operation gets interrupted before completion
 	 */
 	protected final S mkStore(StateId stateId, Optional<StoreCache> cache) throws UnknownStateIdException, InterruptedException {
 		return mkEmptyStore().checkedOutAt(stateId, cache);
@@ -290,7 +324,7 @@ public abstract class AbstractTrieBasedLocalNodeImpl<N extends AbstractTrieBased
 	 * 
 	 * @param stateId the identifier of the vision of the store to decrement
 	 * @param txn the database transaction where the operation is performed
-	 * @param UnknownStateIdException if {@code stateId} cannot be found in store
+	 * @throws UnknownStateIdException if {@code stateId} cannot be found in store
 	 */
 	protected void free(StateId stateId, Transaction txn) throws UnknownStateIdException {
 		var bytes = stateId.getBytes();
@@ -313,7 +347,7 @@ public abstract class AbstractTrieBasedLocalNodeImpl<N extends AbstractTrieBased
 	 * 
 	 * @param stateId the identifier of the vision of the store to deallocate
 	 * @param txn the database transaction where the operation is performed
-	 * @param UnknownStateIdException if {@code stateId} cannot be found in store
+	 * @throws UnknownStateIdException if {@code stateId} cannot be found in store
 	 */
 	protected void malloc(StateId stateId, Transaction txn) throws UnknownStateIdException {
 		var bytes = stateId.getBytes();
@@ -331,20 +365,50 @@ public abstract class AbstractTrieBasedLocalNodeImpl<N extends AbstractTrieBased
 		}
 	}
 
+	/**
+	 * Yields the trie of transactions rooted at the given hash.
+	 * 
+	 * @param txn the database transaction where the operation is performed
+	 * @param rootOfTransactions the hash of the root of transactions
+	 * @return the resulting trie of transactions
+	 * @throws UnknownKeyException if the given root of transactions does not exist in the store of this node
+	 */
 	protected TrieOfTransactions mkTrieOfTransactions(Transaction txn, byte[] rootOfTransactions) throws UnknownKeyException {
 		return new TrieOfTransactions(new KeyValueStoreOnXodus(storeOfTransactions, txn), rootOfTransactions);
 	}
 
+	/**
+	 * Checks for the existence of the given root of transactions.
+	 * 
+	 * @param txn the database transaction where the check is performed
+	 * @param rootOfTransactions the root of transactions hash to check
+	 * @throws UnknownKeyException if the given root of transactions does not exist in the store of this node
+	 */
 	protected void checkExistenceOfRootOfTransactions(Transaction txn, byte[] rootOfTransactions) throws UnknownKeyException {
 		if (!Arrays.equals(rootOfTransactions, hashOfEmpty))
 			new KeyValueStoreOnXodus(storeOfTransactions, txn).get(rootOfTransactions);
 	}
 
+	/**
+	 * Checks for the existence of the given root of histories.
+	 * 
+	 * @param txn the database transaction where the check is performed
+	 * @param rootOfHistories the root of history hash to check
+	 * @throws UnknownKeyException if the given root of histories does not exist in the store of this node
+	 */
 	protected void checkExistenceOfRootOfHistories(Transaction txn, byte[] rootOfHistories) throws UnknownKeyException {
 		if (!Arrays.equals(rootOfHistories, hashOfEmpty))
 			new KeyValueStoreOnXodus(storeOfHistories, txn).get(rootOfHistories);
 	}
 
+	/**
+	 * Yields the trie of histories rooted at the given hash.
+	 * 
+	 * @param txn the database transaction where the operation is performed
+	 * @param rootOfHistories the hash of the root of histories
+	 * @return the resulting trie of histories
+	 * @throws UnknownKeyException if the given root of histories does not exist in the store of this node
+	 */
 	protected TrieOfHistories mkTrieOfHistories(Transaction txn, byte[] rootOfHistories) throws UnknownKeyException {
 		return new TrieOfHistories(new KeyValueStoreOnXodus(storeOfHistories, txn), rootOfHistories);
 	}

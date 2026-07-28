@@ -34,10 +34,20 @@ public abstract class KeysBindOutputJson implements JsonRepresentation<KeysBindO
 		this.file = output.getFile().toString();
 	}
 
+	/**
+	 * Yields the reference of the bound account.
+	 * 
+	 * @return the reference of the bound account
+	 */
 	public StorageValues.Json getAccount() {
 		return account;
 	}
 
+	/**
+	 * Yields the path of the created key pair file for the account that has been bound.
+	 * 
+	 * @return the path of the created key pair file for the account that has been bound
+	 */
 	public String getFile() {
 		return file;
 	}

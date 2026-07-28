@@ -49,6 +49,8 @@ public class MokamintStoreTransformation extends AbstractTrieBasedStoreTransform
 
 	private final static Logger LOGGER = Logger.getLogger(MokamintStoreTransformation.class.getName());
 
+	private final static BigInteger _100_000_000 = BigInteger.valueOf(100_000_000L);
+
 	/**
 	 * Creates a transformation whose transaction from the given initial store.
 	 * 

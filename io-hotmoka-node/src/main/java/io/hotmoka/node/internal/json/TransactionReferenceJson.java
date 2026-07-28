@@ -32,6 +32,11 @@ public abstract class TransactionReferenceJson implements JsonRepresentation<Tra
 		this.hash = Hex.toHexString(reference.getHash());
 	}
 
+	/**
+	 * Yields the hash of the request.
+	 * 
+	 * @return the hash, as a hexadecimal string
+	 */
 	public String getHash() {
 		return hash;
 	}

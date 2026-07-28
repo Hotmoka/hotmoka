@@ -34,6 +34,11 @@ public abstract class JarsVerifyOutputJson implements JsonRepresentation<JarsVer
 		this.errors = output.getErrors().map(VerificationErrors.Json::new).toArray(VerificationErrors.Json[]::new);
 	}
 
+	/**
+	 * Yields the errors resulting from the verification of the code.
+	 * 
+	 * @return the errors resulting from the verification of the code
+	 */
 	public Stream<VerificationErrors.Json> getErrors() {
 		return Stream.of(errors);
 	}

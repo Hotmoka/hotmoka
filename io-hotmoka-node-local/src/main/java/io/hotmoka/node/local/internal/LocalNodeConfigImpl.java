@@ -269,6 +269,8 @@ public abstract class LocalNodeConfigImpl<C extends LocalNodeConfig<C,B>, B exte
 
 		/**
 		 * Standard design pattern. See http://www.angelikalanger.com/GenericsFAQ/FAQSections/ProgrammingIdioms.html#FAQ205
+		 * 
+		 * @return this same configuration object
 		 */
 		protected abstract B getThis();
 

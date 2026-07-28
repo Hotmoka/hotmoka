@@ -34,6 +34,11 @@ public abstract class GetPolledResponseMessageJson extends AbstractRpcMessageJso
 		this.reference = new TransactionReferences.Json(message.getReference());
 	}
 
+	/**
+	 * Yields the reference to the transaction whose response is required.
+	 * 
+	 * @return the reference
+	 */
 	public final TransactionReferences.Json getReference() {
 		return reference;
 	}

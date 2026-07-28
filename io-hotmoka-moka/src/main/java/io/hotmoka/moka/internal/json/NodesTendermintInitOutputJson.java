@@ -38,6 +38,11 @@ public abstract class NodesTendermintInitOutputJson extends NodeInitOutputJson i
 		this.validators = output.getValidators().map(ValidatorDescriptionJson::new).toArray(ValidatorDescriptionJson[]::new);
 	}
 
+	/**
+	 * Yields the description of the validators of the initialized node.
+	 * 
+	 * @return the description of the validators
+	 */
 	public Stream<ValidatorDescriptionJson> getValidators() {
 		return Stream.of(validators);
 	}
@@ -64,10 +69,20 @@ public abstract class NodesTendermintInitOutputJson extends NodeInitOutputJson i
 			return new ValidatorDescriptionImpl(this);
 		}
 
+		/**
+		 * Yields the reference of the validator.
+		 * 
+		 * @return the reference of the validator
+		 */
 		public StorageValues.Json getReference() {
 			return reference;
 		}
 
+		/**
+		 * Yields the Base58-encoded public key of the validator.
+		 * 
+		 * @return the Base58-encoded public key of the validator
+		 */
 		public String getPublicKeyBase58() {
 			return publicKeyBase58;
 		}

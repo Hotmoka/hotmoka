@@ -45,18 +45,41 @@ public abstract class ObjectsShowOutputJson implements JsonRepresentation<Object
 		this.methods = output.getMethodDescriptions().map(stream -> stream.map(MethodDescriptionJson::new).toArray(MethodDescriptionJson[]::new)).orElse(null);
 	}
 
+	/**
+	 * Yields the class tag of the object.
+	 * 
+	 * @return the class tag of the object
+	 */
 	public Updates.Json getTag() {
 		return tag;
 	}
 
+	/**
+	 * Yields the updates that describe the state of the object.
+	 * 
+	 * @return the updates that describe the state of the object
+	 */
 	public Stream<Updates.Json> getFields() {
 		return Stream.of(fields);
 	}
 
+	/**
+	 * Yields the descriptions of the public white-listed constructors of the object.
+	 * This is missing if the public API of the object has not been requested.
+	 * 
+	 * @return the descriptions of the constructors, if any
+	 */
 	public Optional<Stream<ConstructorDescriptionJson>> getConstructorDescriptions() {
 		return Optional.ofNullable(constructors).map(Stream::of);
 	}
 
+	/**
+	 * Yields the descriptions of the public instance white-listed methods of the object,
+	 * including those inherited from superclasses.
+	 *  This is missing if the public API of the object has not been requested.
+	 * 
+	 * @return the descriptions of the methods, if any
+	 */
 	public Optional<Stream<MethodDescriptionJson>> getMethodDescriptions() {
 		return Optional.ofNullable(methods).map(Stream::of);
 	}
@@ -83,10 +106,20 @@ public abstract class ObjectsShowOutputJson implements JsonRepresentation<Object
 			return new ConstructorDescriptionImpl(this);
 		}
 
+		/**
+		 * Yields the description of the annotations of the constructor.
+		 * 
+		 * @return the description of the annotations of the constructor
+		 */
 		public String getAnnotations() {
 			return annotations;
 		}
 
+		/**
+		 * Yields the description of the signature of the constructor.
+		 * 
+		 * @return the description of the signature of the constructor
+		 */
 		public String getSignature() {
 			return signature;
 		}

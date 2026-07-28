@@ -34,6 +34,11 @@ public abstract class AddConstructorCallTransactionResultMessageJson extends Abs
 		this.result = new StorageValues.Json(message.get());
 	}
 
+	/**
+	 * Yields the result of the constructor call.
+	 * 
+	 * @return the result of the constructor call (the created object)
+	 */
 	public final StorageValues.Json getResult() {
 		return result;
 	}

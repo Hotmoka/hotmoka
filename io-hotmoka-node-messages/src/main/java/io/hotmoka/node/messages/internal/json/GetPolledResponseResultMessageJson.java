@@ -34,6 +34,11 @@ public abstract class GetPolledResponseResultMessageJson extends AbstractRpcMess
 		this.result = new TransactionResponses.Json(message.get());
 	}
 
+	/**
+	 * Yields the resulting response.
+	 * 
+	 * @return the resulting response
+	 */
 	public final TransactionResponses.Json getResult() {
 		return result;
 	}

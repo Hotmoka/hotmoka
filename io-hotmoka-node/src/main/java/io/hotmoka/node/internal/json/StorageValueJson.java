@@ -81,6 +81,11 @@ public abstract class StorageValueJson implements JsonRepresentation<StorageValu
 		return byteValue;
 	}
 
+	/**
+	 * Yields this value assuming that it is a character.
+	 * 
+	 * @return this value assuming that it is a character
+	 */
 	public Character getCharValue() {
 		return charValue;
 	}

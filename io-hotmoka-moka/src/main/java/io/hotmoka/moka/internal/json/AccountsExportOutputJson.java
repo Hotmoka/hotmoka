@@ -33,6 +33,11 @@ public abstract class AccountsExportOutputJson implements JsonRepresentation<Acc
 		this.bip39Words = output.getBip39Words().toArray(String[]::new);
 	}
 
+	/**
+	 * Yields the BIP39 words in the output of the command.
+	 * 
+	 * @return the BIP39 words in the output of the command
+	 */
 	public Stream<String> getBip39Words() {
 		return Stream.of(bip39Words);
 	}

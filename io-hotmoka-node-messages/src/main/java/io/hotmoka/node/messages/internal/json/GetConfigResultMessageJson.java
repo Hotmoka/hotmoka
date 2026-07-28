@@ -36,6 +36,11 @@ public abstract class GetConfigResultMessageJson extends AbstractRpcMessageJsonR
 		this.result = new ConsensusConfigBuilders.Json(message.get());
 	}
 
+	/**
+	 * Yields the resulting consensus configuration.
+	 * 
+	 * @return the resulting consensus configuration
+	 */
 	public final ConsensusConfigBuilders.Json getResult() {
 		return result;
 	}

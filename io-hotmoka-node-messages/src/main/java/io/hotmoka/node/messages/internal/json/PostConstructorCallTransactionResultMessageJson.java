@@ -34,6 +34,11 @@ public abstract class PostConstructorCallTransactionResultMessageJson extends Ab
 		this.result = new TransactionReferences.Json(message.get());
 	}
 
+	/**
+	 * Yields the reference to the posted transaction.
+	 * 
+	 * @return the reference to the posted transaction
+	 */
 	public final TransactionReferences.Json getResult() {
 		return result;
 	}
