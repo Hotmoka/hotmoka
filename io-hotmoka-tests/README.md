@@ -73,7 +73,7 @@ and a block database but just executes the smart contracts with Hotmoka.
 This is not a real blockchain but allows to run the tests much faster:
 
 ```console
-$ mvn clean -DnodeType=stubbed
+$ mvn clean test -DnodeType=stubbed
 ```
 
 You can run the same tests against a remote stubbed peer, connected through the internet in localhost rather
