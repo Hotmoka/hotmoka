@@ -26,7 +26,7 @@ import java.security.KeyPair;
 import io.hotmoka.crypto.Entropies;
 import io.hotmoka.crypto.SignatureAlgorithms;
 import io.hotmoka.helpers.AccountsNodes;
-import io.hotmoka.helpers.JarsNodes;
+import io.hotmoka.helpers.JarNodes;
 import io.hotmoka.node.ConsensusConfigBuilders;
 import io.hotmoka.node.disk.DiskInitializedNodes;
 import io.hotmoka.node.disk.DiskNodeConfigBuilders;
@@ -77,7 +77,7 @@ public class Decorators {
 	  var initialized = DiskInitializedNodes.of(node, consensus, takamakaCodePath);
 
       // second decorator: store the family jar: the gamete will pay for that
-      var nodeWithJars = JarsNodes.of(node, initialized.gamete(), keys.getPrivate(), familyPath);
+      var nodeWithJars = JarNodes.of(node, initialized.gamete(), keys.getPrivate(), familyPath);
 
 	  // third decorator: create two accounts, the first with 10,000,000 coins
       // and the second with 20,000,000 units of coin; the gamete will pay
@@ -86,7 +86,7 @@ public class Decorators {
         BigInteger.valueOf(10_000_000), BigInteger.valueOf(20_000_000));
 
       System.out.println("manifest: " + node.getManifest());
-      System.out.println("family jar: " + nodeWithJars.jar(0));
+      System.out.println("family jar: " + nodeWithJars.jar());
       System.out.println("account #0: " + nodeWithAccounts.account(0) +
         "\n  with private key " + nodeWithAccounts.privateKey(0));
       System.out.println("account #1: " + nodeWithAccounts.account(1) +

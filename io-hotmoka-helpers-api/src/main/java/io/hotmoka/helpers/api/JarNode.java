@@ -16,9 +16,7 @@ limitations under the License.
 
 package io.hotmoka.helpers.api;
 
-import java.util.NoSuchElementException;
 import java.util.concurrent.TimeoutException;
-import java.util.stream.Stream;
 
 import io.hotmoka.annotations.ThreadSafe;
 import io.hotmoka.node.api.ClosedNodeException;
@@ -26,30 +24,18 @@ import io.hotmoka.node.api.Node;
 import io.hotmoka.node.api.transactions.TransactionReference;
 
 /**
- * A node that provides access to a set of previously installed jars,
+ * A node that provides access to a previously installed jar.
  */
 @ThreadSafe
-public interface JarsNode extends Node {
+public interface JarNode extends Node {
 
 	/**
-	 * Yields the references, in the store of the node, where the jars have been installed.
+	 * Yields the reference, in the store of the node, where the jar has been installed.
 	 * 
-	 * @return the references
+	 * @return the reference
 	 * @throws ClosedNodeException if the node is already closed
 	 * @throws TimeoutException if no answer arrives before a time window
 	 * @throws InterruptedException if the current thread is interrupted while waiting for an answer to arrive
 	 */
-	 Stream<TransactionReference> jars() throws ClosedNodeException, TimeoutException, InterruptedException;
-
-	/**
-	 * Yields the references, in the store of the node, where the {@code it}th jar has been installed.
-	 * 
-	 * @param i the jar number
-	 * @return the reference to the jar, in the store of the node
-	 * @throws NoSuchElementException if the {@code i}th installed jar does not exist
-	 * @throws ClosedNodeException if the node is already closed
-	 * @throws TimeoutException if no answer arrives before a time window
-	 * @throws InterruptedException if the current thread is interrupted while waiting for an answer to arrive
-	 */
-	TransactionReference jar(int i) throws ClosedNodeException, NoSuchElementException, TimeoutException, InterruptedException;
+	TransactionReference jar() throws ClosedNodeException, TimeoutException, InterruptedException;
 }

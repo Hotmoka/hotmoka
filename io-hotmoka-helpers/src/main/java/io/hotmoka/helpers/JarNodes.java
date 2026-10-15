@@ -24,10 +24,10 @@ import java.security.PrivateKey;
 import java.security.SignatureException;
 import java.util.concurrent.TimeoutException;
 
-import io.hotmoka.helpers.api.JarsNode;
+import io.hotmoka.helpers.api.JarNode;
 import io.hotmoka.helpers.api.MisbehavingNodeException;
 import io.hotmoka.helpers.api.UnexpectedCodeException;
-import io.hotmoka.helpers.internal.JarsNodeImpl;
+import io.hotmoka.helpers.internal.JarNodeImpl;
 import io.hotmoka.node.api.ClosedNodeException;
 import io.hotmoka.node.api.CodeExecutionException;
 import io.hotmoka.node.api.Node;
@@ -39,15 +39,15 @@ import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.whitelisting.api.UnsupportedVerificationVersionException;
 
 /**
- * Providers of nodes that provide access to a set of previously installed jars,
+ * Providers of nodes that provide access to a previously installed jar.
  */
-public abstract class JarsNodes {
+public abstract class JarNodes {
 
-	private JarsNodes() {}
+	private JarNodes() {}
 
 	/**
-	 * Installs the given set of jars in the parent node and
-	 * yields a view that provides access to a set of previously installed jars.
+	 * Installs the given jar in the parent node and
+	 * yields a view that provides access to a set of previously installed jar.
 	 * The given account pays for the transactions.
 	 * 
 	 * @param parent the node to decorate
@@ -55,7 +55,7 @@ public abstract class JarsNodes {
 	 * @param privateKeyOfPayer the private key of the account that pays for the transactions.
 	 *                          It will be used to sign requests for installing the jars;
 	 *                          the account must have enough coins for those transactions
-	 * @param jars the jars to install in the node
+	 * @param jar the jar to install in the node
 	 * @return a decorated view of {@code parent}
 	 * @throws TransactionRejectedException if some transaction is rejected
 	 * @throws TransactionException if some transaction fails
@@ -73,7 +73,7 @@ public abstract class JarsNodes {
 	 * @throws MisbehavingNodeException if the node is performing in a buggy way
 	 * @throws UnexpectedCodeException if the node contains unexpected runtime classes installed in store
      */
-	public static JarsNode of(Node parent, StorageReference payer, PrivateKey privateKeyOfPayer, Path... jars) throws InvalidKeyException, SignatureException, NoSuchAlgorithmException, ClosedNodeException, MisbehavingNodeException, UnexpectedCodeException, TransactionRejectedException, TransactionException, CodeExecutionException, IOException, TimeoutException, InterruptedException, UnknownReferenceException, UninitializedNodeException, UnsupportedVerificationVersionException {
-		return new JarsNodeImpl(parent, payer, privateKeyOfPayer, jars);
+	public static JarNode of(Node parent, StorageReference payer, PrivateKey privateKeyOfPayer, Path jar) throws InvalidKeyException, SignatureException, NoSuchAlgorithmException, ClosedNodeException, MisbehavingNodeException, UnexpectedCodeException, TransactionRejectedException, TransactionException, CodeExecutionException, IOException, TimeoutException, InterruptedException, UnknownReferenceException, UninitializedNodeException, UnsupportedVerificationVersionException {
+		return new JarNodeImpl(parent, payer, privateKeyOfPayer, jar);
 	}
 }

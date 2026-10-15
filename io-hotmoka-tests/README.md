@@ -85,11 +85,25 @@ $ mvn clean test -DnodeType=stubbed-remote
 
 You can do the same with `tendermint-remote` and `mokamint-remote`.
 
-The above information should be enough to imagine more alternative combinations
+Some testcases depend on transactions being processed
+by an exact time window (such as auctions and polls), which is problematic for blockchains such as
+those based on Mokamint, whose proof-of-space consensus creates blocks at an *average* rate but where
+each single block may have a specific creation time that deviates significantly from the average rate. 
+Consequently, such testcases are programmed to greatly increase the time window if run on Mokamint, in order
+to maximize the probability that transactions have been already committed by the time window.
+As a consequence, timings with different blockchain implementations can be difficult to compare.
+It is possible to get a more reliable comparison by disabling such testcases that work with a time window,
+as in the following example:
+
+```console
+$ mvn clean test -DnodeType=mokamint -DnumberOfNodes=1 -DtargetBlockCreationTime=4000 -DonlyTimeIndependentTests
+```
+
+The information given above should be enough to imagine more alternative combinations
 for the creation of the blockchain that executes the tests.
 
 Note that some tests will likely fail on Mokamint blockchains with more than one node, since they
-have probabilistic finality and history changes, that confuse JUnit.
+have probabilistic finality, which generates history changes that confuse the testcases.
 
 &nbsp;
 

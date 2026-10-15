@@ -91,6 +91,6 @@ public class Bombing extends HotmokaTest {
 			sum = sum.add(runInstanceNonVoidMethodCallTransaction(account(0), _500_000, takamakaCode(), MethodSignatures.BALANCE, account(i)).asReturnedBigInteger(MethodSignatures.BALANCE, UnexpectedValueException::new));
 
 		// no money got lost in translation
-		assertEquals(sum, BigInteger.valueOf(NUMBER_OF_ACCOUNTS).multiply(_500_000));
+		assertEquals(BigInteger.valueOf(NUMBER_OF_ACCOUNTS).multiply(_500_000), sum);
 	}
 }

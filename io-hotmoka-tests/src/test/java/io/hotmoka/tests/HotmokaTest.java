@@ -73,11 +73,13 @@ import io.hotmoka.crypto.api.SignatureAlgorithm;
 import io.hotmoka.crypto.api.Signer;
 import io.hotmoka.helpers.AccountsNodes;
 import io.hotmoka.helpers.Coin;
-import io.hotmoka.helpers.JarsNodes;
+import io.hotmoka.helpers.JarNodes;
+import io.hotmoka.helpers.NonceHelpers;
 import io.hotmoka.helpers.UnexpectedValueException;
 import io.hotmoka.helpers.UnexpectedVoidMethodException;
 import io.hotmoka.helpers.api.AccountsNode;
 import io.hotmoka.helpers.api.MisbehavingNodeException;
+import io.hotmoka.helpers.api.NonceHelper;
 import io.hotmoka.helpers.api.UnexpectedCodeException;
 import io.hotmoka.node.ConsensusConfigBuilders;
 import io.hotmoka.node.MethodSignatures;
@@ -184,13 +186,15 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 	    		case "mokamint":
 	    			node = wrapped = mkMokamintNetwork(); break;
 	    		case "mokamint-remote":
-	    			node = wrapped = mkRemoteNode(mkMokamintNetwork()); break;
+	    			node = mkRemoteNode(wrapped = mkMokamintNetwork()); break;
 	    		case "stubbed":
 	    		default:
 	    			node = wrapped = mkStubbedNode(); break;
 	    		case "stubbed-remote":
 	    			node = mkRemoteNode(wrapped = mkStubbedNode()); break;
 	    		}
+
+	    		nonceHelper = NonceHelpers.of(node);
 
 	    		initializeNodeIfNeeded(wrapped);
 
@@ -314,15 +318,20 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 	private static TransactionReference jar;
 
 	/**
-	 * The node under test. This is a view of {@link #node},
-	 * with the addition of some initial accounts, recreated before each test.
+	 * An object that simplifies the access to the nonces of the accounts.
 	 */
-	private AccountsNode nodeWithAccountsView;
+	private static NonceHelper nonceHelper;
 
 	/**
 	 * The nonce of each externally owned account used in the test.
 	 */
 	private final ConcurrentMap<StorageReference, BigInteger> nonces = new ConcurrentHashMap<>();
+
+	/**
+	 * The node under test. This is a view of {@link #node},
+	 * with the addition of some initial accounts, recreated before each test.
+	 */
+	private AccountsNode nodeWithAccountsView;
 
 	/**
 	 * The chain identifier of the node used for the tests.
@@ -856,7 +865,7 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 	}
 
 	protected static void setJar(String jar) throws InvalidKeyException, NoSuchElementException, SignatureException, NoSuchAlgorithmException, TimeoutException, InterruptedException, TransactionRejectedException, TransactionException, IOException, UnknownReferenceException, CodeExecutionException, UninitializedNodeException, UnsupportedVerificationVersionException, ClosedNodeException, MisbehavingNodeException, UnexpectedCodeException {
-		HotmokaTest.jar = JarsNodes.of(node, localGamete, privateKeyOfLocalGamete, pathOfExample(jar)).jar(0);
+		HotmokaTest.jar = JarNodes.of(node, localGamete, privateKeyOfLocalGamete, pathOfExample(jar)).jar();
 	}
 
 	protected final TransactionReference takamakaCode() {
@@ -1058,17 +1067,16 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 	 */
 	protected final BigInteger getNonceOf(StorageReference account) throws TransactionRejectedException, ClosedNodeException, UnexpectedCodeException, InterruptedException, TimeoutException, TransactionException, CodeExecutionException, UnknownReferenceException {
 		BigInteger nonce = nonces.get(account);
-		// if there is more than one node or only a remote node, we need to ask the node since there might be history changes
+
+		// if there is more than one node, we need to ask the node since there might be history changes
 		if (nonce != null && nodes.size() == 1)
 			nonce = nonce.add(BigInteger.ONE);
 		else
-			// we ask the node: 100,000 units of gas should be enough to run the method
-			nonce = node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
-					(account, _100_000, node.getClassTag(account).getJar(), MethodSignatures.NONCE, account))
-			.orElseThrow(() -> new UnexpectedVoidMethodException(MethodSignatures.NONCE))
-			.asReturnedBigInteger(MethodSignatures.NONCE, UnexpectedValueException::new);
-
+			// we ask the node
+			nonce = nonceHelper.getNonceOf(account);
+		
 		nonces.put(account, nonce);
+
 		return nonce;
 	}
 }
