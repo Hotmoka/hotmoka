@@ -105,11 +105,11 @@ for the creation of the blockchain that executes the tests.
 Note that some tests will likely fail on Mokamint blockchains with more than one node, since they
 have probabilistic finality, which generates history changes that confuse the testcases.
 
-## Generating code coverage statistics
+## Generating code coverage report
 
-You can generate code coverage statistics about an execution of the tests if you run the tests with the
+You can generate a code coverage report for an execution of the tests if you run the tests with the
 `verify` target, from the parent module
-(if you are inside `io-hotmoka-tests`, just `cd ..` before the following command):
+(if you are inside `io-hotmoka-tests`, just `cd ..` before the following command). For instance:
 
 ```console
 $ mvn clean verify -DnodeType=mokamint -DnumberOfNodes=1 -DtargetBlockCreationTime=4000 -DonlyTimeIndependentTests
