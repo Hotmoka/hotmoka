@@ -105,6 +105,18 @@ for the creation of the blockchain that executes the tests.
 Note that some tests will likely fail on Mokamint blockchains with more than one node, since they
 have probabilistic finality, which generates history changes that confuse the testcases.
 
+## Generating code coverage statistics
+
+You can generate code coverage statistics about an execution of the tests if you run the tests with the
+`verify` target, from the parent module
+(if you are inside `io-hotmoka-tests`, just `cd ..` before the following command):
+
+```console
+$ mvn clean verify -DnodeType=mokamint -DnumberOfNodes=1 -DtargetBlockCreationTime=4000 -DonlyTimeIndependentTests
+```
+
+The generated report will be created at `io-hotmoka-tests/target/site/jacoco-aggregate/index.html`.
+
 &nbsp;
 
 <p align="center"><img width="100" src="../io-hotmoka-tutorial/src/main/resources/pics/CC_license.png" alt="This documentation is licensed under a Creative Commons Attribution 4.0 International License"></p><p align="center">This document is licensed under a Creative Commons Attribution 4.0 International License.</p>

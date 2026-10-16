@@ -129,7 +129,7 @@ class ExampleCoinSnapshotPerformance extends HotmokaTest {
 	private boolean accept(Context context) throws Exception {
 		String type = node.getInfo().getType();
 		boolean isSlow = type.contains("TendermintNode") || type.contains("MokamintNode");
-		return !isSlow || context.numberOfInvestors <= 100; // the others take too much with Tendermint
+		return !isSlow || context.numberOfInvestors <= 100; // the others take too much with Tendermint or Mokamint
 	}
 
 	private static void writePreamble(FileWriter fw) throws IOException {
