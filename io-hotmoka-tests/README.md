@@ -105,7 +105,7 @@ for the creation of the blockchain that executes the tests.
 Note that some tests will likely fail on Mokamint blockchains with more than one node, since they
 have probabilistic finality, which generates history changes that confuse the testcases.
 
-## Generating code coverage report
+## Generating a code coverage report
 
 You can generate a code coverage report for an execution of the tests if you run the tests with the
 `verify` target, from the parent module
