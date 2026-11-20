@@ -53,7 +53,7 @@ class Ponzi extends HotmokaTest {
 
 	@Test
 	@DisplayName("Create Ponzi, add two investors, half of last investment goes to the creator")
-	void ThreeInvestorsHalfOfLastInvestmentGoesToCreator() throws Exception {
+	void simplePonziInvest() throws Exception {
 		// account(0) creates the contract and becomes the first investor
 		var contract = addConstructorCallTransaction(privateKey(0), account(0), GAS_LIMIT, GAS_PRICE, jar(), PONZI_CONSTRUCTOR);
 
