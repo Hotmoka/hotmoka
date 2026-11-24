@@ -77,4 +77,22 @@ public class JarStoreInitialResponseBuilder extends AbstractInitialResponseBuild
 		}
 		.create();
 	}
+
+	/**
+	 * Performs special update actions of the maresia network at specific block heights.
+	 *
+	 * @param height the height of the new block
+	 */
+	/*private void dealWithUpdatesForMaresia(BigInteger height) {
+		var config = getCache().getConfig();
+		var genesisTime = config.getGenesisTime();
+
+		System.out.println(height);
+		if (true) {
+			// "maresia".equals(config.getChainId()) && "2026-03-21T15:00:25.704730626Z".equals(genesisTime.toString()) && // TODO: activate at the end
+			if (height.equals(BigInteger.valueOf(12L))) { // 1300000 should be in early February 2027
+				// at height
+			}
+		}
+	}*/
 }

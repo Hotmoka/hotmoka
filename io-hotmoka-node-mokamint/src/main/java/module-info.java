@@ -36,5 +36,4 @@ module io.hotmoka.node.mokamint {
 	requires io.mokamint.application;
 	requires toml4j;
 	requires java.logging;
-	requires io.mokamint.node.api;
 }

@@ -365,12 +365,13 @@ public abstract class AbstractStoreTransformationImpl<N extends AbstractLocalNod
 	 * 
 	 * @param manifest the manifest of the node
 	 * @param validators the validators object of the node
+	 * @param height the height of the blockchain
 	 * @return the number of minted coins
 	 * @throws InterruptedException if the current thread is interrupted during the operation
 	 */
 	protected final BigInteger getCoinsMinted(StorageReference manifest, StorageReference validators) throws InterruptedException {
-		BigInteger height = extractHeight(manifest, validators);
 		var config = cache.getConfig();
+		BigInteger height = extractHeight(manifest, validators);
 		BigInteger finalSupply = config.getFinalSupply();
 		BigInteger heightAtFinalSupply = config.getHeightAtFinalSupply();
 
@@ -443,17 +444,34 @@ public abstract class AbstractStoreTransformationImpl<N extends AbstractLocalNod
 	/**
 	 * Mark the node as initialized. This happens for initialization requests.
 	 * 
+	 * @param reference the reference of the request
 	 * @param manifest the manifest to put in the node
 	 */
-	private void setManifest(StorageReference manifest) {
+	private void setManifest(TransactionReference reference, StorageReference manifest) {
 		this.deltaManifest = manifest;
+		LOGGER.info(reference + ": " + manifest + " set as manifest");
 
 		try {
-			this.deltaTakamakaCode = getClassTag(manifest).getJar();
+			setTakamakaCode(reference, getClassTag(manifest).getJar());
 		}
 		catch (UnknownReferenceException e) {
 			throw new LocalNodeException("The manifest has been set but it cannot be found in store");
 		}
+	}
+
+	/**
+	 * Sets the takamaka code reference of the node.
+	 * 
+	 * @param reference the reference of the request
+	 * @param takamakaCode the reference to set
+	 */
+	private void setTakamakaCode(TransactionReference reference, TransactionReference takamakaCode) {
+		var maybeOldTakamakaCode = getTakamakaCode();
+		this.deltaTakamakaCode = takamakaCode;
+		if (maybeOldTakamakaCode.isEmpty())
+			LOGGER.info(reference + ": " + deltaTakamakaCode + " set as takamakaCode");
+		else
+			LOGGER.info(reference + ": " + deltaTakamakaCode + " set as takamakaCode, replacing previous " + maybeOldTakamakaCode.get());
 	}
 
 	/*
@@ -595,8 +613,7 @@ public abstract class AbstractStoreTransformationImpl<N extends AbstractLocalNod
 			if (request instanceof InitializationTransactionRequest itr) {
 				setTransaction(reference, request, response);
 				StorageReference manifest = itr.getManifest();
-				setManifest(manifest);
-				LOGGER.info(reference + ": " + manifest + " set as manifest");
+				setManifest(reference, manifest);
 				LOGGER.info(reference + ": the node has been initialized");
 			}
 			else
