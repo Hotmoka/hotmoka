@@ -35,10 +35,21 @@ import io.hotmoka.websockets.beans.api.InconsistentJsonException;
 
 /**
  * Implementation of a request for a transaction that installs a jar in a yet non-initialized node.
+ * Verification for the jar is more permissive than for the normal installation of jars.
+ * This request might also be executed after the node has been initialized, but only
+ * under specific conditions that are specified by the consensus rules of the node.
+ * For instance, it might be executed to replace the Takamaka code jar of the node
+ * if a given block height has been reached.
  */
 @Immutable
 public class JarStoreInitialTransactionRequestImpl extends TransactionRequestImpl<JarStoreInitialTransactionResponse> implements JarStoreInitialTransactionRequest {
 	final static byte SELECTOR = 1;
+
+	/**
+	 * This selector is used for requests that include extra optional parameters such as the
+	 * fact that the jar must be installed as Takamaka code.
+	 */
+	final static byte SELECTOR_EXPANDED = 0;
 
 	/**
 	 * The bytes of the jar to install.
@@ -51,13 +62,20 @@ public class JarStoreInitialTransactionRequestImpl extends TransactionRequestImp
 	private final TransactionReference[] dependencies;
 
 	/**
-	 * Builds the transaction request.
+	 * True if and only if the installed jar must be set as Takamaka code.
+	 */
+	private final boolean setAsTakamakaCode;
+
+	/**
+	 * Builds the transaction request. It can only be executed before the initialization of the node.
 	 * 
+	 * @param setAsTakamakaCode true if and only if the installed jar must be set as Takamaka code
 	 * @param jar the bytes of the jar to install
 	 * @param dependencies the dependencies of the jar, already installed in blockchain
 	 */
-	public JarStoreInitialTransactionRequestImpl(byte[] jar, TransactionReference[] dependencies) {
+	public JarStoreInitialTransactionRequestImpl(boolean setAsTakamakaCode, byte[] jar, TransactionReference[] dependencies) {
 		this(
+			setAsTakamakaCode,
 			Objects.requireNonNull(jar, "jar cannot be null", IllegalArgumentException::new).clone(),
 			Objects.requireNonNull(dependencies, "dependencies cannot be null", IllegalArgumentException::new).clone(),
 			IllegalArgumentException::new
@@ -67,11 +85,13 @@ public class JarStoreInitialTransactionRequestImpl extends TransactionRequestImp
 	/**
 	 * Unmarshals a transaction request from the given context. The selector has been already unmarshalled.
 	 * 
+	 * @param afterInitialization true if and only if the request is sent after the initialization of the node
 	 * @param context the unmarshalling context
 	 * @throws IOException if the request could not be unmarshalled
 	 */
-	public JarStoreInitialTransactionRequestImpl(UnmarshallingContext context) throws IOException {
+	public JarStoreInitialTransactionRequestImpl(boolean expanded, UnmarshallingContext context) throws IOException {
 		this(
+			expanded ? context.readBoolean() : false,
 			context.readLengthAndBytes("jar length mismatch in request"),
 			context.readLengthAndArray(TransactionReferences::from, TransactionReference[]::new),
 			IOException::new
@@ -86,6 +106,7 @@ public class JarStoreInitialTransactionRequestImpl extends TransactionRequestImp
 	 */
 	public JarStoreInitialTransactionRequestImpl(TransactionRequestJson json) throws InconsistentJsonException {
 		this(
+			json.jarShouldBeSetAsTakamakaCode() == null ? false : json.jarShouldBeSetAsTakamakaCode(), // this information is optional
 			Base64.fromBase64String(Objects.requireNonNull(json.getJar(), "jar cannot be null", InconsistentJsonException::new), InconsistentJsonException::new),
 			convertedDependencies(json),
 			InconsistentJsonException::new
@@ -96,12 +117,14 @@ public class JarStoreInitialTransactionRequestImpl extends TransactionRequestImp
 	 * Builds the transaction request.
 	 * 
 	 * @param <E> the type of the exception thrown if some argument passed to this constructor is illegal
+	 * @param setAsTakamakaCode true if and only the installed jar must be set as Takamaka code
 	 * @param jar the bytes of the jar to install
 	 * @param dependencies the dependencies of the jar, already installed in blockchain
 	 * @param onIllegalArgs the creator of the exception thrown if some argument passed to this constructor is illegal
 	 * @throws E if some argument passed to this constructor is illegal
 	 */
-	private <E extends Exception> JarStoreInitialTransactionRequestImpl(byte[] jar, TransactionReference[] dependencies, ExceptionSupplierFromMessage<? extends E> onIllegalArgs) throws E {
+	private <E extends Exception> JarStoreInitialTransactionRequestImpl(boolean setAsTakamakaCode, byte[] jar, TransactionReference[] dependencies, ExceptionSupplierFromMessage<? extends E> onIllegalArgs) throws E {
+		this.setAsTakamakaCode = setAsTakamakaCode;
 		this.jar = jar;
 		this.dependencies = dependencies;
 
@@ -139,24 +162,32 @@ public class JarStoreInitialTransactionRequestImpl extends TransactionRequestImp
 	}
 
 	@Override
+	public boolean jarShouldBeSetAsTakamakaCode() {
+		return setAsTakamakaCode;
+	}
+
+	@Override
 	public String toString() {
 		var sb = new StringBuilder();
         for (byte b: jar)
             sb.append(String.format("%02x", b));
 
         return getClass().getSimpleName() + ":\n"
-			+ "  dependencies: " + Arrays.toString(dependencies) + "\n"
+        	+ "  setAsTakamakaCode: " + setAsTakamakaCode + "\n"
+        	+ "  dependencies: " + Arrays.toString(dependencies) + "\n"
 			+ "  jar: " + sb;
 	}
 
 	@Override
 	public boolean equals(Object other) {
 		if (other instanceof JarStoreInitialTransactionRequestImpl jsitri) // optimization
-			return Arrays.equals(dependencies, jsitri.dependencies) && Arrays.equals(jar, jsitri.jar);
+			return Arrays.equals(dependencies, jsitri.dependencies) && Arrays.equals(jar, jsitri.jar)
+					&& setAsTakamakaCode == jsitri.setAsTakamakaCode;
 		else
 			return other instanceof JarStoreInitialTransactionRequest jsitr &&
 					Arrays.equals(dependencies, jsitr.getDependencies().toArray(TransactionReference[]::new)) &&
-					Arrays.equals(jar, jsitr.getJar());
+					Arrays.equals(jar, jsitr.getJar()) &&
+					setAsTakamakaCode == jsitr.jarShouldBeSetAsTakamakaCode();
 	}
 
 	@Override
@@ -166,7 +197,9 @@ public class JarStoreInitialTransactionRequestImpl extends TransactionRequestImp
 
 	@Override
 	public void into(MarshallingContext context) throws IOException {
-		context.writeByte(SELECTOR);
+		context.writeByte(setAsTakamakaCode ? SELECTOR_EXPANDED : SELECTOR);
+		if (setAsTakamakaCode)
+			context.writeBoolean(true);
 		context.writeLengthAndBytes(jar);
 		context.writeLengthAndArray(dependencies);
 	}

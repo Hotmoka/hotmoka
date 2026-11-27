@@ -41,6 +41,6 @@ class Initialization extends HotmokaTest {
 	void initialFailsInInitialized() {
 		// the node is already initialized, since a non-initial transaction has been used to create
 		// the account with _1_000_000. Hence an attempt to run an initial transaction will fail
-		assertThrows(TransactionRejectedException.class, () -> addJarStoreInitialTransaction(Files.readAllBytes(Paths.get("jars/c13.jar")), takamakaCode()));
+		assertThrows(TransactionRejectedException.class, () -> addJarStoreInitialTransaction(false, Files.readAllBytes(Paths.get("jars/c13.jar")), takamakaCode()));
 	}
 }

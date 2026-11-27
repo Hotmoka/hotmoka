@@ -21,7 +21,19 @@ import io.hotmoka.node.api.responses.JarStoreInitialTransactionResponse;
 
 /**
  * A request for a transaction that installs a jar in a yet non-initialized node.
+ * Verification for the jar is more permissive than for the normal installation of jars.
+ * This request might also be executed after the node has been initialized, but only
+ * under specific conditions that are specified by the consensus rules of the node.
+ * For instance, it might be executed to replace the Takamaka code jar of the node
+ * if a given block height has been reached.
  */
 @Immutable
 public interface JarStoreInitialTransactionRequest extends InitialTransactionRequest<JarStoreInitialTransactionResponse>, GenericJarStoreTransactionRequest<JarStoreInitialTransactionResponse> {
+
+	/**
+	 * Determines if the installed jar must be set as Takamaka code.
+	 * 
+	 * @return true if and only if the installed jar must be set as Takamaka code
+	 */
+	boolean jarShouldBeSetAsTakamakaCode();
 }

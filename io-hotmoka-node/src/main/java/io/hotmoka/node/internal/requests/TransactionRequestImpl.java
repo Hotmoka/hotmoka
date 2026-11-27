@@ -64,7 +64,8 @@ public abstract class TransactionRequestImpl<R extends TransactionResponse> exte
 		case ConstructorCallTransactionRequestImpl.SELECTOR: return new ConstructorCallTransactionRequestImpl(context);
 		case InitializationTransactionRequestImpl.SELECTOR: return new InitializationTransactionRequestImpl(context);
 		case InstanceMethodCallTransactionRequestImpl.SELECTOR: return new InstanceMethodCallTransactionRequestImpl(context, selector);
-		case JarStoreInitialTransactionRequestImpl.SELECTOR: return new JarStoreInitialTransactionRequestImpl(context);
+		case JarStoreInitialTransactionRequestImpl.SELECTOR: return new JarStoreInitialTransactionRequestImpl(false, context);
+		case JarStoreInitialTransactionRequestImpl.SELECTOR_EXPANDED: return new JarStoreInitialTransactionRequestImpl(true, context);
 		case JarStoreTransactionRequestImpl.SELECTOR: return new JarStoreTransactionRequestImpl(context);
 		case GameteCreationTransactionRequestImpl.SELECTOR: return new GameteCreationTransactionRequestImpl(context);
 		case StaticMethodCallTransactionRequestImpl.SELECTOR: return new StaticMethodCallTransactionRequestImpl(context);

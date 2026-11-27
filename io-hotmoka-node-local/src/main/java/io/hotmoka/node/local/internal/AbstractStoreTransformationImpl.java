@@ -365,7 +365,6 @@ public abstract class AbstractStoreTransformationImpl<N extends AbstractLocalNod
 	 * 
 	 * @param manifest the manifest of the node
 	 * @param validators the validators object of the node
-	 * @param height the height of the blockchain
 	 * @return the number of minted coins
 	 * @throws InterruptedException if the current thread is interrupted during the operation
 	 */

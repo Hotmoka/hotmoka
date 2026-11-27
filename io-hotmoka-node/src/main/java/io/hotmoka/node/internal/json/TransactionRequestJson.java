@@ -47,6 +47,7 @@ public abstract class TransactionRequestJson implements JsonRepresentation<Trans
 	private final BigInteger initialAmount;
 	private final String publicKey;
 	private final StorageValues.Json manifest;
+	private final Boolean setAsTakamakaCode;
 	private final String jar; // Base64-encoded bytes
 	private final TransactionReferences.Json[] dependencies;
 	private final StorageValues.Json caller;
@@ -79,6 +80,7 @@ public abstract class TransactionRequestJson implements JsonRepresentation<Trans
 			this.constructor = null;
 			this.method = null;
 			this.receiver = null;
+			this.setAsTakamakaCode = null;
 		}
 		else if (request instanceof InitializationTransactionRequest itr) {
 			this.type = InitializationTransactionRequest.class.getSimpleName();
@@ -98,9 +100,11 @@ public abstract class TransactionRequestJson implements JsonRepresentation<Trans
 			this.constructor = null;
 			this.method = null;
 			this.receiver = null;
+			this.setAsTakamakaCode = null;
 		}
 		else if (request instanceof JarStoreInitialTransactionRequest jitr) {
 			this.type = JarStoreInitialTransactionRequest.class.getSimpleName();
+			this.setAsTakamakaCode = jitr.jarShouldBeSetAsTakamakaCode();
 			this.classpath = null;
 			this.initialAmount = null;
 			this.publicKey = null;
@@ -122,6 +126,7 @@ public abstract class TransactionRequestJson implements JsonRepresentation<Trans
 			this.type = JarStoreTransactionRequest.class.getSimpleName();
 			this.classpath = new TransactionReferences.Json(jtr.getClasspath());
 			this.initialAmount = null;
+			this.setAsTakamakaCode = null;
 			this.publicKey = null;
 			this.manifest = null;
 			this.jar = Base64.toBase64String(jtr.getJar());
@@ -141,6 +146,7 @@ public abstract class TransactionRequestJson implements JsonRepresentation<Trans
 			this.type = ConstructorCallTransactionRequest.class.getSimpleName();
 			this.classpath = new TransactionReferences.Json(cctr.getClasspath());
 			this.initialAmount = null;
+			this.setAsTakamakaCode = null;
 			this.publicKey = null;
 			this.manifest = null;
 			this.jar = null;
@@ -159,6 +165,7 @@ public abstract class TransactionRequestJson implements JsonRepresentation<Trans
 		else if (request instanceof StaticMethodCallTransactionRequest smctr) {
 			this.type = StaticMethodCallTransactionRequest.class.getSimpleName();
 			this.classpath = new TransactionReferences.Json(smctr.getClasspath());
+			this.setAsTakamakaCode = null;
 			this.initialAmount = null;
 			this.publicKey = null;
 			this.manifest = null;
@@ -179,6 +186,7 @@ public abstract class TransactionRequestJson implements JsonRepresentation<Trans
 			this.type = InstanceMethodCallTransactionRequest.class.getSimpleName();
 			this.classpath = new TransactionReferences.Json(imctr.getClasspath());
 			this.initialAmount = null;
+			this.setAsTakamakaCode = null;
 			this.publicKey = null;
 			this.manifest = null;
 			this.jar = null;
@@ -198,6 +206,7 @@ public abstract class TransactionRequestJson implements JsonRepresentation<Trans
 			this.type = InstanceSystemMethodCallTransactionRequest.class.getSimpleName();
 			this.classpath = new TransactionReferences.Json(ismctr.getClasspath());
 			this.initialAmount = null;
+			this.setAsTakamakaCode = null;
 			this.publicKey = null;
 			this.manifest = null;
 			this.jar = null;
@@ -278,6 +287,15 @@ public abstract class TransactionRequestJson implements JsonRepresentation<Trans
 	 */
 	public BigInteger getInitialAmount() {
 		return initialAmount;
+	}
+
+	/**
+	 * Yields the information about the request asking to set the Takamaka code jar, if any.
+	 * 
+	 * @return the information, if any
+	 */
+	public Boolean jarShouldBeSetAsTakamakaCode() {
+		return setAsTakamakaCode;
 	}
 
 	/**

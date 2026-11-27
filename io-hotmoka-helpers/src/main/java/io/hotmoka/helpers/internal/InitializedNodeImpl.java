@@ -83,7 +83,7 @@ public abstract class InitializedNodeImpl<N extends Node, C extends ConsensusCon
 		consensus = editConsensus(consensus);
 
 		// we install the jar containing the basic Takamaka classes
-		TransactionReference takamakaCodeReference = parent.addJarStoreInitialTransaction(TransactionRequests.jarStoreInitial(Files.readAllBytes(takamakaCode)));
+		TransactionReference takamakaCodeReference = parent.addJarStoreInitialTransaction(TransactionRequests.jarStoreInitial(false, Files.readAllBytes(takamakaCode)));
 
 		// we create a gamete
 		this.gamete = parent.addGameteCreationTransaction(TransactionRequests.gameteCreation(takamakaCodeReference, consensus.getInitialSupply(), consensus.getPublicKeyOfGameteBase64()));

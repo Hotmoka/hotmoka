@@ -87,7 +87,16 @@ public class TransactionRequestTests extends AbstractLoggedTests {
 	@Test
 	@DisplayName("jar store initial transaction requests are correctly encoded into Json and decoded from Json")
 	public void encodeDecodeWorksForJarStoreInitialTransactionRequest() throws Exception {
-		var request1 = TransactionRequests.jarStoreInitial(jar, reference, reference2, reference3);
+		var request1 = TransactionRequests.jarStoreInitial(false, jar, reference, reference2, reference3);
+		String encoded = new TransactionRequests.Encoder().encode(request1);
+		var request2 = new TransactionRequests.Decoder().decode(encoded);
+		assertEquals(request1, request2);
+	}
+
+	@Test
+	@DisplayName("jar store initial extended transaction requests are correctly encoded into Json and decoded from Json")
+	public void encodeDecodeWorksForJarStoreInitialExtendedTransactionRequest() throws Exception {
+		var request1 = TransactionRequests.jarStoreInitial(true, jar, reference, reference2, reference3);
 		String encoded = new TransactionRequests.Encoder().encode(request1);
 		var request2 = new TransactionRequests.Decoder().decode(encoded);
 		assertEquals(request1, request2);

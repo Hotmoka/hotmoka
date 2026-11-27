@@ -60,12 +60,13 @@ public abstract class TransactionRequests {
 	/**
 	 * Yields a transaction request to install a jar in a yet non-initialized node.
 	 * 
+	 * @param setAsTakamakaCode true if and only if the installed jar should be set as Takamaka code
 	 * @param jar the bytes of the jar to install
 	 * @param dependencies the dependencies of the jar, already installed in blockchain
 	 * @return the request
 	 */
-	public static JarStoreInitialTransactionRequest jarStoreInitial(byte[] jar, TransactionReference... dependencies) {
-		return new JarStoreInitialTransactionRequestImpl(jar, dependencies);
+	public static JarStoreInitialTransactionRequest jarStoreInitial(boolean setAsTakamakaCode, byte[] jar, TransactionReference... dependencies) {
+		return new JarStoreInitialTransactionRequestImpl(setAsTakamakaCode, jar, dependencies);
 	}
 
 	/**

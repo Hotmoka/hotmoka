@@ -520,7 +520,17 @@ public class MessagesTests extends AbstractLoggedTests {
 	@Test
 	@DisplayName("addJarStoreInitialTransaction messages are correctly encoded into Json and decoded from Json")
 	public void encodeDecodeWorksForAddJarStoreInitialTransaction() throws Exception {
-		var request = TransactionRequests.jarStoreInitial("These are the bytes of a very large jar that must be installed in the Hotmoka node".getBytes(), new TransactionReference[0]);
+		var request = TransactionRequests.jarStoreInitial(false, "These are the bytes of a very large jar that must be installed in the Hotmoka node".getBytes(), new TransactionReference[0]);
+		var expected = AddJarStoreInitialTransactionMessages.of(request, "id");
+		String encoded = new AddJarStoreInitialTransactionMessages.Encoder().encode(expected);
+		var actual = new AddJarStoreInitialTransactionMessages.Decoder().decode(encoded);
+		assertEquals(expected, actual);
+	}
+
+	@Test
+	@DisplayName("addJarStoreInitialTransaction messages after node initialization are correctly encoded into Json and decoded from Json")
+	public void encodeDecodeWorksForAddJarStoreInitialExtendedTransaction() throws Exception {
+		var request = TransactionRequests.jarStoreInitial(true, "These are the bytes of a very large jar that must be installed in the Hotmoka node".getBytes(), new TransactionReference[0]);
 		var expected = AddJarStoreInitialTransactionMessages.of(request, "id");
 		String encoded = new AddJarStoreInitialTransactionMessages.Encoder().encode(expected);
 		var actual = new AddJarStoreInitialTransactionMessages.Decoder().decode(encoded);
